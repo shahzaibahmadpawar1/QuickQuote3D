@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, TransformControls, Grid, Stage } from '@react-three/drei';
-import * as THREE from 'three';
+import React, { useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, TransformControls, Grid } from '@react-three/drei';
+import ModelFactory from './ModelFactory';
 
 const RoomMesh = ({ width, length, height }) => {
     return (
@@ -30,9 +30,6 @@ const RoomMesh = ({ width, length, height }) => {
 };
 
 const DraggableItem = ({ item, onTransform, selected, onSelect }) => {
-    // Create a simple box geometry based on dimensions if no modelUrl
-    const args = [item.dimensions?.width || 1, item.dimensions?.height || 1, item.dimensions?.length || 1];
-
     return (
         <group>
             <TransformControls
@@ -46,18 +43,16 @@ const DraggableItem = ({ item, onTransform, selected, onSelect }) => {
                 enabled={selected}
                 showX={selected} showY={selected} showZ={selected}
             >
-                <mesh
+                <group
                     position={item.position}
                     rotation={item.rotation}
                     onClick={(e) => {
                         e.stopPropagation();
                         onSelect(item.id);
                     }}
-                    castShadow
                 >
-                    <boxGeometry args={args} />
-                    <meshStandardMaterial color={item.color || "orange"} />
-                </mesh>
+                    <ModelFactory item={item} isSelected={selected} />
+                </group>
             </TransformControls>
         </group>
     );
@@ -89,13 +84,6 @@ const Scene = ({ roomDimensions, items, onUpdateItem, onDropItem }) => {
 
     const handleDrop = (e) => {
         e.preventDefault();
-        // Calculate drop position in 3D space is complex without raycasting from mouse event.
-        // For MVP, we drop at center (0,0,0) or slightly offset.
-        // A better approach requires useThree raycaster access which is tricky outside Canvas.
-        // We'll rely on parent App having handled the data transfer, but we need to know WHERE.
-        // Since this div wraps the canvas, we can't easily get 3D coords here.
-        // We will let the App handle the "add" logic, assuming drop happens on the canvas element.
-        // The onDrop passed here is for the wrapper Div.
         onDropItem();
     };
 
