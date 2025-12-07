@@ -10,7 +10,7 @@ const Inventory = ({ onDragStart }) => {
         // For demo purposes, if backend fails or is empty, use mock data
         const fetchItems = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/items');
+                const res = await axios.get('/api/items');
                 if (res.data && res.data.length > 0) {
                     setItems(res.data);
                 } else {
