@@ -65,7 +65,7 @@ const Inventory = ({ onDragStart }) => {
             fetchItems();
         } catch (err) {
             console.error(err);
-            const msg = err.response?.data?.error || err.message || "Unknown error";
+            const msg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
             alert(`Error creating item: ${msg}`);
         }
     };

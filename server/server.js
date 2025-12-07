@@ -98,8 +98,7 @@ app.post('/api/items/import', upload.single('file'), async (req, res) => {
 // 4. Scrape Product
 app.post('/api/scrape', async (req, res) => {
   try {
-    const { url } = req.body;
-    if (!url) return res.status(400).json({ error: 'URL is required' });
+    const { url } = req.body; // Simplified scrape logic
     const data = await scrapeProduct(url);
     res.json(data);
   } catch (error) {
@@ -108,11 +107,13 @@ app.post('/api/scrape', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-// Only listen if not running as a serverless function (e.g. local dev)
+
+// Export for Vercel
+module.exports = app;
+
+// Start server only if run directly
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
-}
-
-module.exports = app;
+  module.exports = app;
