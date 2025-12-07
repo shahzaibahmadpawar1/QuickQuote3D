@@ -6,7 +6,7 @@
             "destination": "/server/server.js"
         },
         {
-            "source": "/(.*)",
+            "source": "/((?!assets/|.*\\..*).*)",
             "destination": "/client/index.html"
         }
     ],
