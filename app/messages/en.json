@@ -19,7 +19,7 @@
     "supabaseNotConfigured": "Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local."
   },
   "landing": {
-    "brand": "Blueprint 3D",
+    "brand": "QuickQuote3D",
     "badge": "Interior planning & cost insight",
     "heroTitle": "Design your space. Understand the cost.",
     "heroSubtitle": "Draw floorplans in 2D, furnish in 3D, and get a living estimate for furniture, finishes, labor, and delivery—before you commit.",
@@ -31,7 +31,7 @@
     "ctaSignInToPlan": "Sign in to plan",
     "ctaTryWithoutAccount": "Try planner (local only)",
     "purposeTitle": "What this project does",
-    "purposeBody": "Blueprint 3D helps students, designers, and homeowners visualize interiors and attach indicative pricing to every choice—from beds and tables to wall and floor finishes—so you can compare scenarios and communicate budgets clearly.",
+    "purposeBody": "QuickQuote3D helps students, designers, and homeowners visualize interiors and attach indicative pricing to every choice—from beds and tables to wall and floor finishes—so you can compare scenarios and communicate budgets clearly.",
     "featuresTitle": "Key features",
     "f1Title": "2D & 3D floor planning",
     "f1Desc": "Sketch walls, switch to 3D, and walk the room before you buy a single piece.",

@@ -170,7 +170,7 @@ export function LandingPage({ isAuthenticated, authRequiredForPlanner }: Landing
               Everything you need to plan smarter
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-center text-[25px] leading-[1.35] text-slate-500">
-              From blueprint to budget, all key tools are available in one place.
+              From plan to budget, all key tools are available in one place.
             </p>
             <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {[

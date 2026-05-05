@@ -19,7 +19,7 @@
     "supabaseNotConfigured": "未配置 Supabase。请在 .env.local 中添加 NEXT_PUBLIC_SUPABASE_URL 与 NEXT_PUBLIC_SUPABASE_ANON_KEY。"
   },
   "landing": {
-    "brand": "Blueprint 3D",
+    "brand": "QuickQuote3D",
     "badge": "室内规划与成本参考",
     "heroTitle": "设计空间，心中有数。",
     "heroSubtitle": "在 2D 中绘制平面图，在 3D 中布置家具，并实时了解家具、饰面、人工与运输等参考费用。",
@@ -31,7 +31,7 @@
     "ctaSignInToPlan": "登录后开始规划",
     "ctaTryWithoutAccount": "试用规划器（仅本地）",
     "purposeTitle": "项目能做什么",
-    "purposeBody": "Blueprint 3D 帮助学生、设计师与业主可视化室内方案，并为床、柜、墙地饰面等选择附上参考价格，便于比较方案与沟通预算。",
+    "purposeBody": "QuickQuote3D 帮助学生、设计师与业主可视化室内方案，并为床、柜、墙地饰面等选择附上参考价格，便于比较方案与沟通预算。",
     "featuresTitle": "主要功能",
     "f1Title": "2D 与 3D 户型",
     "f1Desc": "绘制墙体，切换到 3D，在采购前“走进”房间。",
