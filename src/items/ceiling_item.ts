@@ -48,7 +48,10 @@ export class CeilingItem extends Item {
   }
 
   public customIntersectionPlanes(): THREE.Mesh[] {
-    return this.model.floorplan.ceilingPlanes()
+    // Use floor planes for drag intersections. Ceiling planes can be filtered
+    // out by ray normal checks depending on camera orientation/face direction.
+    // Y is still constrained to mounted ceiling height in moveToPosition().
+    return this.model.floorplan.floorPlanes()
   }
 
   public moveToPosition(vec3: THREE.Vector3): void {
@@ -62,13 +65,12 @@ export class CeilingItem extends Item {
   }
 
   public isValidPosition(vec3: THREE.Vector3): boolean {
-    const corners = this.getCorners('x', 'z', vec3)
     const rooms = this.model.floorplan.getRooms()
     for (let i = 0; i < rooms.length; i++) {
-      if (
-        Utils.pointInPolygon(vec3.x, vec3.z, rooms[i].interiorCorners) &&
-        !Utils.polygonPolygonIntersect(corners, rooms[i].interiorCorners)
-      ) {
+      // Ceiling fixtures should be movable anywhere inside a room based on
+      // their center point. A strict footprint-wall intersection check can
+      // prevent dragging for larger fixtures (e.g. user-uploaded models).
+      if (Utils.pointInPolygon(vec3.x, vec3.z, rooms[i].interiorCorners)) {
         return true
       }
     }

@@ -125,18 +125,46 @@ export class FloorplannerView {
 
   /** */
   private drawWallLabels(wall: Wall) {
-    // we'll just draw the shorter label... idk
+    // Show the wall's true start->end length so labels match typed input.
+    const length = wall.getLengthCm()
+    if (length < 60) {
+      return
+    }
+
+    let labelX = this.viewmodel.convertX((wall.getStartX() + wall.getEndX()) / 2)
+    let labelY = this.viewmodel.convertY((wall.getStartY() + wall.getEndY()) / 2)
+
+    // Prefer placing text near an edge interior center for readability.
     if (wall.backEdge && wall.frontEdge) {
       if (wall.backEdge.interiorDistance < wall.frontEdge.interiorDistance) {
-        this.drawEdgeLabel(wall.backEdge)
+        const pos = wall.backEdge.interiorCenter()
+        labelX = this.viewmodel.convertX(pos.x)
+        labelY = this.viewmodel.convertY(pos.y)
       } else {
-        this.drawEdgeLabel(wall.frontEdge)
+        const pos = wall.frontEdge.interiorCenter()
+        labelX = this.viewmodel.convertX(pos.x)
+        labelY = this.viewmodel.convertY(pos.y)
       }
     } else if (wall.backEdge) {
-      this.drawEdgeLabel(wall.backEdge)
+      const pos = wall.backEdge.interiorCenter()
+      labelX = this.viewmodel.convertX(pos.x)
+      labelY = this.viewmodel.convertY(pos.y)
     } else if (wall.frontEdge) {
-      this.drawEdgeLabel(wall.frontEdge)
+      const pos = wall.frontEdge.interiorCenter()
+      labelX = this.viewmodel.convertX(pos.x)
+      labelY = this.viewmodel.convertY(pos.y)
     }
+
+    this.context.font = 'normal 12px Arial'
+    this.context.fillStyle = '#000000'
+    this.context.textBaseline = 'middle'
+    this.context.textAlign = 'center'
+    this.context.strokeStyle = '#ffffff'
+    this.context.lineWidth = 4
+
+    const label = Dimensioning.cmToMeasure(length)
+    this.context.strokeText(label, labelX, labelY)
+    this.context.fillText(label, labelX, labelY)
   }
 
   /** */

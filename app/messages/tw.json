@@ -62,7 +62,9 @@
       "newPlan": "新建方案",
       "savePlan": "保存方案",
       "downloadPlan": "下载方案",
-      "loadPlan": "加载方案"
+      "loadPlan": "加载方案",
+      "undo": "復原",
+      "redo": "重做"
     },
     "floorplanner": {
       "moveWalls": "移動牆體",
@@ -154,8 +156,10 @@
         "description": "以 {currency} 設定物品價格。登入使用者可只覆寫自己的價格。",
         "showItems": "顯示物品",
         "hideItems": "隱藏物品",
+        "customItemsSection": "自訂物品",
         "defaultLabel": "預設價",
         "defaultBadge": "預設",
+        "customBadge": "自訂",
         "overrideBadge": "我的覆寫",
         "save": "儲存",
         "reset": "重設",
@@ -276,6 +280,27 @@
       "showerRoomOne": "淋浴房",
       "showerHeadOne": "花洒",
       "sinkOne": "洗手池"
+    },
+    "customItems": {
+      "openButton": "新增自訂項目",
+      "title": "新增自訂項目",
+      "name": "項目名稱",
+      "namePlaceholder": "我的自訂椅子",
+      "description": "描述（選填）",
+      "descriptionPlaceholder": "此模型的選填說明",
+      "category": "分類",
+      "itemType": "放置類型",
+      "typeFloor": "地面項目",
+      "typeWindow": "窗戶項目",
+      "typeDoor": "門項目",
+      "typeLight": "天花燈",
+      "price": "單價",
+      "image": "圖片（.png, .jpg）",
+      "model": "3D 模型（.glb）",
+      "cancel": "取消",
+      "save": "儲存項目",
+      "saving": "儲存中...",
+      "unexpectedError": "無法新增此項目，請再試一次。"
     },
     "contextMenu": {
       "deleteItem": "删除物品",

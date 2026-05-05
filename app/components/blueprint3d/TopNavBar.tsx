@@ -1,6 +1,6 @@
 'use client'
 
-import { Settings, FilePlus } from 'lucide-react'
+import { Settings, FilePlus, Undo2, Redo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,10 @@ interface TopNavBarProps {
   onSettingsClick: () => void
   onSave: () => void
   onNew: () => void
+  onUndo: () => void
+  onRedo: () => void
+  canUndo: boolean
+  canRedo: boolean
   ceilingVisible: boolean
   onCeilingVisibleChange: (visible: boolean) => void
 }
@@ -31,6 +35,10 @@ export function TopNavBar({
   onSettingsClick,
   onSave,
   onNew,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
   ceilingVisible,
   onCeilingVisibleChange
 }: TopNavBarProps) {
@@ -147,6 +155,28 @@ export function TopNavBar({
             className={cn(isMobile && 'h-8 px-3 text-xs')}
           >
             {tMain('savePlan')}
+          </Button>
+
+          <Button
+            onClick={onUndo}
+            variant="outline"
+            size="icon"
+            className={cn(isMobile ? 'h-8 w-8' : 'h-9 w-9')}
+            aria-label={tMain('undo')}
+            disabled={!canUndo}
+          >
+            <Undo2 className={cn(isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
+          </Button>
+
+          <Button
+            onClick={onRedo}
+            variant="outline"
+            size="icon"
+            className={cn(isMobile ? 'h-8 w-8' : 'h-9 w-9')}
+            aria-label={tMain('redo')}
+            disabled={!canRedo}
+          >
+            <Redo2 className={cn(isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
           </Button>
 
           <Button

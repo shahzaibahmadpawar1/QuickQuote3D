@@ -13,10 +13,10 @@ import { cn } from "@/lib/utils"
 import { isSupabaseConfigured } from '@/lib/supabase/env'
 import { ITEMS, type ItemCategory } from '@blueprint3d/constants'
 import { loadRoomTypes, saveRoomTypes, normalizeRoomTypeName, getRoomTypeLabel } from '@/lib/room-types'
+import type { CatalogListItem } from '@/types/user-item'
 
 // Language display names map
 type LanguageMap = Record<string, string>
-type CatalogItem = (typeof ITEMS)[number]
 
 interface SettingsProps {
   onUnitChange?: (unit: string) => void
@@ -25,6 +25,7 @@ interface SettingsProps {
   itemPrices?: Record<string, number>
   userItemOverrides?: Record<string, number>
   currency?: string
+  catalogItems?: CatalogListItem[]
   onPricingChanged?: () => void
   onRoomTypesChanged?: (roomTypes: string[]) => void
 }
@@ -36,6 +37,7 @@ export function Settings({
   itemPrices = {},
   userItemOverrides = {},
   currency = 'USD',
+  catalogItems = ITEMS,
   onPricingChanged,
   onRoomTypesChanged
 }: SettingsProps) {
@@ -74,12 +76,12 @@ export function Settings({
 
   useEffect(() => {
     const next: Record<string, string> = {}
-    for (const item of ITEMS) {
+    for (const item of catalogItems) {
       const value = itemPrices[item.key]
       next[item.key] = Number.isFinite(value) ? String(value) : ''
     }
     setDraftPrices(next)
-  }, [itemPrices])
+  }, [catalogItems, itemPrices])
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {
@@ -135,14 +137,21 @@ export function Settings({
   )
 
   const groupedItems = useMemo(() => {
-    const map = new Map<ItemCategory, CatalogItem[]>()
-    for (const item of ITEMS) {
+    const map = new Map<ItemCategory, CatalogListItem[]>()
+    for (const item of catalogItems) {
       const arr = map.get(item.category) ?? []
       arr.push(item)
       map.set(item.category, arr)
     }
     return Array.from(map.entries())
-  }, [])
+  }, [catalogItems])
+
+  const customItems = useMemo(() => catalogItems.filter((item) => item.isCustom), [catalogItems])
+
+  const getItemLabel = (item: CatalogListItem): string => {
+    if (item.isCustom) return item.name
+    return tItems(item.key)
+  }
 
   const onPriceInputChange = (itemKey: string, raw: string) => {
     setDraftPrices((prev) => ({ ...prev, [itemKey]: raw }))
@@ -426,13 +435,13 @@ export function Settings({
           <p className="text-sm text-muted-foreground mb-4">{t('itemPricing.description', { currency })}</p>
           {showPricingItems && (
             <div className="space-y-3">
-              {groupedItems.map(([category, items]) => (
-                <details key={category} className="rounded-md border bg-card p-2">
+              {customItems.length > 0 && (
+                <details open className="rounded-md border bg-card p-2">
                   <summary className="cursor-pointer select-none text-sm font-medium">
-                    {tItems(`categories.${category}`)}
+                    {t('itemPricing.customItemsSection')}
                   </summary>
                   <div className="mt-3 space-y-2">
-                    {items.map((item) => {
+                    {customItems.map((item) => {
                       const defaultValue = itemPrices[item.key]
                       const raw = draftPrices[item.key] ?? ''
                       const parsed = Number(raw)
@@ -442,10 +451,15 @@ export function Settings({
                       return (
                         <div key={item.key} className="flex flex-wrap items-center gap-2 rounded-md border p-2">
                           <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded border">
-                            <Image src={item.image} alt={tItems(item.key)} fill className="object-cover" sizes="48px" />
+                            <img src={item.image} alt={getItemLabel(item)} className="h-full w-full object-cover" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium">{tItems(item.key)}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-sm font-medium">{getItemLabel(item)}</p>
+                              <span className="rounded px-2 py-0.5 text-[10px] bg-primary/15 text-primary">
+                                {t('itemPricing.customBadge')}
+                              </span>
+                            </div>
                             <p className="text-xs text-muted-foreground">
                               {t('itemPricing.defaultLabel')}: {numberFormat.format(defaultValue ?? 0)}
                             </p>
@@ -464,7 +478,81 @@ export function Settings({
                             className="h-8 w-28 min-w-28"
                             inputMode="decimal"
                             placeholder="0.00"
-                            aria-label={t('itemPricing.priceInputAria', { name: tItems(item.key) })}
+                            aria-label={t('itemPricing.priceInputAria', { name: getItemLabel(item) })}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={!isValid || Boolean(savingKeys[item.key])}
+                            onClick={() => persistPrice(item.key)}
+                          >
+                            {t('itemPricing.save')}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={!isOverridden || Boolean(savingKeys[item.key])}
+                            onClick={() => resetPrice(item.key)}
+                          >
+                            {t('itemPricing.reset')}
+                          </Button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </details>
+              )}
+              {groupedItems.map(([category, items]) => (
+                <details key={category} className="rounded-md border bg-card p-2">
+                  <summary className="cursor-pointer select-none text-sm font-medium">
+                    {tItems(`categories.${category}`)}
+                  </summary>
+                  <div className="mt-3 space-y-2">
+                    {items.map((item) => {
+                      const defaultValue = itemPrices[item.key]
+                      const raw = draftPrices[item.key] ?? ''
+                      const parsed = Number(raw)
+                      const isValid = raw.length > 0 && Number.isFinite(parsed) && parsed >= 0
+                      const isOverridden = Object.prototype.hasOwnProperty.call(userItemOverrides, item.key)
+
+                      return (
+                        <div key={item.key} className="flex flex-wrap items-center gap-2 rounded-md border p-2">
+                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded border">
+                            {item.isCustom ? (
+                              <img src={item.image} alt={getItemLabel(item)} className="h-full w-full object-cover" />
+                            ) : (
+                              <Image src={item.image} alt={getItemLabel(item)} fill className="object-cover" sizes="48px" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-sm font-medium">{getItemLabel(item)}</p>
+                              {item.isCustom && (
+                                <span className="rounded px-2 py-0.5 text-[10px] bg-primary/15 text-primary">
+                                  {t('itemPricing.customBadge')}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {t('itemPricing.defaultLabel')}: {numberFormat.format(defaultValue ?? 0)}
+                            </p>
+                          </div>
+                          <span
+                            className={cn(
+                              'rounded px-2 py-1 text-[10px]',
+                              isOverridden ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
+                            )}
+                          >
+                            {isOverridden ? t('itemPricing.overrideBadge') : t('itemPricing.defaultBadge')}
+                          </span>
+                          <Input
+                            value={raw}
+                            onChange={(e) => onPriceInputChange(item.key, e.target.value)}
+                            className="h-8 w-28 min-w-28"
+                            inputMode="decimal"
+                            placeholder="0.00"
+                            aria-label={t('itemPricing.priceInputAria', { name: getItemLabel(item) })}
                           />
                           <Button
                             type="button"

@@ -21,6 +21,7 @@ interface ItemPriceSummaryPanelProps {
   minimized: boolean
   onToggleMinimize: () => void
   onDragStart: (event: React.MouseEvent<HTMLDivElement>) => void
+  onItemClick?: (itemKey: string) => void
 }
 
 export function ItemPriceSummaryPanel({
@@ -28,7 +29,8 @@ export function ItemPriceSummaryPanel({
   currency,
   minimized,
   onToggleMinimize,
-  onDragStart
+  onDragStart,
+  onItemClick
 }: ItemPriceSummaryPanelProps) {
   const t = useTranslations('BluePrint.estimate.itemPanel')
   const locale = useLocale()
@@ -88,7 +90,20 @@ export function ItemPriceSummaryPanel({
                   <tbody className="bg-background">
                     {rows.map((row) => (
                       <tr key={row.itemKey} className="border-t border-border/60">
-                        <td className="px-3 py-2">{row.label}</td>
+                        <td className="px-3 py-2">
+                          {onItemClick ? (
+                            <button
+                              type="button"
+                              className="max-w-[180px] truncate text-left text-primary hover:underline"
+                              onClick={() => onItemClick(row.itemKey)}
+                              title={row.label}
+                            >
+                              {row.label}
+                            </button>
+                          ) : (
+                            row.label
+                          )}
+                        </td>
                         <td className="px-2 py-2 text-right">{row.quantity}</td>
                         <td className="px-2 py-2 text-right">{formatter.format(row.unitPrice)}</td>
                         <td className="px-3 py-2 text-right">{formatter.format(row.lineTotal)}</td>

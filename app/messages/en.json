@@ -62,7 +62,9 @@
       "newPlan": "New Plan",
       "savePlan": "Save Plan",
       "downloadPlan": "Download Plan",
-      "loadPlan": "Load Plan"
+      "loadPlan": "Load Plan",
+      "undo": "Undo",
+      "redo": "Redo"
     },
     "floorplanner": {
       "moveWalls": "Move Walls",
@@ -154,8 +156,10 @@
         "description": "Set default item pricing in {currency}. Signed-in users can override values for their account only.",
         "showItems": "Show items",
         "hideItems": "Hide items",
+        "customItemsSection": "Custom items",
         "defaultLabel": "Default",
         "defaultBadge": "Default",
+        "customBadge": "Custom",
         "overrideBadge": "Your override",
         "save": "Save",
         "reset": "Reset",
@@ -276,6 +280,27 @@
       "showerRoomOne": "Shower Room",
       "showerHeadOne": "Shower Head",
       "sinkOne": "Sink"
+    },
+    "customItems": {
+      "openButton": "Add custom item",
+      "title": "Add custom item",
+      "name": "Item name",
+      "namePlaceholder": "My custom chair",
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "Optional notes for this model",
+      "category": "Category",
+      "itemType": "Placement type",
+      "typeFloor": "Floor item",
+      "typeWindow": "Window item",
+      "typeDoor": "Door item",
+      "typeLight": "Ceiling light",
+      "price": "Unit price",
+      "image": "Image (.png, .jpg)",
+      "model": "3D model (.glb)",
+      "cancel": "Cancel",
+      "save": "Save item",
+      "saving": "Saving...",
+      "unexpectedError": "Could not add this item. Please try again."
     },
     "contextMenu": {
       "deleteItem": "Delete Item",

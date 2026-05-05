@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useTranslations } from 'next-intl'
 import { ItemsList } from './ItemsList'
+import { AddItemDialog } from './AddItemDialog'
+import { useState } from 'react'
+import type { CatalogListItem, UserCatalogItem } from '@/types/user-item'
 
 interface ItemsDrawerProps {
   isOpen: boolean
@@ -12,6 +15,8 @@ interface ItemsDrawerProps {
   onItemSelect: (item: any) => void
   itemPrices?: Record<string, number>
   currency?: string
+  items?: CatalogListItem[]
+  onCustomItemCreated?: (item: UserCatalogItem) => void
 }
 
 export function ItemsDrawer({
@@ -19,9 +24,13 @@ export function ItemsDrawer({
   onClose,
   onItemSelect,
   itemPrices,
-  currency
+  currency,
+  items,
+  onCustomItemCreated
 }: ItemsDrawerProps) {
   const t = useTranslations('BluePrint.sidebar')
+  const tCustom = useTranslations('BluePrint.customItems')
+  const [isAddOpen, setIsAddOpen] = useState(false)
 
   return (
     <>
@@ -58,10 +67,22 @@ export function ItemsDrawer({
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4">
-            <ItemsList onItemSelect={onItemSelect} itemPrices={itemPrices} currency={currency} />
+            <div className="mb-4">
+              <Button className="w-full" onClick={() => setIsAddOpen(true)}>
+                {tCustom('openButton')}
+              </Button>
+            </div>
+            <ItemsList onItemSelect={onItemSelect} itemPrices={itemPrices} currency={currency} items={items} />
           </div>
         </div>
       </div>
+      <AddItemDialog
+        open={isAddOpen}
+        onOpenChange={setIsAddOpen}
+        onCreated={(item) => {
+          onCustomItemCreated?.(item)
+        }}
+      />
     </>
   )
 }

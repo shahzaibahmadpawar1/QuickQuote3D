@@ -29,6 +29,8 @@ import {
   buildModelUrlToItemKey,
   defaultEstimateSettings
 } from '@/lib/default-pricing'
+import { buildCatalogItems } from '@/lib/catalog-items'
+import { listUserItems } from '@/services/user-items'
 
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
 import { floorplannerModes } from '@blueprint3d/floorplanner/floorplanner_view'
@@ -41,6 +43,7 @@ import type { Room } from '@blueprint3d/model/room'
 import { Blueprint3DModes, type Blueprint3DMode } from '@blueprint3d/config/modes'
 import { RoomType, isValidRoomType } from '@blueprint3d/types/room_types'
 import { loadRoomTypes } from '@/lib/room-types'
+import type { UserCatalogItem } from '@/types/user-item'
 
 export interface Blueprint3DAppConfig {
   enableWheelZoom?: boolean | (() => boolean)
@@ -61,6 +64,7 @@ interface Blueprint3DAppBaseProps {
 }
 
 export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
+  const CUSTOM_ITEM_DEFAULT_SIZE_CM = 50 * 2.54
   const {
     enableWheelZoom = true,
     mode = Blueprint3DModes.BEDROOM,
@@ -89,6 +93,10 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const draftPersistenceReadyRef = useRef(false)
   const loadingToastsRef = useRef<Array<{ toastId: string | number; itemName: string }>>([])
   const itemCostDragRef = useRef<{ offsetX: number; offsetY: number } | null>(null)
+  const summarySelectionCursorRef = useRef<Record<string, number>>({})
+  const historyRef = useRef<string[]>([])
+  const historyIndexRef = useRef(-1)
+  const restoringHistoryRef = useRef(false)
 
   const [activeTab, setActiveTab] = useState<'projects' | 'edit' | 'items'>(
     openMyFloorplans ? 'projects' : 'edit'
@@ -125,6 +133,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [costEstimate, setCostEstimate] = useState<CostEstimateResult | null>(null)
   const [wallLengthDialogOpen, setWallLengthDialogOpen] = useState(false)
   const [wallLengthTarget, setWallLengthTarget] = useState<Wall | null>(null)
+  const [userItems, setUserItems] = useState<UserCatalogItem[]>([])
+  const [canUndo, setCanUndo] = useState(false)
+  const [canRedo, setCanRedo] = useState(false)
 
   const getWheelZoomEnabled = useCallback(() => {
     if (typeof enableWheelZoom === 'function') {
@@ -193,7 +204,17 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     blueprint3d.model.floorplan.fireOnRedraw(bumpLayout)
     blueprint3d.model.scene.itemRemovedCallbacks.add(bumpLayout)
 
-    blueprint3d.model.scene.itemLoadedCallbacks.add((_item) => {
+    blueprint3d.model.scene.itemLoadedCallbacks.add((item) => {
+      const itemKey = item?.metadata?.itemKey
+      if (typeof itemKey === 'string' && itemKey.startsWith('usr_')) {
+        // Enforce default dimensions for custom uploads (50 inches each side).
+        // Users can still change size later in the context menu.
+        item.resize(
+          CUSTOM_ITEM_DEFAULT_SIZE_CM,
+          CUSTOM_ITEM_DEFAULT_SIZE_CM,
+          CUSTOM_ITEM_DEFAULT_SIZE_CM
+        )
+      }
       setItemsLoading((prev) => prev - 1)
       const loadingToasts = loadingToastsRef.current
       if (loadingToasts.length > 0) {
@@ -259,7 +280,66 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     return () => {
       blueprint3d.floorplanner!.wallLengthEditHandler = null
     }
-  }, [getWheelZoomEnabled, tItems, mode, onBlueprint3DReady])
+  }, [CUSTOM_ITEM_DEFAULT_SIZE_CM, getWheelZoomEnabled, tItems, mode, onBlueprint3DReady])
+
+  const updateHistoryControls = useCallback(() => {
+    const idx = historyIndexRef.current
+    const len = historyRef.current.length
+    setCanUndo(idx > 0)
+    setCanRedo(idx >= 0 && idx < len - 1)
+  }, [])
+
+  const pushHistorySnapshot = useCallback((serialized: string) => {
+    if (!serialized) return
+    const currentIdx = historyIndexRef.current
+    const currentHistory = historyRef.current
+    if (currentIdx >= 0 && currentHistory[currentIdx] === serialized) {
+      updateHistoryControls()
+      return
+    }
+
+    const truncated = currentHistory.slice(0, currentIdx + 1)
+    truncated.push(serialized)
+    const MAX_HISTORY = 60
+    if (truncated.length > MAX_HISTORY) {
+      truncated.shift()
+    }
+
+    historyRef.current = truncated
+    historyIndexRef.current = truncated.length - 1
+    updateHistoryControls()
+  }, [updateHistoryControls])
+
+  const handleUndo = useCallback(() => {
+    if (!blueprint3dRef.current) return
+    if (historyIndexRef.current <= 0) return
+    const targetIndex = historyIndexRef.current - 1
+    const snapshot = historyRef.current[targetIndex]
+    if (!snapshot) return
+
+    restoringHistoryRef.current = true
+    historyIndexRef.current = targetIndex
+    blueprint3dRef.current.model.loadSerialized(snapshot)
+    updateHistoryControls()
+    window.setTimeout(() => {
+      restoringHistoryRef.current = false
+    }, 0)
+  }, [updateHistoryControls])
+
+  const handleRedo = useCallback(() => {
+    if (!blueprint3dRef.current) return
+    const targetIndex = historyIndexRef.current + 1
+    const snapshot = historyRef.current[targetIndex]
+    if (!snapshot) return
+
+    restoringHistoryRef.current = true
+    historyIndexRef.current = targetIndex
+    blueprint3dRef.current.model.loadSerialized(snapshot)
+    updateHistoryControls()
+    window.setTimeout(() => {
+      restoringHistoryRef.current = false
+    }, 0)
+  }, [updateHistoryControls])
 
   // Persist in-progress layout as draft so refresh does not lose unsaved work.
   useEffect(() => {
@@ -328,6 +408,15 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
   }, [tEstimate])
 
+  const loadUserItems = useCallback(async () => {
+    try {
+      const items = await listUserItems()
+      setUserItems(items)
+    } catch {
+      setUserItems([])
+    }
+  }, [])
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -340,8 +429,35 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   }, [loadPricing])
 
   useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (cancelled) return
+      await loadUserItems()
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [loadUserItems])
+
+  useEffect(() => {
     setRoomTypes(loadRoomTypes())
   }, [])
+
+  const mergedCatalogItems = useMemo(() => buildCatalogItems(userItems), [userItems])
+  const customItemLabelMap = useMemo(() => {
+    const out: Record<string, string> = {}
+    for (const item of userItems) {
+      out[item.itemKey] = item.name
+    }
+    return out
+  }, [userItems])
+  const modelUrlToItemKeyMap = useMemo(() => {
+    const out = buildModelUrlToItemKey()
+    for (const item of userItems) {
+      out[item.modelUrl] = item.itemKey
+    }
+    return out
+  }, [userItems])
 
   useEffect(() => {
     if (!pricingPayload || !blueprint3dRef.current) return
@@ -350,7 +466,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       computeLayoutCostEstimate({
         layout_json: json,
         item_unit_prices: pricingPayload.itemPrices,
-        model_url_to_item_key: buildModelUrlToItemKey(),
+        model_url_to_item_key: modelUrlToItemKeyMap,
         texture_price_per_sq_m_by_url: pricingPayload.texturePricesPerSqM,
         wall_height_cm: Configuration.getNumericValue(configWallHeight),
         settings: {
@@ -361,7 +477,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         }
       })
     )
-  }, [layoutEpoch, pricingPayload])
+  }, [layoutEpoch, modelUrlToItemKeyMap, pricingPayload])
+
+  useEffect(() => {
+    if (!blueprint3dRef.current) return
+    if (restoringHistoryRef.current) return
+    const serialized = blueprint3dRef.current.model.exportSerialized()
+    pushHistorySnapshot(serialized)
+  }, [layoutEpoch, pushHistorySnapshot])
 
   // Update wheel zoom setting when it changes
   useEffect(() => {
@@ -442,6 +565,34 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     },
     [clampItemCostPosition]
   )
+
+  const handleSummaryItemClick = useCallback((itemKey: string) => {
+    const blueprint3d = blueprint3dRef.current
+    if (!blueprint3d) return
+
+    const sceneItems = blueprint3d.model.scene.getItems()
+    const matches = sceneItems.filter((item) => {
+      const metadataKey = item.metadata?.itemKey
+      if (metadataKey === itemKey) return true
+      const metadataModelUrl = item.metadata?.modelUrl
+      return typeof metadataModelUrl === 'string' && modelUrlToItemKeyMap[metadataModelUrl] === itemKey
+    })
+
+    if (matches.length === 0) return
+
+    const currentIndex = summarySelectionCursorRef.current[itemKey] ?? -1
+    const nextIndex = (currentIndex + 1) % matches.length
+    summarySelectionCursorRef.current[itemKey] = nextIndex
+    const nextItem = matches[nextIndex]
+
+    blueprint3d.three.getController().setSelectedObject(nextItem)
+    setSelectedItem(nextItem)
+    setTextureType(null)
+    setCurrentTarget(null)
+    setActiveTab('edit')
+    setViewMode('3d')
+    blueprint3d.three.needsUpdate()
+  }, [modelUrlToItemKeyMap])
 
   // Handle resize with ResizeObserver for accurate sizing
   useEffect(() => {
@@ -728,7 +879,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       description?: string
     }) => {
       if (!blueprint3dRef.current) return
-      const translatedName = tItems(item.key)
+      const translatedName = customItemLabelMap[item.key] ?? tItems(item.key)
       const toastId = toast.loading(tItems('loadingItem', { name: translatedName }))
       loadingToastsRef.current.push({ toastId, itemName: translatedName })
 
@@ -745,7 +896,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       setActiveTab('edit')
       setViewMode('3d')
     },
-    [tItems]
+    [customItemLabelMap, tItems]
   )
 
   const handleTextureSelect = useCallback(
@@ -761,7 +912,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const itemSummaryRows = useMemo(() => {
     if (!blueprint3dRef.current || !pricingPayload) return []
     const exported = JSON.parse(blueprint3dRef.current.model.exportSerialized())
-    const modelMap = buildModelUrlToItemKey()
+    const modelMap = modelUrlToItemKeyMap
     const lines = new Map<
       string,
       { itemKey: string; label: string; quantity: number; unitPrice: number; lineTotal: number }
@@ -770,7 +921,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       const itemKey = item.item_key || modelMap[item.model_url]
       if (!itemKey) continue
       const unitPrice = Number(pricingPayload.itemPrices[itemKey] ?? 0)
-      const label = tItems(itemKey)
+      const label = customItemLabelMap[itemKey] ?? tItems(itemKey)
       const current = lines.get(itemKey)
       if (current) {
         current.quantity += 1
@@ -786,7 +937,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       }
     }
     return Array.from(lines.values()).sort((a, b) => a.label.localeCompare(b.label))
-  }, [layoutEpoch, pricingPayload, tItems])
+  }, [customItemLabelMap, layoutEpoch, modelUrlToItemKeyMap, pricingPayload, tItems])
 
   useEffect(() => {
     if (!blueprint3dRef.current) return
@@ -814,6 +965,10 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             onSettingsClick={() => setSettingsOpen(true)}
             onSave={handleSave}
             onNew={handleNew}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            canUndo={canUndo}
+            canRedo={canRedo}
             ceilingVisible={ceilingVisible}
             onCeilingVisibleChange={setCeilingVisible}
           />
@@ -921,6 +1076,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
                 minimized={itemCostMinimized}
                 onToggleMinimize={() => setItemCostMinimized((prev) => !prev)}
                 onDragStart={handleItemCostPanelDragStart}
+                onItemClick={handleSummaryItemClick}
               />
             </div>
           )}
@@ -971,6 +1127,11 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         onItemSelect={handleItemSelect}
         itemPrices={pricingPayload?.itemPrices}
         currency={pricingPayload?.settings.currency}
+        items={mergedCatalogItems}
+        onCustomItemCreated={(item) => {
+          setUserItems((prev) => [item, ...prev])
+          void loadPricing()
+        }}
       />
 
       <EstimateDialog
@@ -1008,6 +1169,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         itemPrices={pricingPayload?.itemPrices}
         userItemOverrides={pricingPayload?.userItemOverrides}
         currency={pricingPayload?.settings.currency}
+        catalogItems={mergedCatalogItems}
         onPricingChanged={loadPricing}
         onRoomTypesChanged={setRoomTypes}
       />

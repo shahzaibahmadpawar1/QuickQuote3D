@@ -370,7 +370,11 @@ export class Controller {
     const customIntersections = item.customIntersectionPlanes()
     let intersections: THREE.Intersection[]
     if (customIntersections && customIntersections.length > 0) {
-      intersections = this.getIntersections(vec2, customIntersections, true)
+      // Ceiling items can miss drag/rotate intersections if we filter by face
+      // normals (plane normal may face away from camera at certain angles).
+      // Keep normal filtering for other items, disable for ceiling fixtures.
+      const isCeilingItem = (item as any)?.metadata?.itemType === 11
+      intersections = this.getIntersections(vec2, customIntersections, !isCeilingItem)
     } else {
       intersections = this.getIntersections(vec2, this.plane)
     }

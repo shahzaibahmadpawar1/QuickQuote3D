@@ -5,11 +5,13 @@ import Image from 'next/image'
 import { ITEMS, type ItemCategory } from '@blueprint3d/constants'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button } from "@/components/ui/button"
+import type { CatalogListItem } from '@/types/user-item'
 
 interface ItemsListProps {
-  onItemSelect: (item: { name: string; key: string; model: string; type: string }) => void
+  onItemSelect: (item: { name: string; key: string; model: string; type: string; description?: string }) => void
   itemPrices?: Record<string, number>
   currency?: string
+  items?: CatalogListItem[]
 }
 
 const CATEGORY_KEYS = {
@@ -44,7 +46,7 @@ const CATEGORY_VALUES: Array<ItemCategory | 'all'> = [
   'window'
 ]
 
-export function ItemsList({ onItemSelect, itemPrices = {}, currency = 'USD' }: ItemsListProps) {
+export function ItemsList({ onItemSelect, itemPrices = {}, currency = 'USD', items = ITEMS }: ItemsListProps) {
   const t = useTranslations('BluePrint.items')
   const locale = useLocale()
 
@@ -68,15 +70,20 @@ export function ItemsList({ onItemSelect, itemPrices = {}, currency = 'USD' }: I
 
   // Filter items based on selected category
   const filteredItems = useMemo(() => {
-    let items = ITEMS
+    let filtered = items
 
     // Apply category filter
     if (selectedCategory !== 'all') {
-      items = items.filter((item) => item.category === selectedCategory)
+      filtered = filtered.filter((item) => item.category === selectedCategory)
     }
 
-    return items
-  }, [selectedCategory])
+    return filtered
+  }, [selectedCategory, items])
+
+  const getItemLabel = (item: CatalogListItem) => {
+    if (item.isCustom) return item.name
+    return t(item.key)
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -105,23 +112,28 @@ export function ItemsList({ onItemSelect, itemPrices = {}, currency = 'USD' }: I
                 name: item.name,
                 key: item.key,
                 model: item.model,
-                type: item.type
+                type: item.type,
+                description: item.description
               })
             }
             className="border border-border rounded hover:border-primary active:border-primary transition-colors p-2 sm:p-2 flex flex-col items-center gap-1.5 sm:gap-2 cursor-pointer bg-card group min-h-[120px] sm:min-h-[140px]"
           >
             <div className="relative w-full aspect-square">
-              <Image
-                src={item.image}
-                alt={t(item.key)}
-                fill
-                sizes="(max-width: 768px) 25vw, 10vw"
-                className="object-contain"
-              />
+              {item.isCustom ? (
+                <img src={item.image} alt={getItemLabel(item)} className="absolute inset-0 h-full w-full object-contain" />
+              ) : (
+                <Image
+                  src={item.image}
+                  alt={getItemLabel(item)}
+                  fill
+                  sizes="(max-width: 768px) 25vw, 10vw"
+                  className="object-contain"
+                />
+              )}
             </div>
             <div className="flex flex-col items-center gap-0.5 sm:gap-1 w-full">
               <span className="text-xs sm:text-xs text-center font-medium leading-tight">
-                {t(item.key)}
+                {getItemLabel(item)}
               </span>
               <span className="text-[11px] text-muted-foreground text-center">
                 {currencyFormatter.format(Number(itemPrices[item.key] ?? 0))}

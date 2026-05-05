@@ -37,13 +37,18 @@ export async function GET() {
 
     let userOverrides: Record<string, number> = {}
     if (user) {
-      const overridesRes = await supabase
-        .from('user_item_prices')
-        .select('item_key, unit_price')
-        .eq('user_id', user.id)
-      if (overridesRes.data?.length) {
-        userOverrides = {}
-        for (const row of overridesRes.data) {
+      const [overridesRes, customCatalogRes] = await Promise.all([
+        supabase
+          .from('user_item_prices')
+          .select('item_key, unit_price')
+          .eq('user_id', user.id),
+        supabase
+          .from('user_catalog_items')
+          .select('item_key, unit_price')
+          .eq('user_id', user.id)
+      ])
+      for (const source of [overridesRes.data ?? [], customCatalogRes.data ?? []]) {
+        for (const row of source) {
           if (row.item_key != null && row.unit_price != null) {
             userOverrides[row.item_key] = Number(row.unit_price)
           }

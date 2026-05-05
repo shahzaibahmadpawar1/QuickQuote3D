@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Settings } from './Settings'
+import type { CatalogListItem } from '@/types/user-item'
 
 interface SettingsDialogProps {
   isOpen: boolean
@@ -16,6 +17,7 @@ interface SettingsDialogProps {
   itemPrices?: Record<string, number>
   userItemOverrides?: Record<string, number>
   currency?: string
+  catalogItems?: CatalogListItem[]
   onPricingChanged?: () => void
   onRoomTypesChanged?: (roomTypes: string[]) => void
 }
@@ -28,6 +30,7 @@ export function SettingsDialog({
   itemPrices,
   userItemOverrides,
   currency,
+  catalogItems,
   onPricingChanged,
   onRoomTypesChanged
 }: SettingsDialogProps) {
@@ -44,6 +47,7 @@ export function SettingsDialog({
             itemPrices={itemPrices}
             userItemOverrides={userItemOverrides}
             currency={currency}
+            catalogItems={catalogItems}
             onPricingChanged={onPricingChanged}
             onRoomTypesChanged={onRoomTypesChanged}
           />

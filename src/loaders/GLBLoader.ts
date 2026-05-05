@@ -127,10 +127,13 @@ export class GLBLoader {
       mergedGeometry = this.mergeGeometries(geometries)
     }
 
-    // Scale from meters to centimeters (GLB typically uses meters, this project uses cm)
-    // Apply scale factor of 100 to convert m -> cm
-    const scaleFactor = 100
+    // Normalize units to this project's centimeters coordinate system.
+    // Many user-uploaded GLBs are authored in cm/mm instead of meters.
+    const scaleFactor = this.getUnitScaleFactor(mergedGeometry)
     mergedGeometry.scale(scaleFactor, scaleFactor, scaleFactor)
+
+    // Safety clamp: avoid extremely large models that can swallow the whole scene.
+    this.clampOversizedGeometry(mergedGeometry)
 
     // Ensure bounding box and sphere are computed
     mergedGeometry.computeBoundingBox()
@@ -172,6 +175,45 @@ export class GLBLoader {
     })
 
     return { geometry: mergedGeometry, materials: processedMaterials }
+  }
+
+  /**
+   * Infer source units and return scale factor to convert to centimeters.
+   * Heuristic by raw bounding-box max dimension:
+   * - <= 20   : likely meters -> x100
+   * - 20..500 : likely centimeters -> x1
+   * - > 500   : likely millimeters -> x0.1
+   */
+  private getUnitScaleFactor(geometry: THREE.BufferGeometry): number {
+    geometry.computeBoundingBox()
+    const bbox = geometry.boundingBox
+    if (!bbox) return 100
+
+    const size = new THREE.Vector3()
+    bbox.getSize(size)
+    const maxDim = Math.max(size.x, size.y, size.z)
+
+    if (maxDim > 500) return 0.1
+    if (maxDim > 20) return 1
+    return 100
+  }
+
+  /**
+   * Clamp unusually large models so they still appear inside typical rooms.
+   */
+  private clampOversizedGeometry(geometry: THREE.BufferGeometry): void {
+    geometry.computeBoundingBox()
+    const bbox = geometry.boundingBox
+    if (!bbox) return
+
+    const size = new THREE.Vector3()
+    bbox.getSize(size)
+    const maxDim = Math.max(size.x, size.y, size.z)
+    const maxAllowedCm = 800
+    if (maxDim > maxAllowedCm) {
+      const factor = maxAllowedCm / maxDim
+      geometry.scale(factor, factor, factor)
+    }
   }
 
   /**

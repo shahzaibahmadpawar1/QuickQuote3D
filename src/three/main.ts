@@ -275,11 +275,6 @@ export class Main {
         floor.setRoofVisible(visible)
       })
     }
-    this.scene.getItems().forEach((item: any) => {
-      if (item?.metadata?.itemType === 11) {
-        item.visible = visible
-      }
-    })
     this._needsUpdate = true
   }
 

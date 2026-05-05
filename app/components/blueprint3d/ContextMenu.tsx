@@ -29,6 +29,18 @@ export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }:
   const [fixed, setFixed] = useState(false)
   const [currentUnit, setCurrentUnit] = useState('inch')
 
+  const getItemLabel = (): string => {
+    const key = selectedItem?.metadata?.itemKey
+    const fallback = selectedItem?.metadata?.itemName || key || ''
+    if (!key) return fallback
+    if (key.startsWith('usr_')) return fallback
+    try {
+      return tItems(key)
+    } catch {
+      return fallback
+    }
+  }
+
   // Convert cm to display unit
   const cmToDisplay = (cm: number, unit: string): number => {
     switch (unit) {
@@ -140,7 +152,7 @@ export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }:
       {/* Header with item name */}
       <div className="flex items-center justify-between mb-3">
         <span className={cn('font-semibold truncate', isMobile ? 'text-base' : 'text-sm')}>
-          {selectedItem.metadata?.itemKey ? tItems(selectedItem.metadata.itemKey) : selectedItem.metadata?.itemName}
+          {getItemLabel()}
         </span>
         <Button
           variant="ghost"
