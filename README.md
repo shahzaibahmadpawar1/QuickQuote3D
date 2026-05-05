@@ -1,8 +1,4 @@
-# Blueprint3D Modern
-
-A modern, open-source 3D floor planner built with **Three.js** and **TypeScript**. Blueprint3D Modern is a complete rewrite of the classic blueprint3d library as a clean ES module, paired with a production-ready **Next.js 15** demo application featuring local IndexedDB storage — no backend required.
-
-**[Live Demo →](https://blueprint3d-modern.vercel.app/)**
+# QuickQuote3D
 
 ## Screenshots
 
@@ -35,9 +31,9 @@ A modern, open-source 3D floor planner built with **Three.js** and **TypeScript*
 ## Repository Structure
 
 ```
-blueprint3d-modern/
+QuickQuote3d/
 ├── src/                        # Core library (TypeScript + Three.js)
-│   ├── blueprint3d.ts          # Main Blueprint3d class
+│   ├── QuickQuote3d.ts          # Main QuickQuote3d class
 │   ├── constants.ts
 │   ├── core/                   # Utils, configuration, dimensioning, events
 │   ├── model/                  # Floorplan, Corner, Wall, Room, Scene
@@ -111,30 +107,13 @@ cd app && pnpm build
 ## Core Library (`src/`)
 
 The `src/` directory is a standalone TypeScript library that can be used independently of the Next.js app.
-
-### Quick Start
-
-```typescript
-import { Blueprint3d } from './src/blueprint3d'
-
-const blueprint = new Blueprint3d({
-  floorplanContainer: 'floorplan',   // 2D canvas container id
-  threeContainer: 'three',           // 3D canvas container id
-  textureDir: '/textures/'
-})
-
-// Load a saved floor plan
-blueprint.model.loadSerialized(jsonString)
-
-// Save the current state
-const json = blueprint.model.exportSerialized()
 ```
 
 ### Key Classes
 
 | Class | Description |
 |-------|-------------|
-| `Blueprint3d` | Root class — wires together the model, 2D floorplanner, and 3D renderer |
+| `QuickQuote3d` | Root class — wires together the model, 2D floorplanner, and 3D renderer |
 | `Model` | Owns the `Floorplan` and `Scene`; handles serialize/deserialize |
 | `Floorplan` | Wall and corner graph; emits geometry change events |
 | `Floorplanner` | 2D canvas controller (draw / move / delete modes) |
@@ -144,69 +123,13 @@ const json = blueprint.model.exportSerialized()
 
 ---
 
-## Demo App Components (`app/components/blueprint3d/`)
-
-| Component | Description |
-|-----------|-------------|
-| `Blueprint3DApp` | Top-level client component, dynamic-imported to avoid SSR issues |
-| `Blueprint3DAppBase` | Core logic: state management, save/load, thumbnail generation |
-| `TopNavBar` | Mode tabs (Edit / Add Items / My Floor Plans / Settings) |
-| `FloorplannerControls` | 2D mode toolbar (Draw Walls / Move Walls / Delete / Done) |
-| `CameraControls` | 3D camera reset and orbit help button |
-| `ViewToggle` | 2D ↔ 3D toggle switch |
-| `ItemsDrawer` | Slide-out panel with `ItemsList` |
-| `ItemsList` | Categorized furniture grid with search |
-| `ContextMenu` | Per-item popup: resize (W/D/H), lock in place |
-| `TextureSelector` | Floor and wall texture picker |
-| `MyFloorplans` | Saved designs grid/list with load and delete |
-| `SaveFloorplanDialog` | Modal to name and save a floor plan |
-| `NewFloorplanDialog` | Modal to start a new floor plan (clears current) |
-| `SettingsDialog` / `Settings` | Unit system and language preferences |
-| `TemplateSelector` | Room-type tabs with pre-built templates |
-| `BedSizeInput` | In-context bed dimension editor |
-
----
-
-## Storage (`app/services/storage.ts`)
-
-Floor plans are persisted entirely in the browser using **IndexedDB** — no server or account needed.
-
-```typescript
-import { blueprintStorage } from '@/services/storage'
-
-// List all saved floor plans
-const plans = await blueprintStorage.list()
-
-// Save a new floor plan
-const plan = await blueprintStorage.create({
-  name: 'My Bedroom',
-  roomType: 'bedroom',
-  layoutData: blueprint.model.exportSerialized(),
-  thumbnailBase64: canvas.toDataURL()
-})
-
-// Load a floor plan
-const plan = await blueprintStorage.get(id)
-
-// Delete a floor plan
-await blueprintStorage.delete(id)
-```
-
-**Database:** `blueprint3d_floorplans` · **Store:** `floorplans`
-
----
-
 ## Internationalization
-
-The app uses [next-intl](https://next-intl-docs.vercel.app/) with three built-in locales:
 
 | Code | Language |
 |------|----------|
 | `en` | English |
 | `zh` | 简体中文 |
 | `tw` | 繁體中文 |
-
-Translation files live in `app/messages/{locale}.json`. To add a new language, add the locale to `app/i18n/routing.ts` and create the corresponding `messages/{locale}.json`.
 
 ---
 
@@ -226,68 +149,3 @@ Translation files live in `app/messages/{locale}.json`. To add a new language, a
 | Notifications | [Sonner](https://sonner.emilkowal.ski/) | 1.7.4 |
 | Storage | IndexedDB (browser-native) | — |
 | Language | TypeScript | 5.x |
-
-> **Note on Three.js r0.181:** This release uses the new `WebGPURenderer` path for optional GPU acceleration. Blueprint3D Modern still uses the stable `WebGLRenderer` — the `three/examples/jsm` ESM imports are resolved via webpack alias to ensure the app's local `node_modules` copy is always used, avoiding version mismatches when `src/` sits outside the Next.js app directory.
-
----
-
-## Roadmap
-
-Items marked ✅ are shipped. Everything else is planned or open for contribution.
-
-### Core Library
-
-- [x] ES module rewrite (no more globals / jQuery)
-- [x] TypeScript strict types throughout
-- [x] Three.js r0.170+ compatibility (BufferGeometry, `WebGLRenderer`)
-- [x] anime.js v4 camera animation
-- [x] IndexedDB template store
-- [ ] Vite build output — publish `src/` as a proper npm package (`blueprint3d-modern`)
-- [ ] Unit tests for model layer (Floorplan, Corner, Wall graph)
-- [ ] GLB/GLTF model support alongside OBJ/MTL
-- [ ] Undo / Redo history stack
-- [ ] Wall thickness configuration per wall
-- [ ] Multi-room / multi-floor support
-
-### Demo App
-
-- [x] Next.js 15 App Router with `[locale]` routing
-- [x] IndexedDB storage (save / load / delete — zero backend)
-- [x] Thumbnail generation on save
-- [x] Dark mode (CSS variables)
-- [x] 3 locales: en / zh / tw
-- [ ] Export floor plan as PNG / SVG / PDF
-- [ ] Import floor plan from JSON file
-- [ ] Drag-to-reorder saved floor plans
-- [ ] Duplicate an existing floor plan
-- [ ] Share floor plan via URL (base64-encoded state or short link)
-- [ ] More room templates (kitchen, bathroom, office, studio)
-- [ ] More furniture items and texture packs
-- [ ] Mobile touch gesture improvements (pinch-zoom, two-finger pan)
-- [ ] Keyboard shortcuts cheat sheet
-
-### Infrastructure
-
-- [ ] Publish core library to npm
-- [ ] Add Storybook for UI component catalog
-- [ ] GitHub Actions CI (type-check + build on every PR)
-- [ ] Vercel / Netlify one-click deploy button
-
----
-
-## Contributing
-
-Contributions are welcome! Please open an issue or pull request.
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes
-4. Push and open a Pull Request
-
----
-
-## License
-
-MIT © [charmlinn](https://github.com/charmlinn)
-
-See [LICENSE](./LICENSE) for full text.
