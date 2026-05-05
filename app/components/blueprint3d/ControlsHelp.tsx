@@ -31,7 +31,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
       <Button
         onClick={toggleHelp}
         className={cn(
-          'fixed bottom-5 right-5 z-[80] rounded-full shadow-lg',
+          'fixed bottom-5 right-5 z-80 rounded-full shadow-lg',
           'hover:scale-110 transition-transform duration-200',
           isMobile ? 'h-14 w-14' : 'h-12 w-12',
           className
@@ -47,7 +47,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
       {isOpen && (
         <div
           className={cn(
-            'fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm',
+            'fixed inset-0 z-90 flex items-center justify-center bg-black/60 backdrop-blur-sm',
             'animate-in fade-in duration-300'
           )}
           onClick={toggleHelp}
@@ -82,7 +82,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                   {/* 2D Floorplanner Controls */}
                   <div className="space-y-4">
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <Move className="h-5 w-5 text-primary" />
                       </div>
                       <div>
@@ -95,7 +95,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                     </div>
 
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <Pencil className="h-5 w-5 text-primary" />
                       </div>
                       <div>
@@ -107,7 +107,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                     </div>
 
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <Trash2 className="h-5 w-5 text-primary" />
                       </div>
                       <div>
@@ -119,7 +119,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                     </div>
 
                     <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <ZoomIn className="h-5 w-5 text-primary" />
                       </div>
                       <div>
@@ -137,7 +137,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                   {isMobile ? (
                     <div className="space-y-4">
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <Hand className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -149,7 +149,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                       </div>
 
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <ZoomIn className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -161,7 +161,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                       </div>
 
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <Move className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -173,7 +173,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                       </div>
 
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <MousePointer2 className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -187,7 +187,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                   ) : (
                     <div className="space-y-4">
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <RotateCw className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -199,7 +199,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                       </div>
 
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <ZoomIn className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -211,7 +211,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                       </div>
 
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <Move className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -223,7 +223,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
                       </div>
 
                       <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <MousePointer2 className="h-5 w-5 text-primary" />
                         </div>
                         <div>
