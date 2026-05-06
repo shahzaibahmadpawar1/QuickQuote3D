@@ -74,21 +74,21 @@ export function FloorplannerControls({
             <Trash2 className={cn(isMobile ? 'h-5 w-5' : 'h-4 w-4')} />
             {!isMobile && t('deleteWalls')}
           </Button>
-        </div>
 
-        <label className={cn(
-          'pointer-events-auto flex items-center gap-2 rounded-md border bg-background/95 px-3 py-2 text-sm shadow-sm',
-          isMobile && 'min-h-[44px]'
-        )}>
-          <input
-            type="checkbox"
-            className="h-4 w-4 accent-primary"
-            checked={wallLengthLocked}
-            onChange={(event) => onWallLengthLockedChange(event.target.checked)}
-            aria-label={t('lockWallLengths')}
-          />
-          <span>{t('lockWallLengths')}</span>
-        </label>
+          <label className={cn(
+            'pointer-events-auto flex items-center gap-2 rounded-md border bg-background/95 px-3 py-2 text-sm shadow-sm',
+            isMobile && 'min-h-[44px]'
+          )}>
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-primary"
+              checked={wallLengthLocked}
+              onChange={(event) => onWallLengthLockedChange(event.target.checked)}
+              aria-label={t('lockWallLengths')}
+            />
+            <span>{t('lockWallLengths')}</span>
+          </label>
+        </div>
 
         <Button
           size={isMobile ? 'sm' : 'sm'}

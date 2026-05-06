@@ -291,10 +291,18 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         setWallLengthDialogOpen(true)
       }
       blueprint3d.floorplanner.setWallLengthLock(wallLengthLocked)
+      blueprint3d.floorplanner.setLayoutTranslateHandler((dx, dy) => {
+        blueprint3d.model.scene.getItems().forEach((sceneItem) => {
+          sceneItem.position.x += dx
+          sceneItem.position.z += dy
+        })
+        blueprint3d.model.scene.needsUpdate = true
+      })
     }
 
     return () => {
       blueprint3d.floorplanner!.wallLengthEditHandler = null
+      blueprint3d.floorplanner!.setLayoutTranslateHandler(null)
     }
   }, [CUSTOM_ITEM_DEFAULT_SIZE_CM, getWheelZoomEnabled, tItems, mode, onBlueprint3DReady])
 
@@ -941,7 +949,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       const itemKey = item.item_key || modelMap[item.model_url]
       if (!itemKey) continue
       const unitPrice = Number(pricingPayload.itemPrices[itemKey] ?? 0)
-      const label = customItemLabelMap[itemKey] ?? tItems(itemKey)
+      let label = customItemLabelMap[itemKey]
+      if (!label) {
+        try {
+          label = tItems(itemKey)
+        } catch {
+          label = itemKey
+        }
+      }
       const current = lines.get(itemKey)
       if (current) {
         current.quantity += 1

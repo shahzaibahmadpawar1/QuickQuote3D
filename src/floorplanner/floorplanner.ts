@@ -60,6 +60,9 @@ export class Floorplanner {
   /** Lock wall lengths while dragging walls in MOVE mode. */
   public lockWallLengths = false
 
+  /** Optional callback to keep scene items in sync with rigid wall movement. */
+  private layoutTranslateHandler: ((dx: number, dy: number) => void) | null = null
+
   /** */
   private mouseDown = false
 
@@ -302,6 +305,7 @@ export class Floorplanner {
         const dy = (this.rawMouseY - this.lastY) * this.cmPerPixel
         if (this.lockWallLengths) {
           this.floorplan.moveWallConnectedComponent(this.activeWall, dx, dy)
+          this.layoutTranslateHandler?.(dx, dy)
         } else {
           this.activeWall.relativeMove(dx, dy)
           this.activeWall.snapToAxis(snapTolerance)
@@ -360,6 +364,11 @@ export class Floorplanner {
   /** */
   public setWallLengthLock(locked: boolean): void {
     this.lockWallLengths = locked
+  }
+
+  /** */
+  public setLayoutTranslateHandler(handler: ((dx: number, dy: number) => void) | null): void {
+    this.layoutTranslateHandler = handler
   }
 
   /** Sets the origin so that floorplan is centered */

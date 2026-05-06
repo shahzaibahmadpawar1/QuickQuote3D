@@ -78,7 +78,7 @@
       "wallLengthCancel": "Cancel",
       "wallLengthInvalid": "Could not read that length. Check the number and try again.",
       "moveDoubleClickLength": "Double-click a wall (Move mode) to type an exact length.",
-      "lockWallLengths": "Lock wall lengths"
+      "lockWallLengths": "Lock"
     },
     "viewToggle": {
       "3d": "3D",

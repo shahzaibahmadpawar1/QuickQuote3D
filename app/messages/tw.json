@@ -78,7 +78,7 @@
       "wallLengthCancel": "取消",
       "wallLengthInvalid": "無法辨識此長度，請檢查數字後再試。",
       "moveDoubleClickLength": "在「移動牆體」模式下雙擊一面牆可輸入精確長度。",
-      "lockWallLengths": "鎖定牆體長度"
+      "lockWallLengths": "鎖定"
     },
     "viewToggle": {
       "3d": "3D",
