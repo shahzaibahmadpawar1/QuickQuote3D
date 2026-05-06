@@ -77,7 +77,8 @@
       "wallLengthApply": "应用",
       "wallLengthCancel": "取消",
       "wallLengthInvalid": "无法识别该长度，请检查数字后重试。",
-      "moveDoubleClickLength": "在「移动墙体」模式下双击一面墙可输入精确长度。"
+      "moveDoubleClickLength": "在「移动墙体」模式下双击一面墙可输入精确长度。",
+      "lockWallLengths": "锁定墙体长度"
     },
     "viewToggle": {
       "3d": "3D",

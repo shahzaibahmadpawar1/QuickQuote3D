@@ -105,6 +105,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [estimateOpen, setEstimateOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
   const [floorplannerMode, setFloorplannerMode] = useState<'move' | 'draw' | 'delete'>('move')
+  const [wallLengthLocked, setWallLengthLocked] = useState(false)
   const [textureType, setTextureType] = useState<'floor' | 'wall' | null>(null)
   const [currentTarget, setCurrentTarget] = useState<HalfEdge | Room | null>(null)
   const [itemsLoading, setItemsLoading] = useState(0)
@@ -137,12 +138,18 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [canUndo, setCanUndo] = useState(false)
   const [canRedo, setCanRedo] = useState(false)
 
+  const viewModeRef = useRef<'2d' | '3d'>('3d')
+
   const getWheelZoomEnabled = useCallback(() => {
     if (typeof enableWheelZoom === 'function') {
       return enableWheelZoom()
     }
     return enableWheelZoom
   }, [enableWheelZoom])
+
+  useEffect(() => {
+    viewModeRef.current = viewMode
+  }, [viewMode])
 
   // Initialize Blueprint3d
   useEffect(() => {
@@ -202,7 +209,12 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     const bumpLayout = () => setLayoutEpoch((e) => e + 1)
     blueprint3d.model.floorplan.fireOnUpdatedRooms(bumpLayout)
     blueprint3d.model.floorplan.fireOnRedraw(bumpLayout)
-    blueprint3d.model.scene.itemRemovedCallbacks.add(bumpLayout)
+    blueprint3d.model.scene.itemRemovedCallbacks.add(() => {
+      bumpLayout()
+      if (viewModeRef.current === '2d') {
+        blueprint3d.floorplanner?.reset()
+      }
+    })
 
     blueprint3d.model.scene.itemLoadedCallbacks.add((item) => {
       const itemKey = item?.metadata?.itemKey
@@ -222,6 +234,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         toast.success(tItems('loadedSuccess', { name: itemName }), { id: toastId })
       }
       bumpLayout()
+      if (viewModeRef.current === '2d') {
+        blueprint3d.floorplanner?.reset()
+      }
     })
 
     blueprint3d.model.scene.itemLoadErrorCallbacks.add(() => {
@@ -275,12 +290,17 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         setWallLengthTarget(wall)
         setWallLengthDialogOpen(true)
       }
+      blueprint3d.floorplanner.setWallLengthLock(wallLengthLocked)
     }
 
     return () => {
       blueprint3d.floorplanner!.wallLengthEditHandler = null
     }
   }, [CUSTOM_ITEM_DEFAULT_SIZE_CM, getWheelZoomEnabled, tItems, mode, onBlueprint3DReady])
+
+  useEffect(() => {
+    blueprint3dRef.current?.floorplanner?.setWallLengthLock(wallLengthLocked)
+  }, [wallLengthLocked])
 
   const updateHistoryControls = useCallback(() => {
     const idx = historyIndexRef.current
@@ -1041,7 +1061,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
               <>
                 <FloorplannerControls
                   mode={floorplannerMode}
+                  wallLengthLocked={wallLengthLocked}
                   onModeChange={handleFloorplannerModeChange}
+                  onWallLengthLockedChange={setWallLengthLocked}
                   onDone={handleFloorplannerDone}
                 />
                 {floorplannerMode === 'draw' && (
@@ -1094,7 +1116,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           )}
 
           {/* Texture Selector */}
-          {textureType && !isFullscreen && (
+          {textureType && !isFullscreen && viewMode === '3d' && (
             <div className="absolute right-2 md:right-4 top-16 md:top-20 z-70 max-h-[calc(100vh-100px)] md:max-h-[calc(100vh-120px)] overflow-y-auto">
               <TextureSelector type={textureType} onTextureSelect={handleTextureSelect} />
             </div>

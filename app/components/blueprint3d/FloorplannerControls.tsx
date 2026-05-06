@@ -8,16 +8,24 @@ import { useIsMobile } from "@/hooks/use-media-query"
 
 interface FloorplannerControlsProps {
   mode: 'move' | 'draw' | 'delete'
+  wallLengthLocked: boolean
   onModeChange: (mode: 'move' | 'draw' | 'delete') => void
+  onWallLengthLockedChange: (locked: boolean) => void
   onDone: () => void
 }
 
-export function FloorplannerControls({ mode, onModeChange, onDone }: FloorplannerControlsProps) {
+export function FloorplannerControls({
+  mode,
+  wallLengthLocked,
+  onModeChange,
+  onWallLengthLockedChange,
+  onDone
+}: FloorplannerControlsProps) {
   const t = useTranslations('BluePrint.floorplanner')
   const isMobile = useIsMobile()
 
   return (
-    <div className={cn('absolute left-0 top-0 w-full z-[60] pointer-events-none', isMobile ? 'my-3 px-3' : 'my-3 px-5')}>
+    <div className={cn('absolute left-0 top-0 w-full z-60 pointer-events-none', isMobile ? 'my-3 px-3' : 'my-3 px-5')}>
       <div className="flex items-center justify-between gap-2">
         <div className={cn('flex pointer-events-auto', isMobile ? 'gap-1.5' : 'gap-2')}>
           <Button
@@ -67,6 +75,20 @@ export function FloorplannerControls({ mode, onModeChange, onDone }: Floorplanne
             {!isMobile && t('deleteWalls')}
           </Button>
         </div>
+
+        <label className={cn(
+          'pointer-events-auto flex items-center gap-2 rounded-md border bg-background/95 px-3 py-2 text-sm shadow-sm',
+          isMobile && 'min-h-[44px]'
+        )}>
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-primary"
+            checked={wallLengthLocked}
+            onChange={(event) => onWallLengthLockedChange(event.target.checked)}
+            aria-label={t('lockWallLengths')}
+          />
+          <span>{t('lockWallLengths')}</span>
+        </label>
 
         <Button
           size={isMobile ? 'sm' : 'sm'}

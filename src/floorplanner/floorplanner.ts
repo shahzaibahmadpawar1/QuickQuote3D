@@ -7,6 +7,9 @@ type FloorplannerMode = (typeof floorplannerModes)[keyof typeof floorplannerMode
 
 /** how much will we move a corner to make a wall axis aligned (cm) */
 const snapTolerance = 25
+const minPixelsPerFoot = 6
+const maxPixelsPerFoot = 80
+const zoomStep = 1.1
 
 /**
  * The Floorplanner implements an interactive tool for creation of floorplans.
@@ -53,6 +56,9 @@ export class Floorplanner {
    * If set, double-clicking a wall in Move mode requests a typed length (e.g. to open a dialog).
    */
   public wallLengthEditHandler: ((wall: Wall) => void) | null = null
+
+  /** Lock wall lengths while dragging walls in MOVE mode. */
+  public lockWallLengths = false
 
   /** */
   private mouseDown = false
@@ -123,6 +129,9 @@ export class Floorplanner {
     })
     this.canvasElement.addEventListener('mousemove', (event: MouseEvent) => {
       this.mousemove(event)
+    })
+    this.canvasElement.addEventListener('wheel', (event: WheelEvent) => {
+      this.mousewheel(event)
     })
     this.canvasElement.addEventListener('mouseup', () => {
       this.mouseup()
@@ -205,6 +214,33 @@ export class Floorplanner {
   }
 
   /** */
+  private mousewheel(event: WheelEvent): void {
+    event.preventDefault()
+
+    const rect = this.canvasElement.getBoundingClientRect()
+    const canvasX = event.clientX - rect.left
+    const canvasY = event.clientY - rect.top
+    const worldXBefore = canvasX * this.cmPerPixel + this.originX * this.cmPerPixel
+    const worldYBefore = canvasY * this.cmPerPixel + this.originY * this.cmPerPixel
+
+    const zoomFactor = event.deltaY < 0 ? 1 / zoomStep : zoomStep
+    const cmPerFoot = 30.48
+    const minCmPerPixel = cmPerFoot / maxPixelsPerFoot
+    const maxCmPerPixel = cmPerFoot / minPixelsPerFoot
+    const nextCmPerPixel = Math.min(
+      maxCmPerPixel,
+      Math.max(minCmPerPixel, this.cmPerPixel * zoomFactor)
+    )
+
+    this.cmPerPixel = nextCmPerPixel
+    this.pixelsPerCm = 1 / nextCmPerPixel
+
+    this.originX = worldXBefore / this.cmPerPixel - canvasX
+    this.originY = worldYBefore / this.cmPerPixel - canvasY
+    this.view.draw()
+  }
+
+  /** */
   private mousemove(event: MouseEvent): void {
     this.mouseMoved = true
 
@@ -262,11 +298,14 @@ export class Floorplanner {
         this.activeCorner.move(this.mouseX, this.mouseY)
         this.activeCorner.snapToAxis(snapTolerance)
       } else if (this.activeWall) {
-        this.activeWall.relativeMove(
-          (this.rawMouseX - this.lastX) * this.cmPerPixel,
-          (this.rawMouseY - this.lastY) * this.cmPerPixel
-        )
-        this.activeWall.snapToAxis(snapTolerance)
+        const dx = (this.rawMouseX - this.lastX) * this.cmPerPixel
+        const dy = (this.rawMouseY - this.lastY) * this.cmPerPixel
+        if (this.lockWallLengths) {
+          this.floorplan.moveWallConnectedComponent(this.activeWall, dx, dy)
+        } else {
+          this.activeWall.relativeMove(dx, dy)
+          this.activeWall.snapToAxis(snapTolerance)
+        }
         this.lastX = this.rawMouseX
         this.lastY = this.rawMouseY
       }
@@ -316,6 +355,11 @@ export class Floorplanner {
     this.mode = mode
     this.modeResetCallbacks.forEach((callback) => callback(mode))
     this.updateTarget()
+  }
+
+  /** */
+  public setWallLengthLock(locked: boolean): void {
+    this.lockWallLengths = locked
   }
 
   /** Sets the origin so that floorplan is centered */

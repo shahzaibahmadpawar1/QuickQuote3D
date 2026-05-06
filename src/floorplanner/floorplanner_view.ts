@@ -5,6 +5,7 @@ import { Room } from '../model/room'
 import { HalfEdge } from '../model/half_edge'
 import { Dimensioning } from '../core/dimensioning'
 import { Utils } from '../core/utils'
+import type { Item } from '../items/item'
 import type { Floorplanner } from './floorplanner'
 
 /** */
@@ -30,6 +31,9 @@ const wallColorHover = '#008cba'
 const edgeColor = '#888888'
 const edgeColorHover = '#008cba'
 const edgeWidth = 1
+const doorColor = '#5b5b5b'
+const doorLeafColor = '#2f2f2f'
+const doorRadius = 16
 
 const deleteColor = '#ff0000'
 
@@ -108,6 +112,7 @@ export class FloorplannerView {
 
     this.floorplan.getWalls().forEach((wall) => {
       this.drawWall(wall)
+      this.drawWallItems(wall)
     })
 
     this.floorplan.getCorners().forEach((corner) => {
@@ -190,6 +195,58 @@ export class FloorplannerView {
     if (!hover && wall.backEdge) {
       this.drawEdge(wall.backEdge, hover)
     }
+  }
+
+  /** */
+  private drawWallItems(wall: Wall) {
+    const startX = wall.getStartX()
+    const startY = wall.getStartY()
+    const endX = wall.getEndX()
+    const endY = wall.getEndY()
+    const dx = endX - startX
+    const dy = endY - startY
+    const length = Math.sqrt(dx * dx + dy * dy)
+    if (length < 1e-6) return
+
+    wall.items.forEach((item) => {
+      const itemType = Number(item.metadata?.itemType)
+      if (itemType !== 7) return
+      this.drawDoorSymbol(item, startX, startY, dx, dy, length)
+    })
+  }
+
+  /** */
+  private drawDoorSymbol(item: Item, wallStartX: number, wallStartY: number, dx: number, dy: number, wallLength: number) {
+    const itemX = item.position.x
+    const itemY = item.position.z
+    const t = ((itemX - wallStartX) * dx + (itemY - wallStartY) * dy) / (wallLength * wallLength)
+    const clampedT = Math.max(0.05, Math.min(0.95, t))
+    const hingeWorldX = wallStartX + dx * clampedT
+    const hingeWorldY = wallStartY + dy * clampedT
+    const openWorldX = hingeWorldX + (dx / wallLength) * doorRadius
+    const openWorldY = hingeWorldY + (dy / wallLength) * doorRadius
+
+    const hingeCanvasX = this.viewmodel.convertX(hingeWorldX)
+    const hingeCanvasY = this.viewmodel.convertY(hingeWorldY)
+    const openCanvasX = this.viewmodel.convertX(openWorldX)
+    const openCanvasY = this.viewmodel.convertY(openWorldY)
+    const radiusPx = Math.sqrt(
+      Math.pow(openCanvasX - hingeCanvasX, 2) + Math.pow(openCanvasY - hingeCanvasY, 2)
+    )
+    const angle = Math.atan2(openCanvasY - hingeCanvasY, openCanvasX - hingeCanvasX)
+
+    this.context.beginPath()
+    this.context.moveTo(hingeCanvasX, hingeCanvasY)
+    this.context.lineTo(openCanvasX, openCanvasY)
+    this.context.lineWidth = 2
+    this.context.strokeStyle = doorLeafColor
+    this.context.stroke()
+
+    this.context.beginPath()
+    this.context.arc(hingeCanvasX, hingeCanvasY, radiusPx, angle, angle + Math.PI / 2, false)
+    this.context.lineWidth = 2
+    this.context.strokeStyle = doorColor
+    this.context.stroke()
   }
 
   /** */

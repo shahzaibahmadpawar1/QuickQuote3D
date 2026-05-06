@@ -331,6 +331,35 @@ export class Floorplan {
   }
 
   /**
+   * Translates the full wall-connected component for a wall by the same delta.
+   * This keeps all segment lengths in that component unchanged while moving.
+   */
+  public moveWallConnectedComponent(wall: Wall, dx: number, dy: number): void {
+    const queue: Corner[] = [wall.getStart(), wall.getEnd()]
+    const visited = new Set<string>()
+    const cornersToMove: Corner[] = []
+
+    while (queue.length > 0) {
+      const corner = queue.shift()!
+      if (visited.has(corner.id)) {
+        continue
+      }
+      visited.add(corner.id)
+      cornersToMove.push(corner)
+
+      corner.adjacentCorners().forEach((adjacentCorner) => {
+        if (!visited.has(adjacentCorner.id)) {
+          queue.push(adjacentCorner)
+        }
+      })
+    }
+
+    cornersToMove.forEach((corner) => {
+      corner.relativeMove(dx, dy)
+    })
+  }
+
+  /**
    * Update rooms
    */
   public update(): void {
