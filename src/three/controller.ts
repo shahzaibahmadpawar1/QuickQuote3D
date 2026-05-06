@@ -44,6 +44,9 @@ export class Controller {
   private touchIdentifier: number | null = null
   private touchStartPos: THREE.Vector2 | null = null
   private touchMoveThreshold = 10 // pixels to distinguish tap from drag
+  private editGestureCompleteHandler: (() => void) | null = null
+  /** True after the user changed rotation while in ROTATING_FREE (click-to-spin mode). */
+  private freeRotateDirty = false
 
   constructor(
     three: Main,
@@ -105,6 +108,7 @@ export class Controller {
       if (intersection) {
         if (this.isRotating()) {
           this.selectedObject.rotate(intersection)
+          this.freeRotateDirty = true
         } else {
           this.selectedObject.clickDragged(intersection)
         }
@@ -222,6 +226,10 @@ export class Controller {
         case ControllerState.ROTATING:
           break
         case ControllerState.ROTATING_FREE:
+          if (this.freeRotateDirty) {
+            this.editGestureCompleteHandler?.()
+            this.freeRotateDirty = false
+          }
           this.switchState(ControllerState.SELECTED)
           break
       }
@@ -238,12 +246,16 @@ export class Controller {
             this.selectedObject.clickReleased()
           }
           this.switchState(ControllerState.SELECTED)
+          this.freeRotateDirty = false
+          this.editGestureCompleteHandler?.()
           break
         case ControllerState.ROTATING:
           if (!this.mouseMoved) {
             this.switchState(ControllerState.ROTATING_FREE)
           } else {
             this.switchState(ControllerState.SELECTED)
+            this.freeRotateDirty = false
+            this.editGestureCompleteHandler?.()
           }
           break
         case ControllerState.UNSELECTED:
@@ -282,6 +294,9 @@ export class Controller {
         this.controls.enabled = true
         break
       case ControllerState.ROTATING:
+        this.controls.enabled = false
+        this.freeRotateDirty = false
+        break
       case ControllerState.ROTATING_FREE:
         this.controls.enabled = false
         break
@@ -558,6 +573,10 @@ export class Controller {
           event.stopPropagation()
           break
         case ControllerState.ROTATING_FREE:
+          if (this.freeRotateDirty) {
+            this.editGestureCompleteHandler?.()
+            this.freeRotateDirty = false
+          }
           this.switchState(ControllerState.SELECTED)
           break
       }
@@ -661,6 +680,8 @@ export class Controller {
             this.selectedObject.clickReleased()
           }
           this.switchState(ControllerState.SELECTED)
+          this.freeRotateDirty = false
+          this.editGestureCompleteHandler?.()
           event.preventDefault()
           break
         case ControllerState.ROTATING:
@@ -668,6 +689,8 @@ export class Controller {
             this.switchState(ControllerState.ROTATING_FREE)
           } else {
             this.switchState(ControllerState.SELECTED)
+            this.freeRotateDirty = false
+            this.editGestureCompleteHandler?.()
           }
           event.preventDefault()
           break
@@ -683,6 +706,10 @@ export class Controller {
           }
           break
         case ControllerState.ROTATING_FREE:
+          if (this.freeRotateDirty) {
+            this.editGestureCompleteHandler?.()
+            this.freeRotateDirty = false
+          }
           break
       }
 
@@ -695,5 +722,9 @@ export class Controller {
    */
   private touchCancelEvent(event: TouchEvent): void {
     this.touchEndEvent(event)
+  }
+
+  public setEditGestureCompleteHandler(handler: (() => void) | null): void {
+    this.editGestureCompleteHandler = handler
   }
 }

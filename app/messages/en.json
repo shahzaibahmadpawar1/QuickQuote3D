@@ -78,7 +78,8 @@
       "wallLengthCancel": "Cancel",
       "wallLengthInvalid": "Could not read that length. Check the number and try again.",
       "moveDoubleClickLength": "Double-click a wall (Move mode) to type an exact length.",
-      "lockWallLengths": "Lock"
+      "lockWallLengths": "Lock",
+      "wallLabelsUnit": "Wall lengths"
     },
     "viewToggle": {
       "3d": "3D",
@@ -173,16 +174,32 @@
         "add": "Add",
         "save": "Save",
         "cancel": "Cancel"
+      },
+      "wallHeight": {
+        "title": "Wall height",
+        "description": "Adjust global wall height for the current plan. Values are converted to centimeters internally.",
+        "unitLabel": "Unit",
+        "apply": "Apply"
       }
     },
     "items": {
       "list": {
         "itemCount": "{count} {count, plural, =1 {item} other {items}}",
         "noItemsFound": "No items found",
-        "selectDifferentLayer": "Try selecting a different category"
+        "selectDifferentLayer": "Try selecting a different category",
+        "filters": {
+          "addPlaceholder": "New filter name",
+          "add": "Add filter",
+          "manage": "Organize filters",
+          "assignHeading": "Assign items to filters",
+          "moveUp": "Move up",
+          "moveDown": "Move down",
+          "deleteFilterAria": "Delete filter {name}"
+        }
       },
       "categories": {
         "all": "All",
+        "custom": "Custom",
         "bed": "Beds",
         "drawer": "Drawers",
         "wardrobe": "Wardrobes",
@@ -294,6 +311,7 @@
       "typeFloor": "Floor item",
       "typeWindow": "Window item",
       "typeDoor": "Door item",
+      "typeWall": "Wall item",
       "typeLight": "Ceiling light",
       "price": "Unit price",
       "image": "Image (.png, .jpg)",
@@ -379,6 +397,7 @@
       "finishesSubtotal": "Finishes subtotal",
       "subtotalExTax": "Subtotal (excl. tax)",
       "downloadPdf": "Download PDF",
+      "downloadExcel": "Download Excel",
       "pdfGenerated": "Generated",
       "unnamedCharge": "Charge",
       "addCharge": "Add charge",

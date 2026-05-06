@@ -63,6 +63,9 @@ export class Floorplanner {
   /** Optional callback to keep scene items in sync with rigid wall movement. */
   private layoutTranslateHandler: ((dx: number, dy: number) => void) | null = null
 
+  /** Optional callback to commit one history step after a completed edit gesture. */
+  private editGestureCompleteHandler: (() => void) | null = null
+
   /** */
   private mouseDown = false
 
@@ -319,6 +322,10 @@ export class Floorplanner {
 
   /** */
   private mouseup(): void {
+    const shouldCommitGesture =
+      this.mode === floorplannerModes.MOVE &&
+      (this.activeCorner !== null || this.activeWall !== null || this.mouseMoved)
+
     this.mouseDown = false
 
     // drawing
@@ -331,6 +338,11 @@ export class Floorplanner {
         this.setMode(floorplannerModes.MOVE)
       }
       this.lastNode = corner
+      this.editGestureCompleteHandler?.()
+    }
+
+    if (shouldCommitGesture) {
+      this.editGestureCompleteHandler?.()
     }
   }
 
@@ -345,6 +357,11 @@ export class Floorplanner {
     this.resizeView()
     this.setMode(floorplannerModes.MOVE)
     this.resetOrigin()
+    this.view.draw()
+  }
+
+  /** Redraw 2D canvas only (e.g. after dimension unit change). */
+  public redrawView(): void {
     this.view.draw()
   }
 
@@ -369,6 +386,11 @@ export class Floorplanner {
   /** */
   public setLayoutTranslateHandler(handler: ((dx: number, dy: number) => void) | null): void {
     this.layoutTranslateHandler = handler
+  }
+
+  /** */
+  public setEditGestureCompleteHandler(handler: (() => void) | null): void {
+    this.editGestureCompleteHandler = handler
   }
 
   /** Sets the origin so that floorplan is centered */

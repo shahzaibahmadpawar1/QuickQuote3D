@@ -78,7 +78,7 @@ export function ItemPriceSummaryPanel({
           <div className="min-h-0 flex-1 overflow-hidden bg-background">
             <ScrollArea className="h-[min(52vh,420px)] w-full">
               <div className="bg-background">
-                <table className="w-full text-xs">
+                <table className="min-w-max w-full text-xs">
                   <thead className="sticky top-0 z-10 border-b border-border bg-background shadow-[0_1px_0_0_hsl(var(--border))]">
                     <tr className="text-muted-foreground">
                       <th className="px-3 py-2 text-left font-medium">{t('item')}</th>
@@ -94,7 +94,7 @@ export function ItemPriceSummaryPanel({
                           {onItemClick ? (
                             <button
                               type="button"
-                              className="max-w-[180px] truncate text-left text-primary hover:underline"
+                              className="truncate text-left text-primary hover:underline"
                               onClick={() => onItemClick(row.itemKey)}
                               title={row.label}
                             >
@@ -104,9 +104,9 @@ export function ItemPriceSummaryPanel({
                             row.label
                           )}
                         </td>
-                        <td className="px-2 py-2 text-right">{row.quantity}</td>
-                        <td className="px-2 py-2 text-right">{formatter.format(row.unitPrice)}</td>
-                        <td className="px-3 py-2 text-right">{formatter.format(row.lineTotal)}</td>
+                        <td className="px-2 py-2 text-right whitespace-nowrap">{row.quantity}</td>
+                        <td className="px-2 py-2 text-right whitespace-nowrap">{formatter.format(row.unitPrice)}</td>
+                        <td className="px-3 py-2 text-right whitespace-nowrap">{formatter.format(row.lineTotal)}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -78,7 +78,8 @@
       "wallLengthCancel": "取消",
       "wallLengthInvalid": "無法辨識此長度，請檢查數字後再試。",
       "moveDoubleClickLength": "在「移動牆體」模式下雙擊一面牆可輸入精確長度。",
-      "lockWallLengths": "鎖定"
+      "lockWallLengths": "鎖定",
+      "wallLabelsUnit": "牆長單位"
     },
     "viewToggle": {
       "3d": "3D",
@@ -173,16 +174,32 @@
         "add": "新增",
         "save": "儲存",
         "cancel": "取消"
+      },
+      "wallHeight": {
+        "title": "牆高",
+        "description": "調整目前方案的全域牆高（內部以公分儲存）。",
+        "unitLabel": "單位",
+        "apply": "套用"
       }
     },
     "items": {
       "list": {
         "itemCount": "{count} 个物品",
         "noItemsFound": "未找到物品",
-        "selectDifferentLayer": "尝试选择不同类别"
+        "selectDifferentLayer": "尝试选择不同类别",
+        "filters": {
+          "addPlaceholder": "新篩選名稱",
+          "add": "新增篩選",
+          "manage": "整理篩選",
+          "assignHeading": "將物品分配到篩選",
+          "moveUp": "上移",
+          "moveDown": "下移",
+          "deleteFilterAria": "刪除篩選 {name}"
+        }
       },
       "categories": {
         "all": "全部",
+        "custom": "自訂",
         "bed": "床",
         "drawer": "抽屉",
         "wardrobe": "衣柜",
@@ -294,6 +311,7 @@
       "typeFloor": "地面項目",
       "typeWindow": "窗戶項目",
       "typeDoor": "門項目",
+      "typeWall": "牆面項目",
       "typeLight": "天花燈",
       "price": "單價",
       "image": "圖片（.png, .jpg）",
@@ -379,6 +397,7 @@
       "finishesSubtotal": "飾面小計",
       "subtotalExTax": "小計（不含稅）",
       "downloadPdf": "下載 PDF",
+      "downloadExcel": "下載 Excel",
       "pdfGenerated": "產生時間",
       "unnamedCharge": "費用",
       "addCharge": "新增費用",

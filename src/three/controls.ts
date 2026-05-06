@@ -40,7 +40,7 @@ export class Controls {
   public zoomSpeed = 1.0
   // Limits to how far you can dolly in and out
   public minDistance = 0
-  public maxDistance = 3000 //Infinity;
+  public maxDistance = 6000 //Infinity;
 
   // Enable/disable wheel zoom (for controlling page scroll vs zoom behavior)
   public enableWheelZoom = true

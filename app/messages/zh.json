@@ -78,7 +78,8 @@
       "wallLengthCancel": "取消",
       "wallLengthInvalid": "无法识别该长度，请检查数字后重试。",
       "moveDoubleClickLength": "在「移动墙体」模式下双击一面墙可输入精确长度。",
-      "lockWallLengths": "锁定"
+      "lockWallLengths": "锁定",
+      "wallLabelsUnit": "墙长单位"
     },
     "viewToggle": {
       "3d": "3D",
@@ -173,16 +174,32 @@
         "add": "添加",
         "save": "保存",
         "cancel": "取消"
+      },
+      "wallHeight": {
+        "title": "墙高",
+        "description": "调整当前方案的全局墙高（内部以厘米存储）。",
+        "unitLabel": "单位",
+        "apply": "应用"
       }
     },
     "items": {
       "list": {
         "itemCount": "{count} 个物品",
         "noItemsFound": "未找到物品",
-        "selectDifferentLayer": "尝试选择不同类别"
+        "selectDifferentLayer": "尝试选择不同类别",
+        "filters": {
+          "addPlaceholder": "新筛选名称",
+          "add": "添加筛选",
+          "manage": "整理筛选",
+          "assignHeading": "将物品分配到筛选",
+          "moveUp": "上移",
+          "moveDown": "下移",
+          "deleteFilterAria": "删除筛选 {name}"
+        }
       },
       "categories": {
         "all": "全部",
+        "custom": "自定义",
         "bed": "床",
         "drawer": "抽屉",
         "wardrobe": "衣柜",
@@ -294,6 +311,7 @@
       "typeFloor": "地面物品",
       "typeWindow": "窗户物品",
       "typeDoor": "门物品",
+      "typeWall": "墙面物品",
       "typeLight": "顶灯",
       "price": "单价",
       "image": "图片（.png, .jpg）",
@@ -379,6 +397,7 @@
       "finishesSubtotal": "饰面小计",
       "subtotalExTax": "小计（不含税）",
       "downloadPdf": "下载 PDF",
+      "downloadExcel": "下载 Excel",
       "pdfGenerated": "生成时间",
       "unnamedCharge": "费用",
       "addCharge": "添加费用",

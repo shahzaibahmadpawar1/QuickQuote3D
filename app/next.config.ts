@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey
   },
 
+  // Avoid broken server vendor chunks like `./vendor-chunks/@supabase.js` (stale graph / scoped names).
+  serverExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
+
   eslint: {
     ignoreDuringBuilds: true
   },

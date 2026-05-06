@@ -38,7 +38,10 @@ function mapRow(row: any): UserCatalogItem {
     modelUrl: row.model_url,
     itemType: row.item_type,
     category: row.category,
-    unitPrice: Number(row.unit_price ?? 0)
+    unitPrice: Number(row.unit_price ?? 0),
+    widthCm: row.width_cm == null ? null : Number(row.width_cm),
+    heightCm: row.height_cm == null ? null : Number(row.height_cm),
+    depthCm: row.depth_cm == null ? null : Number(row.depth_cm)
   }
 }
 
@@ -58,7 +61,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('user_catalog_items')
-    .select('id, item_key, name, description, image_url, model_url, item_type, category, unit_price')
+    .select('id, item_key, name, description, image_url, model_url, item_type, category, unit_price, width_cm, height_cm, depth_cm')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
 
@@ -89,6 +92,9 @@ export async function POST(request: Request) {
   const category = String(formData.get('category') ?? '').trim()
   const itemType = Number(formData.get('itemType'))
   const unitPrice = Number(formData.get('unitPrice'))
+  const widthRaw = String(formData.get('widthCm') ?? '').trim()
+  const heightRaw = String(formData.get('heightCm') ?? '').trim()
+  const depthRaw = String(formData.get('depthCm') ?? '').trim()
   const imageFile = formData.get('image')
   const modelFile = formData.get('model')
 
@@ -103,6 +109,20 @@ export async function POST(request: Request) {
   }
   if (!Number.isFinite(unitPrice) || unitPrice < 0) {
     return NextResponse.json({ error: 'Invalid unit price' }, { status: 400 })
+  }
+  const hasAnyDimension = widthRaw.length > 0 || heightRaw.length > 0 || depthRaw.length > 0
+  if (hasAnyDimension && !(widthRaw.length > 0 && heightRaw.length > 0 && depthRaw.length > 0)) {
+    return NextResponse.json({ error: 'Fill all 3 dimensions or leave all blank' }, { status: 400 })
+  }
+  const widthCm = widthRaw.length > 0 ? Number(widthRaw) : null
+  const heightCm = heightRaw.length > 0 ? Number(heightRaw) : null
+  const depthCm = depthRaw.length > 0 ? Number(depthRaw) : null
+  if (
+    (widthCm != null && (!Number.isFinite(widthCm) || widthCm <= 0)) ||
+    (heightCm != null && (!Number.isFinite(heightCm) || heightCm <= 0)) ||
+    (depthCm != null && (!Number.isFinite(depthCm) || depthCm <= 0))
+  ) {
+    return NextResponse.json({ error: 'Invalid dimensions' }, { status: 400 })
   }
   if (!(imageFile instanceof File) || !(modelFile instanceof File)) {
     return NextResponse.json({ error: 'Image and model files are required' }, { status: 400 })
@@ -177,9 +197,12 @@ export async function POST(request: Request) {
       model_path: modelPath,
       item_type: itemType,
       category,
-      unit_price: unitPrice
+      unit_price: unitPrice,
+      width_cm: widthCm,
+      height_cm: heightCm,
+      depth_cm: depthCm
     })
-    .select('id, item_key, name, description, image_url, model_url, item_type, category, unit_price')
+    .select('id, item_key, name, description, image_url, model_url, item_type, category, unit_price, width_cm, height_cm, depth_cm')
     .single()
 
   if (error) {

@@ -13,13 +13,28 @@ import { cn } from "@/lib/utils"
 import { isSupabaseConfigured } from '@/lib/supabase/env'
 import { ITEMS, type ItemCategory } from '@blueprint3d/constants'
 import { loadRoomTypes, saveRoomTypes, normalizeRoomTypeName, getRoomTypeLabel } from '@/lib/room-types'
-import type { CatalogListItem } from '@/types/user-item'
+import { deleteUserItem } from '@/services/user-items'
+import type { CatalogListItem, UserCatalogItem } from '@/types/user-item'
+import { AddItemDialog } from './AddItemDialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+type WallHeightDisplayUnit = 'cm' | 'mm' | 'm' | 'inch' | 'ft'
+
+const WALL_HEIGHT_TO_CM: Record<WallHeightDisplayUnit, number> = {
+  cm: 1,
+  mm: 0.1,
+  m: 100,
+  inch: 2.54,
+  ft: 30.48
+}
 
 // Language display names map
 type LanguageMap = Record<string, string>
 
 interface SettingsProps {
   onUnitChange?: (unit: string) => void
+  wallHeightCm?: number
+  onWallHeightChange?: (heightCm: number) => void
   languageMap?: LanguageMap // Optional language display names map
   isLanguageOption?: boolean
   itemPrices?: Record<string, number>
@@ -32,6 +47,8 @@ interface SettingsProps {
 
 export function Settings({
   onUnitChange,
+  wallHeightCm = 250,
+  onWallHeightChange,
   languageMap = {},
   isLanguageOption,
   itemPrices = {},
@@ -50,6 +67,8 @@ export function Settings({
   const [isPending, startTransition] = useTransition()
 
   const [selectedUnit, setSelectedUnit] = useState('inch')
+  const [wallHeightInput, setWallHeightInput] = useState(String(wallHeightCm))
+  const [wallHeightUnit, setWallHeightUnit] = useState<WallHeightDisplayUnit>('cm')
   const [selectedLanguage, setSelectedLanguage] = useState(locale)
   const [accountEmail, setAccountEmail] = useState<string | null | undefined>(undefined)
   const [draftPrices, setDraftPrices] = useState<Record<string, string>>({})
@@ -59,6 +78,7 @@ export function Settings({
   const [newRoomType, setNewRoomType] = useState('')
   const [editingRoomType, setEditingRoomType] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState('')
+  const [editingCustomItem, setEditingCustomItem] = useState<UserCatalogItem | null>(null)
 
   const locales = ['en', 'zh', 'tw'] as const
 
@@ -69,6 +89,10 @@ export function Settings({
       setSelectedUnit(savedUnit)
     }
   }, [])
+
+  useEffect(() => {
+    setWallHeightInput(String(Number((wallHeightCm / WALL_HEIGHT_TO_CM[wallHeightUnit]).toFixed(4))))
+  }, [wallHeightCm, wallHeightUnit])
 
   useEffect(() => {
     setRoomTypes(loadRoomTypes())
@@ -151,6 +175,25 @@ export function Settings({
   const getItemLabel = (item: CatalogListItem): string => {
     if (item.isCustom) return item.name
     return tItems(item.key)
+  }
+
+  const toUserCatalogItem = (item: CatalogListItem): UserCatalogItem | null => {
+    if (!item.isCustom) return null
+    if (!item.id) return null
+    return {
+      id: item.id,
+      itemKey: item.key,
+      name: item.name,
+      description: item.description ?? null,
+      imageUrl: item.image,
+      modelUrl: item.model,
+      itemType: Number(item.type) as UserCatalogItem['itemType'],
+      category: item.category as UserCatalogItem['category'],
+      unitPrice: Number(itemPrices[item.key] ?? 0),
+      widthCm: item.widthCm ?? null,
+      heightCm: item.heightCm ?? null,
+      depthCm: item.depthCm ?? null
+    }
   }
 
   const onPriceInputChange = (itemKey: string, raw: string) => {
@@ -237,7 +280,8 @@ export function Settings({
   }
 
   return (
-    <div className="bg-card rounded-lg shadow-sm border border-border p-8">
+    <>
+      <div className="bg-card rounded-lg shadow-sm border border-border p-8">
       <div className="flex items-center gap-3 text-foreground mb-6">
         <SettingsIcon className="h-7 w-7" />
         <h1 className="text-2xl font-bold">{t('title')}</h1>
@@ -336,6 +380,49 @@ export function Settings({
             <li>{t('applies3dDimensions')}</li>
             <li>{t('appliesAllDimensions')}</li>
           </ul>
+        </div>
+
+        <div className="mt-6 rounded-md border p-4">
+          <h3 className="text-sm font-semibold">{t('wallHeight.title')}</h3>
+          <p className="text-xs text-muted-foreground mb-2">{t('wallHeight.description')}</p>
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs">{t('wallHeight.unitLabel')}</Label>
+              <Select
+                value={wallHeightUnit}
+                onValueChange={(v) => setWallHeightUnit(v as WallHeightDisplayUnit)}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cm">cm</SelectItem>
+                  <SelectItem value="mm">mm</SelectItem>
+                  <SelectItem value="m">m</SelectItem>
+                  <SelectItem value="inch">inch</SelectItem>
+                  <SelectItem value="ft">ft</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Input
+              value={wallHeightInput}
+              onChange={(e) => setWallHeightInput(e.target.value)}
+              inputMode="decimal"
+              className="max-w-[140px]"
+            />
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                const next = Number(wallHeightInput)
+                if (!Number.isFinite(next) || next <= 0) return
+                const heightCm = next * WALL_HEIGHT_TO_CM[wallHeightUnit]
+                onWallHeightChange?.(heightCm)
+              }}
+            >
+              {t('wallHeight.apply')}
+            </Button>
+          </div>
         </div>
 
         <div className="mt-8 border-t border-border pt-6">
@@ -497,6 +584,30 @@ export function Settings({
                           >
                             {t('itemPricing.reset')}
                           </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const editable = toUserCatalogItem(item)
+                              if (editable) setEditingCustomItem(editable)
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            onClick={async () => {
+                              const editable = toUserCatalogItem(item)
+                              if (!editable) return
+                              await deleteUserItem(editable.id)
+                              onPricingChanged?.()
+                            }}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       )
                     })}
@@ -582,5 +693,18 @@ export function Settings({
         </div>
       </div>
     </div>
+      <AddItemDialog
+        open={editingCustomItem !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingCustomItem(null)
+        }}
+        mode="edit"
+        initialItem={editingCustomItem}
+        onUpdated={() => {
+          setEditingCustomItem(null)
+          onPricingChanged?.()
+        }}
+      />
+    </>
   )
 }

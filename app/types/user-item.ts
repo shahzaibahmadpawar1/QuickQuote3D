@@ -15,7 +15,7 @@ export const USER_ITEM_CATEGORIES = [
 
 export type UserItemCategory = (typeof USER_ITEM_CATEGORIES)[number]
 
-export const USER_ITEM_TYPES = [1, 3, 7, 11] as const
+export const USER_ITEM_TYPES = [1, 3, 7, 9, 11] as const
 export type UserItemType = (typeof USER_ITEM_TYPES)[number]
 
 export interface UserCatalogItem {
@@ -28,9 +28,13 @@ export interface UserCatalogItem {
   itemType: UserItemType
   category: UserItemCategory
   unitPrice: number
+  widthCm: number | null
+  heightCm: number | null
+  depthCm: number | null
 }
 
 export interface CatalogListItem {
+  id?: string
   key: string
   name: string
   image: string
@@ -39,4 +43,7 @@ export interface CatalogListItem {
   category: UserItemCategory
   description?: string
   isCustom?: boolean
+  widthCm?: number | null
+  heightCm?: number | null
+  depthCm?: number | null
 }

@@ -13,6 +13,7 @@ export function buildCatalogItems(userItems: UserCatalogItem[]): CatalogListItem
   }))
 
   const customItems: CatalogListItem[] = userItems.map((item) => ({
+    id: item.id,
     key: item.itemKey,
     name: item.name,
     image: item.imageUrl,
@@ -20,7 +21,10 @@ export function buildCatalogItems(userItems: UserCatalogItem[]): CatalogListItem
     type: String(item.itemType),
     category: item.category,
     description: item.description ?? undefined,
-    isCustom: true
+    isCustom: true,
+    widthCm: item.widthCm,
+    heightCm: item.heightCm,
+    depthCm: item.depthCm
   }))
 
   return [...customItems, ...defaultItems]

@@ -15,6 +15,7 @@ import { SaveFloorplanDialog } from './SaveFloorplanDialog'
 import { EstimateDialog } from './EstimateDialog'
 import { WallLengthDialog } from './WallLengthDialog'
 import { ItemPriceSummaryPanel } from './ItemPriceSummaryPanel'
+import { NewPlanConfirmDialog } from './NewPlanConfirmDialog'
 import { TouchHelp } from './TouchHelp'
 import { ControlsHelp } from './ControlsHelp'
 import DefaultFloorplan from '@blueprint3d/templates/default.json'
@@ -31,6 +32,7 @@ import {
 } from '@/lib/default-pricing'
 import { buildCatalogItems } from '@/lib/catalog-items'
 import { listUserItems } from '@/services/user-items'
+import * as THREE from 'three'
 
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
 import { floorplannerModes } from '@blueprint3d/floorplanner/floorplanner_view'
@@ -97,6 +99,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const historyRef = useRef<string[]>([])
   const historyIndexRef = useRef(-1)
   const restoringHistoryRef = useRef(false)
+  const pendingRestoreItemsRef = useRef(0)
+  const pendingNewPlanRef = useRef(false)
 
   const [activeTab, setActiveTab] = useState<'projects' | 'edit' | 'items'>(
     openMyFloorplans ? 'projects' : 'edit'
@@ -115,6 +119,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [itemCostPosition, setItemCostPosition] = useState({ x: 16, y: 80 })
   const [ceilingVisible, setCeilingVisible] = useState(true)
   const [roomTypes, setRoomTypes] = useState<string[]>([])
+  const [wallHeightCm, setWallHeightCm] = useState(
+    Configuration.getNumericValue(configWallHeight)
+  )
 
   const [currentBlueprint, setCurrentBlueprint] = useState<{
     id: string
@@ -137,6 +144,25 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [userItems, setUserItems] = useState<UserCatalogItem[]>([])
   const [canUndo, setCanUndo] = useState(false)
   const [canRedo, setCanRedo] = useState(false)
+  const [newPlanConfirmOpen, setNewPlanConfirmOpen] = useState(false)
+  const [dimensionUnit, setDimensionUnit] = useState(() =>
+    typeof window !== 'undefined' ? localStorage.getItem('dimensionUnit') || 'inch' : 'inch'
+  )
+  const [isDirty, setIsDirty] = useState(false)
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null)
+  const [pendingPlacementItem, setPendingPlacementItem] = useState<{
+    name: string
+    key: string
+    model: string
+    type: string
+    description?: string
+    widthCm?: number | null
+    heightCm?: number | null
+    depthCm?: number | null
+  } | null>(null)
+  const [itemCostPanelWidth, setItemCostPanelWidth] = useState(320)
+  const placementPreviewRef = useRef<THREE.Mesh | null>(null)
+  const placementPositionRef = useRef<THREE.Vector3 | null>(null)
 
   const viewModeRef = useRef<'2d' | '3d'>('3d')
 
@@ -146,6 +172,51 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
     return enableWheelZoom
   }, [enableWheelZoom])
+
+  const clearRestoreGuardIfDone = () => {
+    if (pendingRestoreItemsRef.current <= 0) {
+      restoringHistoryRef.current = false
+      pendingRestoreItemsRef.current = 0
+    }
+  }
+
+  const updateHistoryControls = useCallback(() => {
+    const idx = historyIndexRef.current
+    const len = historyRef.current.length
+    setCanUndo(idx > 0)
+    setCanRedo(idx >= 0 && idx < len - 1)
+  }, [])
+
+  const pushHistorySnapshot = useCallback(
+    (serialized: string) => {
+      if (!serialized) return
+      const currentIdx = historyIndexRef.current
+      const currentHistory = historyRef.current
+      if (currentIdx >= 0 && currentHistory[currentIdx] === serialized) {
+        updateHistoryControls()
+        return
+      }
+
+      const truncated = currentHistory.slice(0, currentIdx + 1)
+      truncated.push(serialized)
+      const MAX_HISTORY = 60
+      if (truncated.length > MAX_HISTORY) {
+        truncated.shift()
+      }
+
+      historyRef.current = truncated
+      historyIndexRef.current = truncated.length - 1
+      updateHistoryControls()
+    },
+    [updateHistoryControls]
+  )
+
+  const requestHistoryCommit = useCallback(() => {
+    if (restoringHistoryRef.current) return
+    const serialized = blueprint3dRef.current?.model.exportSerialized()
+    if (!serialized) return
+    pushHistorySnapshot(serialized)
+  }, [pushHistorySnapshot])
 
   useEffect(() => {
     viewModeRef.current = viewMode
@@ -211,6 +282,12 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     blueprint3d.model.floorplan.fireOnRedraw(bumpLayout)
     blueprint3d.model.scene.itemRemovedCallbacks.add(() => {
       bumpLayout()
+      if (restoringHistoryRef.current) {
+        pendingRestoreItemsRef.current = Math.max(0, pendingRestoreItemsRef.current - 1)
+        clearRestoreGuardIfDone()
+      } else {
+        requestHistoryCommit()
+      }
       if (viewModeRef.current === '2d') {
         blueprint3d.floorplanner?.reset()
       }
@@ -219,12 +296,22 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     blueprint3d.model.scene.itemLoadedCallbacks.add((item) => {
       const itemKey = item?.metadata?.itemKey
       if (typeof itemKey === 'string' && itemKey.startsWith('usr_')) {
-        // Enforce default dimensions for custom uploads (50 inches each side).
-        // Users can still change size later in the context menu.
+        const metadataWidth = Number((item.metadata as any)?.widthCm)
+        const metadataHeight = Number((item.metadata as any)?.heightCm)
+        const metadataDepth = Number((item.metadata as any)?.depthCm)
+        const width = Number.isFinite(metadataWidth) && metadataWidth > 0
+          ? metadataWidth
+          : CUSTOM_ITEM_DEFAULT_SIZE_CM
+        const height = Number.isFinite(metadataHeight) && metadataHeight > 0
+          ? metadataHeight
+          : CUSTOM_ITEM_DEFAULT_SIZE_CM
+        const depth = Number.isFinite(metadataDepth) && metadataDepth > 0
+          ? metadataDepth
+          : CUSTOM_ITEM_DEFAULT_SIZE_CM
         item.resize(
-          CUSTOM_ITEM_DEFAULT_SIZE_CM,
-          CUSTOM_ITEM_DEFAULT_SIZE_CM,
-          CUSTOM_ITEM_DEFAULT_SIZE_CM
+          height,
+          width,
+          depth
         )
       }
       setItemsLoading((prev) => prev - 1)
@@ -234,6 +321,12 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         toast.success(tItems('loadedSuccess', { name: itemName }), { id: toastId })
       }
       bumpLayout()
+      if (restoringHistoryRef.current) {
+        pendingRestoreItemsRef.current = Math.max(0, pendingRestoreItemsRef.current - 1)
+        clearRestoreGuardIfDone()
+      } else {
+        requestHistoryCommit()
+      }
       if (viewModeRef.current === '2d') {
         blueprint3d.floorplanner?.reset()
       }
@@ -280,6 +373,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       } finally {
         draftPersistenceReadyRef.current = true
         bumpLayout()
+        const serialized = blueprint3d.model.exportSerialized()
+        setSavedSnapshot(serialized)
+        requestHistoryCommit()
       }
     }
 
@@ -298,45 +394,26 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         })
         blueprint3d.model.scene.needsUpdate = true
       })
+      blueprint3d.floorplanner.setEditGestureCompleteHandler(() => {
+        requestHistoryCommit()
+      })
     }
+
+    blueprint3d.three.getController().setEditGestureCompleteHandler(() => {
+      requestHistoryCommit()
+    })
 
     return () => {
       blueprint3d.floorplanner!.wallLengthEditHandler = null
       blueprint3d.floorplanner!.setLayoutTranslateHandler(null)
+      blueprint3d.floorplanner!.setEditGestureCompleteHandler(null)
+      blueprint3d.three.getController().setEditGestureCompleteHandler(null)
     }
-  }, [CUSTOM_ITEM_DEFAULT_SIZE_CM, getWheelZoomEnabled, tItems, mode, onBlueprint3DReady])
+  }, [CUSTOM_ITEM_DEFAULT_SIZE_CM, clearRestoreGuardIfDone, getWheelZoomEnabled, requestHistoryCommit, tItems, mode, onBlueprint3DReady])
 
   useEffect(() => {
     blueprint3dRef.current?.floorplanner?.setWallLengthLock(wallLengthLocked)
   }, [wallLengthLocked])
-
-  const updateHistoryControls = useCallback(() => {
-    const idx = historyIndexRef.current
-    const len = historyRef.current.length
-    setCanUndo(idx > 0)
-    setCanRedo(idx >= 0 && idx < len - 1)
-  }, [])
-
-  const pushHistorySnapshot = useCallback((serialized: string) => {
-    if (!serialized) return
-    const currentIdx = historyIndexRef.current
-    const currentHistory = historyRef.current
-    if (currentIdx >= 0 && currentHistory[currentIdx] === serialized) {
-      updateHistoryControls()
-      return
-    }
-
-    const truncated = currentHistory.slice(0, currentIdx + 1)
-    truncated.push(serialized)
-    const MAX_HISTORY = 60
-    if (truncated.length > MAX_HISTORY) {
-      truncated.shift()
-    }
-
-    historyRef.current = truncated
-    historyIndexRef.current = truncated.length - 1
-    updateHistoryControls()
-  }, [updateHistoryControls])
 
   const handleUndo = useCallback(() => {
     if (!blueprint3dRef.current) return
@@ -346,13 +423,17 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     if (!snapshot) return
 
     restoringHistoryRef.current = true
+    pendingRestoreItemsRef.current = Math.max(
+      0,
+      (JSON.parse(snapshot)?.items as unknown[] | undefined)?.length ?? 0
+    )
     historyIndexRef.current = targetIndex
     blueprint3dRef.current.model.loadSerialized(snapshot)
     updateHistoryControls()
-    window.setTimeout(() => {
-      restoringHistoryRef.current = false
-    }, 0)
-  }, [updateHistoryControls])
+    if (pendingRestoreItemsRef.current === 0) {
+      window.setTimeout(() => clearRestoreGuardIfDone(), 0)
+    }
+  }, [clearRestoreGuardIfDone, updateHistoryControls])
 
   const handleRedo = useCallback(() => {
     if (!blueprint3dRef.current) return
@@ -361,13 +442,17 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     if (!snapshot) return
 
     restoringHistoryRef.current = true
+    pendingRestoreItemsRef.current = Math.max(
+      0,
+      (JSON.parse(snapshot)?.items as unknown[] | undefined)?.length ?? 0
+    )
     historyIndexRef.current = targetIndex
     blueprint3dRef.current.model.loadSerialized(snapshot)
     updateHistoryControls()
-    window.setTimeout(() => {
-      restoringHistoryRef.current = false
-    }, 0)
-  }, [updateHistoryControls])
+    if (pendingRestoreItemsRef.current === 0) {
+      window.setTimeout(() => clearRestoreGuardIfDone(), 0)
+    }
+  }, [clearRestoreGuardIfDone, updateHistoryControls])
 
   // Persist in-progress layout as draft so refresh does not lose unsaved work.
   useEffect(() => {
@@ -509,10 +594,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
   useEffect(() => {
     if (!blueprint3dRef.current) return
-    if (restoringHistoryRef.current) return
     const serialized = blueprint3dRef.current.model.exportSerialized()
-    pushHistorySnapshot(serialized)
-  }, [layoutEpoch, pushHistorySnapshot])
+    setIsDirty(savedSnapshot !== null && serialized !== savedSnapshot)
+  }, [layoutEpoch, savedSnapshot])
 
   // Update wheel zoom setting when it changes
   useEffect(() => {
@@ -539,7 +623,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
   const clampItemCostPosition = useCallback((x: number, y: number) => {
     const panelEl = itemCostPanelRef.current
-    const panelWidth = panelEl?.offsetWidth ?? (itemCostMinimized ? 220 : 320)
+    const panelWidth = panelEl?.offsetWidth ?? (itemCostMinimized ? 220 : itemCostPanelWidth)
     const panelHeight = panelEl?.offsetHeight ?? 120
     const minX = 0
     const minY = 56
@@ -549,7 +633,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       x: Math.min(Math.max(x, minX), maxX),
       y: Math.min(Math.max(y, minY), maxY)
     }
-  }, [itemCostMinimized])
+  }, [itemCostMinimized, itemCostPanelWidth])
 
   useEffect(() => {
     const next = clampItemCostPosition(itemCostPosition.x, itemCostPosition.y)
@@ -756,6 +840,27 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   }, [])
 
   // Save: update existing or show dialog
+  const createEmptyPlan = useCallback(() => {
+    if (!blueprint3dRef.current) return
+    const emptyPlan = {
+      floorplan: {
+        corners: {},
+        walls: [],
+        wallTextures: [],
+        floorTextures: {},
+        newFloorTextures: {}
+      },
+      items: []
+    }
+    blueprint3dRef.current.model.loadSerialized(JSON.stringify(emptyPlan))
+    setCurrentBlueprint(null)
+    setViewMode('3d')
+    setActiveTab('edit')
+    const serialized = blueprint3dRef.current.model.exportSerialized()
+    setSavedSnapshot(serialized)
+    requestHistoryCommit()
+  }, [])
+
   const handleSave = useCallback(async () => {
     if (currentBlueprint) {
       if (!blueprint3dRef.current) return
@@ -770,6 +875,13 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           thumbnailBase64: thumbnail,
           roomType: currentBlueprint.roomType
         })
+        if (blueprint3dRef.current) {
+          setSavedSnapshot(blueprint3dRef.current.model.exportSerialized())
+        }
+        if (pendingNewPlanRef.current) {
+          pendingNewPlanRef.current = false
+          createEmptyPlan()
+        }
         toast.success(t('saveSuccess'), { id: toastId })
       } catch (error) {
         console.error('Failed to update floorplan:', error)
@@ -778,11 +890,36 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     } else {
       setSaveDialogOpen(true)
     }
-  }, [currentBlueprint, generateTopDownThumbnail, t])
+  }, [createEmptyPlan, currentBlueprint, generateTopDownThumbnail, t])
 
   const handleNew = useCallback(() => {
+    if (isDirty) {
+      setNewPlanConfirmOpen(true)
+      return
+    }
+    createEmptyPlan()
+  }, [createEmptyPlan, isDirty])
+
+  const handleDiscardAndNew = useCallback(() => {
+    setNewPlanConfirmOpen(false)
+    createEmptyPlan()
+  }, [createEmptyPlan])
+
+  const handleSaveAndNew = useCallback(() => {
+    pendingNewPlanRef.current = true
+    setNewPlanConfirmOpen(false)
+    if (currentBlueprint) {
+      void handleSave()
+      window.setTimeout(() => {
+        if (pendingNewPlanRef.current) {
+          pendingNewPlanRef.current = false
+          createEmptyPlan()
+        }
+      }, 300)
+      return
+    }
     setSaveDialogOpen(true)
-  }, [])
+  }, [createEmptyPlan, currentBlueprint, handleSave])
 
   // Create new blueprint via dialog
   const handleSaveFloorplan = useCallback(
@@ -800,13 +937,20 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           roomType
         })
         setCurrentBlueprint({ id: result.id, name, roomType })
+        if (blueprint3dRef.current) {
+          setSavedSnapshot(blueprint3dRef.current.model.exportSerialized())
+        }
+        if (pendingNewPlanRef.current) {
+          pendingNewPlanRef.current = false
+          createEmptyPlan()
+        }
         toast.success(t('saveSuccess'), { id: toastId })
       } catch (error) {
         console.error('Failed to save floorplan:', error)
         toast.error(t('saveError'), { id: toastId })
       }
     },
-    [generateTopDownThumbnail, t]
+    [createEmptyPlan, generateTopDownThumbnail, t]
   )
 
   // Load from saved floorplan
@@ -824,19 +968,38 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       }
       setActiveTab('edit')
       setLayoutEpoch((e) => e + 1)
+      const serialized = blueprint3dRef.current.model.exportSerialized()
+      setSavedSnapshot(serialized)
+      requestHistoryCommit()
     },
-    []
+    [requestHistoryCommit]
   )
 
   const handleUnitChange = useCallback(
     (unit: string) => {
+      setDimensionUnit(unit)
+      localStorage.setItem('dimensionUnit', unit)
       Configuration.setValue(configDimUnit, unit)
+      window.dispatchEvent(new CustomEvent('dimensionUnitChanged', { detail: { unit } }))
       if (blueprint3dRef.current && activeTab === 'edit' && viewMode === '2d') {
-        blueprint3dRef.current.floorplanner?.reset()
+        blueprint3dRef.current.floorplanner?.redrawView()
       }
     },
     [activeTab, viewMode]
   )
+
+  const handleWallHeightChange = useCallback((heightCm: number) => {
+    Configuration.setValue(configWallHeight, heightCm)
+    setWallHeightCm(heightCm)
+    if (!blueprint3dRef.current) return
+    blueprint3dRef.current.model.floorplan.getWalls().forEach((wall) => {
+      wall.height = heightCm
+    })
+    blueprint3dRef.current.model.floorplan.update()
+    blueprint3dRef.current.three.needsUpdate()
+    setLayoutEpoch((e) => e + 1)
+    requestHistoryCommit()
+  }, [requestHistoryCommit])
 
   const handleTabChange = useCallback(
     (tab: 'projects' | 'edit' | 'items') => {
@@ -883,20 +1046,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     blueprint3dRef.current.floorplanner?.setMode(modeMap[mode])
   }, [])
 
-  const handleFloorplannerDone = useCallback(() => {
-    setViewMode('3d')
-    if (blueprint3dRef.current) {
-      blueprint3dRef.current.model.floorplan.update()
-    }
-  }, [])
-
   const handleWallLengthApply = useCallback((wall: Wall, lengthCm: number) => {
     const fp = blueprint3dRef.current?.model.floorplan
     if (fp) {
       fp.setWallLengthCm(wall, lengthCm)
       setLayoutEpoch((e) => e + 1)
+      requestHistoryCommit()
     }
-  }, [])
+  }, [requestHistoryCommit])
 
   const handleItemSelect = useCallback(
     (item: {
@@ -905,26 +1062,16 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       model: string
       type: string
       description?: string
+      widthCm?: number | null
+      heightCm?: number | null
+      depthCm?: number | null
     }) => {
       if (!blueprint3dRef.current) return
-      const translatedName = customItemLabelMap[item.key] ?? tItems(item.key)
-      const toastId = toast.loading(tItems('loadingItem', { name: translatedName }))
-      loadingToastsRef.current.push({ toastId, itemName: translatedName })
-
-      const metadata = {
-        itemName: item.name,
-        itemKey: item.key,
-        resizable: true,
-        modelUrl: item.model,
-        itemType: parseInt(item.type),
-        description: item.description
-      }
-
-      blueprint3dRef.current.model.scene.addItem(parseInt(item.type), item.model, metadata)
+      setPendingPlacementItem(item)
       setActiveTab('edit')
       setViewMode('3d')
     },
-    [customItemLabelMap, tItems]
+    []
   )
 
   const handleTextureSelect = useCallback(
@@ -932,10 +1079,120 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       if (currentTarget) {
         currentTarget.setTexture(textureUrl, stretch, scale)
         setLayoutEpoch((e) => e + 1)
+        requestHistoryCommit()
       }
     },
-    [currentTarget]
+    [currentTarget, requestHistoryCommit]
   )
+
+  useEffect(() => {
+    const blueprint3d = blueprint3dRef.current
+    const viewer = viewerRef.current
+    if (!blueprint3d || !viewer || !pendingPlacementItem || viewMode !== '3d') {
+      if (placementPreviewRef.current) {
+        blueprint3d?.model.scene.remove(placementPreviewRef.current)
+        placementPreviewRef.current = null
+      }
+      return
+    }
+
+    const widthCm =
+      Number.isFinite(Number(pendingPlacementItem.widthCm)) && Number(pendingPlacementItem.widthCm) > 0
+        ? Number(pendingPlacementItem.widthCm)
+        : 50 * 2.54
+    const heightCm =
+      Number.isFinite(Number(pendingPlacementItem.heightCm)) && Number(pendingPlacementItem.heightCm) > 0
+        ? Number(pendingPlacementItem.heightCm)
+        : 50 * 2.54
+    const depthCm =
+      Number.isFinite(Number(pendingPlacementItem.depthCm)) && Number(pendingPlacementItem.depthCm) > 0
+        ? Number(pendingPlacementItem.depthCm)
+        : 50 * 2.54
+
+    const preview = new THREE.Mesh(
+      new THREE.BoxGeometry(widthCm, heightCm, depthCm),
+      new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.3 })
+    )
+    preview.position.set(0, heightCm / 2, 0)
+    blueprint3d.model.scene.add(preview)
+    placementPreviewRef.current = preview
+    placementPositionRef.current = preview.position.clone()
+
+    const toRay = (event: MouseEvent) => {
+      const rect = viewer.getBoundingClientRect()
+      const ndc = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      )
+      const raycaster = new THREE.Raycaster()
+      raycaster.setFromCamera(ndc, blueprint3d.three.camera)
+      const itemType = parseInt(pendingPlacementItem.type)
+      const targets =
+        itemType === 3 || itemType === 7 || itemType === 9
+          ? blueprint3d.model.floorplan.wallEdgePlanes()
+          : blueprint3d.model.floorplan.floorPlanes()
+      const hits = raycaster.intersectObjects(targets, false)
+      if (hits.length > 0) {
+        const hit = hits[0].point.clone()
+        if (!(itemType === 3 || itemType === 7 || itemType === 9)) {
+          hit.y = heightCm / 2
+        }
+        preview.position.copy(hit)
+        placementPositionRef.current = hit
+      }
+    }
+
+    const onMouseMove = (event: MouseEvent) => {
+      event.preventDefault()
+      toRay(event)
+    }
+
+    const onClick = (event: MouseEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
+      const position = placementPositionRef.current?.clone() ?? preview.position.clone()
+      const translatedName = customItemLabelMap[pendingPlacementItem.key] ?? pendingPlacementItem.name
+      const toastId = toast.loading(tItems('loadingItem', { name: translatedName }))
+      loadingToastsRef.current.push({ toastId, itemName: translatedName })
+      blueprint3d.model.scene.addItem(
+        parseInt(pendingPlacementItem.type),
+        pendingPlacementItem.model,
+        {
+          itemName: pendingPlacementItem.name,
+          itemKey: pendingPlacementItem.key,
+          resizable: true,
+          modelUrl: pendingPlacementItem.model,
+          itemType: parseInt(pendingPlacementItem.type),
+          description: pendingPlacementItem.description,
+          widthCm: pendingPlacementItem.widthCm ?? null,
+          heightCm: pendingPlacementItem.heightCm ?? null,
+          depthCm: pendingPlacementItem.depthCm ?? null
+        },
+        position
+      )
+      setPendingPlacementItem(null)
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPendingPlacementItem(null)
+      }
+    }
+
+    viewer.addEventListener('mousemove', onMouseMove)
+    viewer.addEventListener('click', onClick, true)
+    window.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      viewer.removeEventListener('mousemove', onMouseMove)
+      viewer.removeEventListener('click', onClick, true)
+      window.removeEventListener('keydown', onKeyDown)
+      if (placementPreviewRef.current) {
+        blueprint3d.model.scene.remove(placementPreviewRef.current)
+        placementPreviewRef.current = null
+      }
+    }
+  }, [customItemLabelMap, pendingPlacementItem, tItems, viewMode])
 
   const itemSummaryRows = useMemo(() => {
     if (!blueprint3dRef.current || !pricingPayload) return []
@@ -973,6 +1230,12 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
     return Array.from(lines.values()).sort((a, b) => a.label.localeCompare(b.label))
   }, [customItemLabelMap, layoutEpoch, modelUrlToItemKeyMap, pricingPayload, tItems])
+
+  useEffect(() => {
+    const longestLabel = itemSummaryRows.reduce((max, row) => Math.max(max, row.label.length), 0)
+    const calculated = Math.min(820, Math.max(320, 320 + Math.max(0, longestLabel - 20) * 8))
+    setItemCostPanelWidth(calculated)
+  }, [itemSummaryRows])
 
   useEffect(() => {
     if (!blueprint3dRef.current) return
@@ -1079,7 +1342,12 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
                   wallLengthLocked={wallLengthLocked}
                   onModeChange={handleFloorplannerModeChange}
                   onWallLengthLockedChange={setWallLengthLocked}
-                  onDone={handleFloorplannerDone}
+                  onUndo={handleUndo}
+                  onRedo={handleRedo}
+                  canUndo={canUndo}
+                  canRedo={canRedo}
+                  displayUnit={dimensionUnit}
+                  onDisplayUnitChange={handleUnitChange}
                 />
                 {floorplannerMode === 'draw' && (
                   <div className="absolute left-5 bottom-5 bg-black/50 text-primary-foreground px-2.5 py-1.5 rounded text-sm">
@@ -1104,7 +1372,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
               style={{
                 left: `${itemCostPosition.x}px`,
                 top: `${itemCostPosition.y}px`,
-                width: itemCostMinimized ? '220px' : '320px'
+                width: itemCostMinimized ? '220px' : `${itemCostPanelWidth}px`
               }}
             >
               <ItemPriceSummaryPanel
@@ -1202,6 +1470,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         isOpen={settingsOpen}
         onOpenChange={setSettingsOpen}
         onUnitChange={handleUnitChange}
+        wallHeightCm={wallHeightCm}
+        onWallHeightChange={handleWallHeightChange}
         isLanguageOption={isLanguageOption}
         itemPrices={pricingPayload?.itemPrices}
         userItemOverrides={pricingPayload?.userItemOverrides}
@@ -1214,7 +1484,12 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       {/* Save Floorplan Dialog */}
       <SaveFloorplanDialog
         open={saveDialogOpen}
-        onOpenChange={setSaveDialogOpen}
+        onOpenChange={(open) => {
+          setSaveDialogOpen(open)
+          if (!open && pendingNewPlanRef.current) {
+            pendingNewPlanRef.current = false
+          }
+        }}
         onSave={handleSaveFloorplan}
         defaultName={`Floorplan ${new Date().toLocaleDateString()}`}
         defaultRoomType={
@@ -1224,6 +1499,13 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             : RoomType.BEDROOM)
         }
         roomTypes={roomTypes}
+      />
+
+      <NewPlanConfirmDialog
+        open={newPlanConfirmOpen}
+        onOpenChange={setNewPlanConfirmOpen}
+        onSaveAndContinue={handleSaveAndNew}
+        onDiscard={handleDiscardAndNew}
       />
     </div>
   )

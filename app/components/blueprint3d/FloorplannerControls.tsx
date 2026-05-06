@@ -1,17 +1,24 @@
 'use client'
 
-import { Move, Pencil, Trash2, Check } from 'lucide-react'
+import { Move, Pencil, Trash2, Undo2, Redo2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useTranslations } from 'next-intl'
 import { useIsMobile } from "@/hooks/use-media-query"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface FloorplannerControlsProps {
   mode: 'move' | 'draw' | 'delete'
   wallLengthLocked: boolean
   onModeChange: (mode: 'move' | 'draw' | 'delete') => void
   onWallLengthLockedChange: (locked: boolean) => void
-  onDone: () => void
+  onUndo: () => void
+  onRedo: () => void
+  canUndo: boolean
+  canRedo: boolean
+  displayUnit: string
+  onDisplayUnitChange: (unit: string) => void
 }
 
 export function FloorplannerControls({
@@ -19,22 +26,27 @@ export function FloorplannerControls({
   wallLengthLocked,
   onModeChange,
   onWallLengthLockedChange,
-  onDone
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
+  displayUnit,
+  onDisplayUnitChange
 }: FloorplannerControlsProps) {
   const t = useTranslations('BluePrint.floorplanner')
+  const tSettings = useTranslations('BluePrint.settings.units')
   const isMobile = useIsMobile()
 
   return (
     <div className={cn('absolute left-0 top-0 w-full z-60 pointer-events-none', isMobile ? 'my-3 px-3' : 'my-3 px-5')}>
-      <div className="flex items-center justify-between gap-2">
-        <div className={cn('flex pointer-events-auto', isMobile ? 'gap-1.5' : 'gap-2')}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className={cn('flex flex-wrap pointer-events-auto', isMobile ? 'gap-1.5' : 'gap-2')}>
           <Button
             size={isMobile ? 'icon' : 'sm'}
             variant={mode === 'move' ? 'default' : 'secondary'}
             onClick={() => onModeChange('move')}
             className={cn(
               !isMobile && 'flex items-center gap-2',
-              // Mobile: 44x44px touch target with better visual feedback
               isMobile && 'h-11 w-11 shadow-lg active:scale-95 transition-transform'
             )}
             title={isMobile ? t('moveWalls') : undefined}
@@ -88,27 +100,52 @@ export function FloorplannerControls({
             />
             <span>{t('lockWallLengths')}</span>
           </label>
+
+          <Button
+            size={isMobile ? 'icon' : 'sm'}
+            variant="secondary"
+            onClick={onUndo}
+            disabled={!canUndo}
+            className={cn(!isMobile && 'flex items-center gap-2')}
+            aria-label="Undo"
+          >
+            <Undo2 className={cn(isMobile ? 'h-5 w-5' : 'h-4 w-4')} />
+            {!isMobile && 'Undo'}
+          </Button>
+          <Button
+            size={isMobile ? 'icon' : 'sm'}
+            variant="secondary"
+            onClick={onRedo}
+            disabled={!canRedo}
+            className={cn(!isMobile && 'flex items-center gap-2')}
+            aria-label="Redo"
+          >
+            <Redo2 className={cn(isMobile ? 'h-5 w-5' : 'h-4 w-4')} />
+            {!isMobile && 'Redo'}
+          </Button>
         </div>
 
-        <Button
-          size={isMobile ? 'sm' : 'sm'}
-          variant="default"
-          onClick={onDone}
+        <div
           className={cn(
-            'font-medium pointer-events-auto',
-            isMobile && 'shadow-lg min-h-[44px] active:scale-95 transition-transform px-4'
+            'pointer-events-auto flex items-center gap-2 rounded-md border bg-background/95 px-3 py-2 text-sm shadow-sm',
+            isMobile && 'min-h-[44px]'
           )}
-          aria-label={t('done')}
         >
-          {isMobile ? (
-            <>
-              <Check className="h-4 w-4 mr-1.5" />
-              <span className="font-medium">{t('done')}</span>
-            </>
-          ) : (
-            <>{t('done')} &raquo;</>
-          )}
-        </Button>
+          <Label htmlFor="floorplan-wall-unit" className="text-muted-foreground whitespace-nowrap shrink-0">
+            {t('wallLabelsUnit')}
+          </Label>
+          <Select value={displayUnit} onValueChange={onDisplayUnitChange}>
+            <SelectTrigger id="floorplan-wall-unit" className="h-8 w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="inch">{tSettings('inch.label')}</SelectItem>
+              <SelectItem value="m">{tSettings('m.label')}</SelectItem>
+              <SelectItem value="cm">{tSettings('cm.label')}</SelectItem>
+              <SelectItem value="mm">{tSettings('mm.label')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   )

@@ -13,6 +13,8 @@ interface SettingsDialogProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   onUnitChange: (unit: string) => void
+  wallHeightCm?: number
+  onWallHeightChange?: (heightCm: number) => void
   isLanguageOption?: boolean
   itemPrices?: Record<string, number>
   userItemOverrides?: Record<string, number>
@@ -26,6 +28,8 @@ export function SettingsDialog({
   isOpen,
   onOpenChange,
   onUnitChange,
+  wallHeightCm,
+  onWallHeightChange,
   isLanguageOption,
   itemPrices,
   userItemOverrides,
@@ -43,6 +47,8 @@ export function SettingsDialog({
         <div className="py-4">
           <Settings
             onUnitChange={onUnitChange}
+            wallHeightCm={wallHeightCm}
+            onWallHeightChange={onWallHeightChange}
             isLanguageOption={isLanguageOption}
             itemPrices={itemPrices}
             userItemOverrides={userItemOverrides}

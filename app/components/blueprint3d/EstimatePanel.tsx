@@ -287,6 +287,29 @@ export function EstimatePanel({
     doc.save(`cost-estimate-${new Date().toISOString().slice(0, 10)}.pdf`)
   }, [breakdown, chargeRows, displayResult, formatter, locale, t, viewingSnapshot])
 
+  const handleDownloadExcel = useCallback(async () => {
+    if (!displayResult || !breakdown) return
+    const XLSX = await import('xlsx')
+    const rows: Array<Record<string, string | number>> = []
+    rows.push({ section: 'Furniture', item: '', qty: '', unit_price: '', line_total: '' })
+    displayResult.furniture_lines.forEach((line) => {
+      rows.push({
+        section: '',
+        item: line.label,
+        qty: line.quantity,
+        unit_price: line.unit_price ?? '',
+        line_total: line.line_total ?? ''
+      })
+    })
+    rows.push({ section: 'Summary', item: 'Furniture subtotal', qty: '', unit_price: '', line_total: displayResult.furniture_subtotal })
+    rows.push({ section: 'Summary', item: 'Subtotal ex tax', qty: '', unit_price: '', line_total: breakdown.subtotalExTax })
+    rows.push({ section: 'Summary', item: 'Grand total', qty: '', unit_price: '', line_total: breakdown.grandTotal })
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Estimate')
+    XLSX.writeFile(wb, `cost-estimate-${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }, [breakdown, displayResult])
+
   const openSaveDialog = () => {
     if (!liveResult || viewingSnapshot) return
     setSaveTitle(`${liveResult.currency} estimate ${new Date().toLocaleDateString(locale)}`)
@@ -608,6 +631,14 @@ export function EstimatePanel({
         <div className="flex shrink-0 flex-wrap gap-2 border-t bg-card px-4 py-3 sm:px-6">
           <Button className="min-w-0 flex-1 sm:flex-none" disabled={!canPdf} onClick={() => void handleDownloadPdf()}>
             {t('downloadPdf')}
+          </Button>
+          <Button
+            className="min-w-0 flex-1 sm:flex-none"
+            variant="outline"
+            disabled={!hasLines}
+            onClick={() => void handleDownloadExcel()}
+          >
+            {t('downloadExcel')}
           </Button>
           <Button
             variant="secondary"

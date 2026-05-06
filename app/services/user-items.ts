@@ -6,6 +6,9 @@ export interface CreateUserItemInput {
   category: UserItemCategory
   itemType: UserItemType
   unitPrice: number
+  widthCm?: number | null
+  heightCm?: number | null
+  depthCm?: number | null
   imageFile: File
   modelFile: File
 }
@@ -17,6 +20,11 @@ export interface UpdateUserItemInput {
   category: UserItemCategory
   itemType: UserItemType
   unitPrice: number
+  widthCm?: number | null
+  heightCm?: number | null
+  depthCm?: number | null
+  imageFile?: File | null
+  modelFile?: File | null
 }
 
 async function readError(response: Response): Promise<string> {
@@ -45,6 +53,9 @@ export async function createUserItem(input: CreateUserItemInput): Promise<UserCa
   formData.append('category', input.category)
   formData.append('itemType', String(input.itemType))
   formData.append('unitPrice', String(input.unitPrice))
+  formData.append('widthCm', input.widthCm == null ? '' : String(input.widthCm))
+  formData.append('heightCm', input.heightCm == null ? '' : String(input.heightCm))
+  formData.append('depthCm', input.depthCm == null ? '' : String(input.depthCm))
   formData.append('image', input.imageFile)
   formData.append('model', input.modelFile)
 
@@ -60,16 +71,25 @@ export async function createUserItem(input: CreateUserItemInput): Promise<UserCa
 }
 
 export async function updateUserItem(input: UpdateUserItemInput): Promise<UserCatalogItem> {
+  const formData = new FormData()
+  formData.append('name', input.name)
+  formData.append('description', input.description ?? '')
+  formData.append('category', input.category)
+  formData.append('itemType', String(input.itemType))
+  formData.append('unitPrice', String(input.unitPrice))
+  formData.append('widthCm', input.widthCm == null ? '' : String(input.widthCm))
+  formData.append('heightCm', input.heightCm == null ? '' : String(input.heightCm))
+  formData.append('depthCm', input.depthCm == null ? '' : String(input.depthCm))
+  if (input.imageFile) {
+    formData.append('image', input.imageFile)
+  }
+  if (input.modelFile) {
+    formData.append('model', input.modelFile)
+  }
+
   const response = await fetch(`/api/user-items/${input.id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name: input.name,
-      description: input.description ?? '',
-      category: input.category,
-      itemType: input.itemType,
-      unitPrice: input.unitPrice
-    })
+    body: formData
   })
   if (!response.ok) {
     throw new Error(await readError(response))
