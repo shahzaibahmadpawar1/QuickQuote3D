@@ -42,65 +42,9 @@ export abstract class FloorItem extends Item {
 
   /** */
   public moveToPosition(vec3: THREE.Vector3, _intersection: THREE.Intersection | null): void {
-    // keeps the position in the room and on the floor
-    if (!this.isCenterInRoom(vec3)) {
-      this.showError(vec3)
-      return
-    } else {
-      this.hideError()
-      vec3.y = this.position.y // keep it on the floor!
-
-      // Enhanced wall snapping with corner support
-      let primaryWall: HalfEdge | null = null
-      let secondaryWall: HalfEdge | null = null
-
-      const releaseThreshold = 30 // 30cm to release from wall
-      const snapThreshold = Configuration.getNumericValue(configSnapToWallDistance)
-
-      // If already snapped to a wall, check if we should maintain it
-      if (this.snappedWallEdge) {
-        const distanceToSnappedWall = this.snappedWallEdge.distanceTo(vec3.x, vec3.z)
-        const surfaceDistanceToSnappedWall = distanceToSnappedWall - this.halfSize.z
-
-        // Stay snapped if within release threshold
-        if (surfaceDistanceToSnappedWall <= releaseThreshold) {
-          primaryWall = this.snappedWallEdge
-        } else {
-          // Release from wall if moved too far
-          this.snappedWallEdge = null
-        }
-      }
-
-      // If not currently snapped, find the closest wall
-      if (!primaryWall) {
-        const { edge, distance } = this.findClosestWallEdge(vec3)
-        const surfaceDistance = distance - this.halfSize.z
-
-        // Only snap if within snap threshold
-        if (edge && surfaceDistance <= snapThreshold) {
-          primaryWall = edge
-        }
-      }
-
-      // If we have a primary wall, apply its snap
-      if (primaryWall) {
-        const distance = primaryWall.distanceTo(vec3.x, vec3.z)
-        const surfaceDistance = distance - this.halfSize.z
-        vec3 = this.snapToWall(vec3, primaryWall, surfaceDistance)
-        this.snappedWallEdge = primaryWall
-
-        // Now check for corner snapping (secondary wall perpendicular to primary)
-        secondaryWall = this.findPerpendicularWall(vec3, primaryWall, snapThreshold)
-        if (secondaryWall) {
-          // Apply corner snap - adjust position along primary wall to also touch secondary wall
-          vec3 = this.snapToCorner(vec3, primaryWall, secondaryWall)
-        }
-      } else {
-        this.snappedWallEdge = null
-      }
-
-      this.position.copy(vec3)
-    }
+    this.hideError()
+    vec3.y = this.position.y // keep it on the floor
+    this.position.copy(vec3)
   }
 
   /** Clear snapped wall when drag ends */
