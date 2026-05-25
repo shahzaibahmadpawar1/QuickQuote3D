@@ -139,38 +139,43 @@ export class GLBLoader {
     mergedGeometry.computeBoundingBox()
     mergedGeometry.computeBoundingSphere()
 
-    // Configure materials for visibility and convert to MeshPhongMaterial if needed
-    const processedMaterials = materials.map((mat) => {
-      // Convert MeshStandardMaterial to MeshPhongMaterial for better compatibility
-      // with the existing lighting setup (no environment map)
-      if (mat instanceof THREE.MeshStandardMaterial) {
-        const phongMat = new THREE.MeshPhongMaterial({
-          color: mat.color,
-          map: mat.map,
-          normalMap: mat.normalMap,
-          emissive: mat.emissive,
-          emissiveMap: mat.emissiveMap,
-          emissiveIntensity: mat.emissiveIntensity,
-          specular: new THREE.Color(0x222222),  // Very subtle specular to avoid moiré
-          shininess: 5,  // Very matte finish
-          side: THREE.DoubleSide,
-          transparent: mat.transparent,
-          opacity: mat.opacity,
-          alphaTest: mat.alphaTest
-        })
+    // Check if merged geometry has vertex colors
+    const hasVertexColors = mergedGeometry.attributes.color != null
 
-        // Copy texture properties
-        if (mat.map) {
-          phongMat.map = mat.map
+    // Keep original materials from the GLB and adjust for rendering without an
+    // environment map. This preserves textures, vertex colors, and PBR appearance.
+    const processedMaterials = materials.map((mat) => {
+      if (mat instanceof THREE.MeshStandardMaterial) {
+        // Without an environment map, highly metallic surfaces reflect nothing
+        // and appear black. Reduce metalness so diffuse lighting works.
+        if (mat.metalness > 0.3 && !mat.metalnessMap) {
+          mat.metalness = 0.1
+        }
+        // Ensure minimum roughness so the surface scatters some light
+        if (mat.roughness < 0.4 && !mat.roughnessMap) {
+          mat.roughness = 0.4
         }
 
-        return phongMat
+        // Enable vertex colors if geometry provides them
+        if (hasVertexColors) {
+          mat.vertexColors = true
+        }
+
+        mat.side = THREE.DoubleSide
+        mat.depthTest = true
+        mat.depthWrite = true
+        mat.needsUpdate = true
+        return mat
       }
 
       // For other materials, just configure side and depth
       mat.side = THREE.DoubleSide
       mat.depthTest = true
       mat.depthWrite = true
+      if (hasVertexColors && 'vertexColors' in mat) {
+        ;(mat as any).vertexColors = true
+        mat.needsUpdate = true
+      }
       return mat
     })
 
@@ -243,8 +248,12 @@ export class GLBLoader {
     const positions: number[] = []
     const normals: number[] = []
     const uvs: number[] = []
+    const colors: number[] = []
     const indices: number[] = []
     const groups: { start: number; count: number; materialIndex: number }[] = []
+
+    // Check if any geometry has vertex colors
+    const hasColors = geometries.some((g) => g.attributes.color != null)
 
     let indexOffset = 0
     let vertexOffset = 0
@@ -253,6 +262,7 @@ export class GLBLoader {
       const posAttr = geom.attributes.position
       const normAttr = geom.attributes.normal
       const uvAttr = geom.attributes.uv
+      const colorAttr = geom.attributes.color
 
       // Add positions
       for (let i = 0; i < posAttr.count; i++) {
@@ -270,6 +280,26 @@ export class GLBLoader {
       if (uvAttr) {
         for (let i = 0; i < uvAttr.count; i++) {
           uvs.push(uvAttr.getX(i), uvAttr.getY(i))
+        }
+      }
+
+      // Add vertex colors (fill white if this geometry doesn't have them but others do)
+      if (hasColors) {
+        if (colorAttr) {
+          const itemSize = colorAttr.itemSize
+          for (let i = 0; i < posAttr.count; i++) {
+            colors.push(
+              colorAttr.getX(i),
+              colorAttr.getY(i),
+              colorAttr.getZ(i)
+            )
+            if (itemSize >= 4) colors.push((colorAttr as any).getW(i))
+            else colors.push(1) // alpha = 1
+          }
+        } else {
+          for (let i = 0; i < posAttr.count; i++) {
+            colors.push(1, 1, 1, 1)
+          }
         }
       }
 
@@ -306,6 +336,9 @@ export class GLBLoader {
     }
     if (uvs.length > 0) {
       merged.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
+    }
+    if (colors.length > 0) {
+      merged.setAttribute('color', new THREE.Float32BufferAttribute(colors, 4))
     }
     merged.setIndex(indices)
 

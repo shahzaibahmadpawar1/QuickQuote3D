@@ -13,6 +13,29 @@ import type { Item } from '../items/item'
 import type { HalfEdge } from '../model/half_edge'
 import type { Room } from '../model/room'
 
+function createNeutralEnvironment(renderer: THREE.WebGLRenderer): THREE.Texture {
+  const pmremGenerator = new THREE.PMREMGenerator(renderer)
+  pmremGenerator.compileEquirectangularShader()
+
+  const envScene = new THREE.Scene()
+  envScene.background = new THREE.Color(0xcccccc)
+
+  // Soft warm upper light
+  const light1 = new THREE.DirectionalLight(0xffffff, 2)
+  light1.position.set(1, 3, 2)
+  envScene.add(light1)
+
+  // Softer fill light from below/side
+  const light2 = new THREE.DirectionalLight(0xffffff, 1)
+  light2.position.set(-1, 0.5, -1)
+  envScene.add(light2)
+
+  const envMap = pmremGenerator.fromScene(envScene, 0.04).texture
+  pmremGenerator.dispose()
+  return envMap
+}
+
+
 interface MainOptions {
   resize?: boolean
   pushHref?: boolean
@@ -98,6 +121,11 @@ export class Main {
     this.renderer.shadowMap.type = THREE.PCFShadowMap // Optimized: PCFShadowMap is faster than PCFSoftShadowMap
     // Fix color space for proper color saturation (matching legacy behavior)
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
+
+    // Provide a neutral environment map so PBR materials (MeshStandardMaterial)
+    // from imported GLB models render with proper lighting/reflections.
+    const envMap = createNeutralEnvironment(this.renderer)
+    this.scene.getScene().environment = envMap
 
     // Get skybox colors from CSS variables (if available)
     const { topColor, bottomColor } = this.getSkyboxColors()
