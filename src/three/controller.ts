@@ -334,10 +334,10 @@ export class Controller {
   // mouse position, and the intersected object
   // both may be set to null if no intersection found
   private updateIntersections(): void {
-    // check the rotate arrow
+    // check the rotate arrow (use tight line precision so it doesn't steal clicks from items)
     const hudObject = this.hud.getObject()
     if (hudObject !== null) {
-      const hudIntersects = this.getIntersections(this.mouse, hudObject, false, false, true)
+      const hudIntersects = this.getIntersections(this.mouse, hudObject, false, false, true, 4)
       if (hudIntersects.length > 0) {
         this.rotateMouseOver = true
         this.hud.setMouseover(true)
