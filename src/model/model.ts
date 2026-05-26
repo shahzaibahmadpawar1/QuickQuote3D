@@ -19,7 +19,10 @@ export interface SerializedItem {
   scale_z: number
   fixed: boolean
   resizable?: boolean
-  description?: string // Description for AI understanding
+  description?: string
+  width_cm?: number
+  height_cm?: number
+  depth_cm?: number
 }
 
 /**
@@ -85,7 +88,10 @@ export class Model {
         scale_z: object.scale.z,
         fixed: object.fixed,
         resizable: metadata.resizable,
-        description: metadata.description
+        description: metadata.description,
+        width_cm: object.getWidth(),
+        height_cm: object.getHeight(),
+        depth_cm: object.getDepth()
       }
     }
 
@@ -102,7 +108,7 @@ export class Model {
     this.floorplan.loadFloorplan(floorplan)
     items.forEach((item) => {
       const position = new THREE.Vector3(item.xpos, item.ypos, item.zpos)
-      const metadata = {
+      const metadata: Record<string, unknown> = {
         itemName: item.item_name,
         itemKey: item.item_key,
         resizable: item.resizable,
@@ -110,6 +116,9 @@ export class Model {
         modelUrl: item.model_url,
         description: item.description
       }
+      if (item.width_cm != null) metadata.widthCm = item.width_cm
+      if (item.height_cm != null) metadata.heightCm = item.height_cm
+      if (item.depth_cm != null) metadata.depthCm = item.depth_cm
       const scale = new THREE.Vector3(item.scale_x, item.scale_y, item.scale_z)
       this.scene.addItem(
         item.item_type,
