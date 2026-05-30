@@ -117,7 +117,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [itemCostMinimized, setItemCostMinimized] = useState(false)
   const [itemCostPosition, setItemCostPosition] = useState({ x: 16, y: 80 })
-  const [ceilingVisible, setCeilingVisible] = useState(true)
+  const [ceilingVisible, setCeilingVisible] = useState(false)
   const [roomTypes, setRoomTypes] = useState<string[]>([])
   const [wallHeightCm, setWallHeightCm] = useState(
     Configuration.getNumericValue(configWallHeight)

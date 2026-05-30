@@ -7,7 +7,7 @@ export class Floor {
   private readonly renderer: THREE.WebGLRenderer
   private floorPlane: THREE.Mesh | null = null
   private roofPlane: THREE.Mesh | null = null
-  private roofVisible = true
+  private roofVisible = false
 
   constructor(scene: THREE.Scene, room: Room, renderer: THREE.WebGLRenderer) {
     this.scene = scene
