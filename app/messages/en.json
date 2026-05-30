@@ -154,8 +154,9 @@
         "tw": "繁體中文"
       },
       "itemPricing": {
-        "title": "Item pricing",
-        "description": "Set default item pricing in {currency}. Signed-in users can override values for their account only.",
+        "title": "Items",
+        "description": "Manage item categories, filters, and pricing in {currency}. Signed-in users can override prices for their account only.",
+        "filtersDescription": "Add, remove, reorder categories and assign catalog items to filters.",
         "showItems": "Show items",
         "hideItems": "Hide items",
         "customItemsSection": "Custom items",
@@ -323,12 +324,17 @@
     },
     "contextMenu": {
       "deleteItem": "Delete Item",
-      "adjustSize": "Adjust Size",
+      "adjustSize": "Current size",
       "width": "Width",
       "depth": "Depth",
       "height": "Height",
       "lockInPlace": "Lock in place",
       "measurementsIn": "Measurements in",
+      "description": "Description",
+      "price": "Price",
+      "category": "Category",
+      "catalogSize": "Catalog size",
+      "noDescription": "No description provided",
       "units": {
         "inches": "inches",
         "meters": "meters",

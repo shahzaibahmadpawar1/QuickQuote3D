@@ -1,27 +1,19 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
-import { ITEMS, type ItemCategory } from '@blueprint3d/constants'
+import { ITEMS } from '@blueprint3d/constants'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button } from "@/components/ui/button"
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { CatalogListItem } from '@/types/user-item'
 import {
+  CATALOG_FILTER_CONFIG_EVENT,
   loadCatalogFilterConfig,
   saveCatalogFilterConfig,
   migrateAssignments,
-  addFilter,
-  deleteFilter,
-  reorderFilters,
-  setItemFilter,
   resolveItemFilterId,
   type CatalogFilterRow
 } from '@/lib/catalog-filters'
-import { ChevronDown, ChevronUp, Trash2, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface ItemsListProps {
   onItemSelect: (item: {
@@ -40,7 +32,6 @@ interface ItemsListProps {
 }
 
 const CATEGORY_KEYS: Record<string, string> = {
-  all: 'all',
   custom: 'custom',
   bed: 'bed',
   drawer: 'drawer',
@@ -62,15 +53,17 @@ function filterLabel(row: CatalogFilterRow, t: (k: string) => string): string {
   return row.name
 }
 
-export function ItemsList({ onItemSelect, itemPrices = {}, currency = 'USD', items = ITEMS }: ItemsListProps) {
+export function ItemsList({
+  onItemSelect,
+  itemPrices = {},
+  currency = 'USD',
+  items = ITEMS
+}: ItemsListProps) {
   const t = useTranslations('BluePrint.items')
-  const tFilters = useTranslations('BluePrint.items.list.filters')
   const locale = useLocale()
 
   const [filterConfig, setFilterConfig] = useState(() => loadCatalogFilterConfig())
   const [selectedFilterId, setSelectedFilterId] = useState<string>('all')
-  const [newFilterName, setNewFilterName] = useState('')
-  const [manageOpen, setManageOpen] = useState(false)
 
   useEffect(() => {
     setFilterConfig((prev) => {
@@ -82,9 +75,10 @@ export function ItemsList({ onItemSelect, itemPrices = {}, currency = 'USD', ite
     })
   }, [items])
 
-  const persist = useCallback((next: typeof filterConfig) => {
-    setFilterConfig(next)
-    saveCatalogFilterConfig(next)
+  useEffect(() => {
+    const refresh = () => setFilterConfig(loadCatalogFilterConfig())
+    window.addEventListener(CATALOG_FILTER_CONFIG_EVENT, refresh)
+    return () => window.removeEventListener(CATALOG_FILTER_CONFIG_EVENT, refresh)
   }, [])
 
   const currencyFormatter = useMemo(() => {
@@ -105,26 +99,6 @@ export function ItemsList({ onItemSelect, itemPrices = {}, currency = 'USD', ite
     return t(item.key)
   }
 
-  const handleAddFilter = () => {
-    const next = addFilter(filterConfig, newFilterName)
-    if (next === filterConfig) return
-    persist(next)
-    setNewFilterName('')
-  }
-
-  const handleDeleteFilter = (row: CatalogFilterRow) => {
-    if (selectedFilterId === row.id) setSelectedFilterId('all')
-    persist(deleteFilter(filterConfig, row.id))
-  }
-
-  const handleReorder = (from: number, to: number) => {
-    persist(reorderFilters(filterConfig, from, to))
-  }
-
-  const handleAssign = (itemKey: string, filterId: string) => {
-    persist(setItemFilter(filterConfig, itemKey, filterId))
-  }
-
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-wrap gap-2 items-center">
@@ -138,126 +112,20 @@ export function ItemsList({ onItemSelect, itemPrices = {}, currency = 'USD', ite
           {t('categories.all')}
         </Button>
         {filterConfig.filters.map((row) => (
-          <div key={row.id} className="inline-flex items-center gap-0.5">
-            <Button
-              type="button"
-              variant={selectedFilterId === row.id ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedFilterId(row.id)}
-              className="whitespace-nowrap rounded-r-none pr-2"
-            >
-              {filterLabel(row, t)}
-            </Button>
-            <Button
-              type="button"
-              variant={selectedFilterId === row.id ? 'default' : 'outline'}
-              size="sm"
-              className="rounded-l-none px-1.5"
-              aria-label={tFilters('deleteFilterAria', { name: filterLabel(row, t) })}
-              onClick={() => handleDeleteFilter(row)}
-            >
-              <X className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+          <Button
+            key={row.id}
+            type="button"
+            variant={selectedFilterId === row.id ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedFilterId(row.id)}
+            className="whitespace-nowrap"
+          >
+            {filterLabel(row, t)}
+          </Button>
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2 items-end">
-        <div className="space-y-1 flex-1 min-w-[140px]">
-          <Label className="text-xs text-muted-foreground">{tFilters('addPlaceholder')}</Label>
-          <Input
-            value={newFilterName}
-            onChange={(e) => setNewFilterName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAddFilter()
-            }}
-            placeholder={tFilters('addPlaceholder')}
-          />
-        </div>
-        <Button type="button" size="sm" onClick={handleAddFilter}>
-          {tFilters('add')}
-        </Button>
-        <Button type="button" size="sm" variant="secondary" onClick={() => setManageOpen((o) => !o)}>
-          {tFilters('manage')}
-        </Button>
-      </div>
-
-      {manageOpen && (
-        <div className="rounded-md border p-3 space-y-3 bg-muted/30">
-          <p className="text-xs font-medium text-muted-foreground">{tFilters('assignHeading')}</p>
-          <ul className="space-y-1 max-h-48 overflow-y-auto">
-            {filterConfig.filters.map((row, index) => (
-              <li
-                key={row.id}
-                className="flex items-center gap-2 text-sm py-1 border-b border-border/60 last:border-0"
-              >
-                <span className="flex-1 truncate">{filterLabel(row, t)}</span>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 shrink-0"
-                  disabled={index === 0}
-                  aria-label={tFilters('moveUp')}
-                  onClick={() => handleReorder(index, index - 1)}
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 shrink-0"
-                  disabled={index >= filterConfig.filters.length - 1}
-                  aria-label={tFilters('moveDown')}
-                  onClick={() => handleReorder(index, index + 1)}
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 shrink-0 text-destructive"
-                  aria-label={tFilters('deleteFilterAria', { name: filterLabel(row, t) })}
-                  onClick={() => handleDeleteFilter(row)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </li>
-            ))}
-          </ul>
-          <div className="space-y-2 max-h-56 overflow-y-auto">
-            {items.map((item) => (
-              <div key={item.key} className="flex items-center gap-2 text-sm">
-                <span className="flex-1 truncate min-w-0">{getItemLabel(item)}</span>
-                <Select
-                  value={resolveItemFilterId(item, filterConfig.itemToFilter)}
-                  onValueChange={(v) => handleAssign(item.key, v)}
-                >
-                  <SelectTrigger className="h-8 w-[140px] shrink-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filterConfig.filters.map((row) => (
-                      <SelectItem key={row.id} value={row.id}>
-                        {filterLabel(row, t)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div
-        className={cn(
-          'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3',
-          manageOpen && 'opacity-90'
-        )}
-      >
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
         {filteredItems.map((item, index) => (
           <button
             key={index}

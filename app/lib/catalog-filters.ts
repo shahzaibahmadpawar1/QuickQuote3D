@@ -5,6 +5,8 @@ export type CatalogFilterRow = { id: string; name: string }
 
 const STORAGE_KEY = 'blueprint3d.catalogFilterConfigV1'
 
+export const CATALOG_FILTER_CONFIG_EVENT = 'blueprint3d:catalogFilterConfigChanged'
+
 type Stored = {
   filters: CatalogFilterRow[]
   itemToFilter: Record<string, string>
@@ -53,6 +55,7 @@ export function saveCatalogFilterConfig(config: Stored): void {
   if (typeof window === 'undefined') return
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
+    window.dispatchEvent(new CustomEvent(CATALOG_FILTER_CONFIG_EVENT))
   } catch {
     // ignore quota / private mode
   }

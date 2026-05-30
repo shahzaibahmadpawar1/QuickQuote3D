@@ -154,8 +154,9 @@
         "tw": "繁體中文"
       },
       "itemPricing": {
-        "title": "物品定價",
-        "description": "以 {currency} 設定物品價格。登入使用者可只覆寫自己的價格。",
+        "title": "物品",
+        "description": "管理物品分類、篩選與 {currency} 定價。登入使用者可只覆寫自己的價格。",
+        "filtersDescription": "新增、刪除、排序分類，並將目錄物品分配到篩選。",
         "showItems": "顯示物品",
         "hideItems": "隱藏物品",
         "customItemsSection": "自訂物品",
@@ -323,12 +324,17 @@
     },
     "contextMenu": {
       "deleteItem": "删除物品",
-      "adjustSize": "调整大小",
+      "adjustSize": "目前尺寸",
       "width": "宽度",
       "depth": "深度",
       "height": "高度",
       "lockInPlace": "锁定位置",
       "measurementsIn": "测量单位",
+      "description": "描述",
+      "price": "價格",
+      "category": "分類",
+      "catalogSize": "目錄預設尺寸",
+      "noDescription": "暫無描述",
       "units": {
         "inches": "英寸",
         "meters": "米",

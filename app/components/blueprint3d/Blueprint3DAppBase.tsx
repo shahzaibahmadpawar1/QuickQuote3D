@@ -1394,6 +1394,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
                 onDelete={handleDeleteItem}
                 onResize={handleResizeItem}
                 onFixedChange={handleFixedChange}
+                itemPrices={pricingPayload?.itemPrices}
+                currency={pricingPayload?.settings.currency}
+                catalogItems={mergedCatalogItems}
               />
             </div>
           )}

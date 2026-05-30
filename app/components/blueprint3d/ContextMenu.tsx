@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl'
 import { useIsMobile } from "@/hooks/use-media-query"
 import { cn } from "@/lib/utils"
 import type { Item } from '@blueprint3d/items/item'
+import type { CatalogListItem } from '@/types/user-item'
 
 import { Configuration, configDimUnit } from '@blueprint3d/core/configuration'
 
@@ -17,9 +18,20 @@ interface ContextMenuProps {
   onDelete: () => void
   onResize: (height: number, width: number, depth: number) => void
   onFixedChange: (fixed: boolean) => void
+  itemPrices?: Record<string, number>
+  currency?: string
+  catalogItems?: CatalogListItem[]
 }
 
-export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }: ContextMenuProps) {
+export function ContextMenu({
+  selectedItem,
+  onDelete,
+  onResize,
+  onFixedChange,
+  itemPrices = {},
+  currency = 'USD',
+  catalogItems = []
+}: ContextMenuProps) {
   const t = useTranslations('BluePrint.contextMenu')
   const tItems = useTranslations('BluePrint.items')
   const isMobile = useIsMobile()
@@ -28,6 +40,12 @@ export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }:
   const [depth, setDepth] = useState(0)
   const [fixed, setFixed] = useState(false)
   const [currentUnit, setCurrentUnit] = useState('inch')
+
+  const itemKey = selectedItem?.metadata?.itemKey
+  const catalogItem = useMemo(
+    () => (itemKey ? catalogItems.find((entry) => entry.key === itemKey) : undefined),
+    [catalogItems, itemKey]
+  )
 
   const getItemLabel = (): string => {
     const key = selectedItem?.metadata?.itemKey
@@ -140,6 +158,31 @@ export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }:
     onFixedChange(checked)
   }
 
+  const currencyFormatter = useMemo(() => {
+    try {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency })
+    } catch {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+    }
+  }, [currency])
+
+  const itemDescription = (selectedItem?.metadata?.description ?? catalogItem?.description ?? '').trim()
+  const itemCategory = catalogItem?.isCustom ? tItems('categories.custom') : catalogItem?.category
+    ? tItems(`categories.${catalogItem.category}`)
+    : null
+  const itemPrice = itemKey ? itemPrices[itemKey] : undefined
+  const hasCatalogDimensions =
+    Number.isFinite(Number(catalogItem?.widthCm)) &&
+    Number(catalogItem?.widthCm) > 0 &&
+    Number.isFinite(Number(catalogItem?.depthCm)) &&
+    Number(catalogItem?.depthCm) > 0 &&
+    Number.isFinite(Number(catalogItem?.heightCm)) &&
+    Number(catalogItem?.heightCm) > 0
+
+  const catalogDimensionsLabel = hasCatalogDimensions
+    ? `${Number(cmToDisplay(Number(catalogItem?.widthCm), currentUnit).toFixed(1))} × ${Number(cmToDisplay(Number(catalogItem?.depthCm), currentUnit).toFixed(1))} × ${Number(cmToDisplay(Number(catalogItem?.heightCm), currentUnit).toFixed(1))}`
+    : null
+
   if (!selectedItem) {
     return null
   }
@@ -147,7 +190,7 @@ export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }:
   return (
     <div className={cn(
       'bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg animate-in fade-in-0 slide-in-from-right-5 duration-300',
-      isMobile ? 'p-4 max-w-[320px]' : 'p-3 max-w-[280px]'
+      isMobile ? 'p-4 max-w-[340px]' : 'p-3 max-w-[300px]'
     )}>
       {/* Header with item name */}
       <div className="flex items-center justify-between mb-3">
@@ -167,8 +210,29 @@ export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }:
         </Button>
       </div>
 
+      <div className="mb-3 rounded-md border border-border/70 bg-muted/30 p-2 space-y-1.5">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="rounded bg-primary/15 text-primary px-2 py-0.5">
+            {t('category')}: {itemCategory ?? '—'}
+          </span>
+          <span className="rounded bg-muted text-muted-foreground px-2 py-0.5">
+            {t('price')}: {Number.isFinite(itemPrice) ? currencyFormatter.format(Number(itemPrice)) : '—'}
+          </span>
+        </div>
+        <p className={cn('text-muted-foreground leading-snug', isMobile ? 'text-sm' : 'text-xs')}>
+          <span className="text-foreground">{t('description')}:</span>{' '}
+          {itemDescription.length > 0 ? itemDescription : t('noDescription')}
+        </p>
+        {catalogDimensionsLabel ? (
+          <p className={cn('text-muted-foreground', isMobile ? 'text-sm' : 'text-xs')}>
+            <span className="text-foreground">{t('catalogSize')}:</span> {catalogDimensionsLabel} {getUnitLabel(currentUnit)}
+          </p>
+        ) : null}
+      </div>
+
       {/* Size inputs - Compact grid layout */}
       <div className={cn('mb-3', isMobile ? 'space-y-3' : 'space-y-2')}>
+        <p className={cn('font-medium text-foreground', isMobile ? 'text-sm' : 'text-xs')}>{t('adjustSize')}</p>
         <div className={cn('grid grid-cols-3 text-xs', isMobile ? 'gap-3' : 'gap-2')}>
           <div>
             <label className={cn('text-muted-foreground mb-1 block', isMobile && 'text-sm')}>{t('width')}</label>

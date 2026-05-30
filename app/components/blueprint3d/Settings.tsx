@@ -17,6 +17,7 @@ import { deleteUserItem } from '@/services/user-items'
 import type { CatalogListItem, UserCatalogItem } from '@/types/user-item'
 import { AddItemDialog } from './AddItemDialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CatalogFilterManager } from './CatalogFilterManager'
 
 type WallHeightDisplayUnit = 'cm' | 'mm' | 'm' | 'inch' | 'ft'
 
@@ -520,6 +521,10 @@ export function Settings({
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mb-4">{t('itemPricing.description', { currency })}</p>
+          <div className="mb-4 space-y-2">
+            <p className="text-sm font-medium text-foreground">{t('itemPricing.filtersDescription')}</p>
+            <CatalogFilterManager items={catalogItems} />
+          </div>
           {showPricingItems && (
             <div className="space-y-3">
               {customItems.length > 0 && (

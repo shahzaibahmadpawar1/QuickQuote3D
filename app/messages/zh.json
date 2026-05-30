@@ -154,8 +154,9 @@
         "tw": "繁體中文"
       },
       "itemPricing": {
-        "title": "物品定价",
-        "description": "以 {currency} 设置物品价格。登录用户可仅为自己的账号覆盖价格。",
+        "title": "物品",
+        "description": "管理物品分类、筛选和 {currency} 定价。登录用户可仅为自己的账号覆盖价格。",
+        "filtersDescription": "添加、删除、排序分类，并将目录物品分配到筛选。",
         "showItems": "显示物品",
         "hideItems": "隐藏物品",
         "customItemsSection": "自定义物品",
@@ -323,12 +324,17 @@
     },
     "contextMenu": {
       "deleteItem": "删除物品",
-      "adjustSize": "调整大小",
+      "adjustSize": "当前尺寸",
       "width": "宽度",
       "depth": "深度",
       "height": "高度",
       "lockInPlace": "锁定位置",
       "measurementsIn": "测量单位",
+      "description": "描述",
+      "price": "价格",
+      "category": "分类",
+      "catalogSize": "目录默认尺寸",
+      "noDescription": "暂无描述",
       "units": {
         "inches": "英寸",
         "meters": "米",
