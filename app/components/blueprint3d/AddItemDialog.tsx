@@ -243,25 +243,58 @@ export function AddItemDialog({
             <Input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" placeholder="0.00" />
           </div>
           <div className="space-y-2">
-            <Label>Dimensions</Label>
-            <div className="grid grid-cols-4 gap-2">
-              <Input value={width} onChange={(e) => setWidth(e.target.value)} inputMode="decimal" placeholder="Width" />
-              <Input value={height} onChange={(e) => setHeight(e.target.value)} inputMode="decimal" placeholder="Height" />
-              <Input value={depth} onChange={(e) => setDepth(e.target.value)} inputMode="decimal" placeholder="Depth" />
-              <Select
-                value={dimensionUnit}
-                onValueChange={(v) => applyDimensionUnitChange(v as 'inch' | 'm' | 'cm' | 'mm')}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="inch">inch</SelectItem>
-                  <SelectItem value="m">m</SelectItem>
-                  <SelectItem value="cm">cm</SelectItem>
-                  <SelectItem value="mm">mm</SelectItem>
-                </SelectContent>
-              </Select>
+            <Label>{t('dimensions')}</Label>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="space-y-1">
+                <Label htmlFor="custom-item-width" className="text-xs font-normal text-muted-foreground">
+                  {t('width')}
+                </Label>
+                <Input
+                  id="custom-item-width"
+                  value={width}
+                  onChange={(e) => setWidth(e.target.value)}
+                  inputMode="decimal"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="custom-item-height" className="text-xs font-normal text-muted-foreground">
+                  {t('height')}
+                </Label>
+                <Input
+                  id="custom-item-height"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  inputMode="decimal"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="custom-item-length" className="text-xs font-normal text-muted-foreground">
+                  {t('length')}
+                </Label>
+                <Input
+                  id="custom-item-length"
+                  value={depth}
+                  onChange={(e) => setDepth(e.target.value)}
+                  inputMode="decimal"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-normal text-muted-foreground">{t('dimensionUnit')}</Label>
+                <Select
+                  value={dimensionUnit}
+                  onValueChange={(v) => applyDimensionUnitChange(v as 'inch' | 'm' | 'cm' | 'mm')}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inch">inch</SelectItem>
+                    <SelectItem value="m">m</SelectItem>
+                    <SelectItem value="cm">cm</SelectItem>
+                    <SelectItem value="mm">mm</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <div className="space-y-1">
