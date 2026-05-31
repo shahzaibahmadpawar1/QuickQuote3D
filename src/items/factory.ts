@@ -8,6 +8,7 @@ import { FloorItem } from './floor_item'
 import { InWallFloorItem } from './in_wall_floor_item'
 import { InWallItem } from './in_wall_item'
 import { OnFloorItem } from './on_floor_item'
+import { OnItemItem } from './on_item'
 import { WallFloorItem } from './wall_floor_item'
 import { WallItem } from './wall_item'
 
@@ -31,7 +32,8 @@ const item_types: Record<number, ItemConstructor> = {
   8: OnFloorItem,
   9: WallFloorItem,
   10: CornerItem,
-  11: CeilingItem
+  11: CeilingItem,
+  12: OnItemItem
 }
 
 /** Factory class to create items. */

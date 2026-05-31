@@ -35,7 +35,8 @@ const CATEGORY_NORMS: Record<UserItemCategory, CategoryNorm> = {
   storage: { mode: 'height', min: 60, max: 200, target: 120 },
   light: { mode: 'maxDimension', min: 15, max: 80, target: 40 },
   door: { mode: 'height', min: 190, max: 230, target: 210 },
-  window: { mode: 'height', min: 80, max: 160, target: 120 }
+  window: { mode: 'height', min: 80, max: 160, target: 120 },
+  decoration: { mode: 'maxDimension', min: 10, max: 60, target: 25 }
 }
 
 let sharedLoader: GLTFLoader | null = null

@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 
 interface MyFloorplansProps {
   onLoadFloorplan: (data: string, roomType?: string, id?: string, name?: string) => void
@@ -32,10 +33,13 @@ type ViewMode = 'grid' | 'list'
 export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
   const locale = useLocale()
   const t = useTranslations('BluePrint.myFloorplans')
+  const tConfirmDelete = useTranslations('BluePrint.confirmDelete')
   const [floorplans, setFloorplans] = useState<BlueprintListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [selectedRoomType, setSelectedRoomType] = useState<string>('all')
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deleteConfirming, setDeleteConfirming] = useState(false)
 
   useEffect(() => {
     loadFloorplans()
@@ -74,16 +78,24 @@ export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
     }
   }
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(t('deleteConfirm'))) return
-    const toastId = toast.loading(t('deletingItem', { name }))
+  const handleDelete = (id: string, name: string) => {
+    setDeleteTarget({ id, name })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setDeleteConfirming(true)
+    const toastId = toast.loading(t('deletingItem', { name: deleteTarget.name }))
     try {
-      await blueprintDelete(id)
+      await blueprintDelete(deleteTarget.id)
       await loadFloorplans()
-      toast.success(t('deleteSuccess', { name }), { id: toastId })
+      toast.success(t('deleteSuccess', { name: deleteTarget.name }), { id: toastId })
+      setDeleteTarget(null)
     } catch (error) {
       console.error('Failed to delete floorplan:', error)
       toast.error(t('deleteError') || 'Failed to delete floorplan', { id: toastId })
+    } finally {
+      setDeleteConfirming(false)
     }
   }
 
@@ -332,6 +344,22 @@ export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
           ))}
         </div>
       )}
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}
+        title={tConfirmDelete('title')}
+        description={
+          deleteTarget
+            ? tConfirmDelete('descriptionNamed', { name: deleteTarget.name })
+            : tConfirmDelete('description')
+        }
+        confirmLabel={tConfirmDelete('confirm')}
+        cancelLabel={tConfirmDelete('cancel')}
+        confirming={deleteConfirming}
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

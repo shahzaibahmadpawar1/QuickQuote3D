@@ -16,6 +16,7 @@ import { EstimateDialog } from './EstimateDialog'
 import { WallLengthDialog } from './WallLengthDialog'
 import { ItemPriceSummaryPanel } from './ItemPriceSummaryPanel'
 import { NewPlanConfirmDialog } from './NewPlanConfirmDialog'
+import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import { TouchHelp } from './TouchHelp'
 import { ControlsHelp } from './ControlsHelp'
 import DefaultFloorplan from '@blueprint3d/templates/default.json'
@@ -43,6 +44,7 @@ import type { UserCatalogTexture } from '@/types/user-texture'
 import * as THREE from 'three'
 
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
+import { findMountHostFromHits, getMountHostMeshes } from '@blueprint3d/items/mount-utils'
 import { floorplannerModes } from '@blueprint3d/floorplanner/floorplanner_view'
 import { Configuration, configDimUnit, configWallHeight } from '@blueprint3d/core/configuration'
 import type { Item } from '@blueprint3d/items/item'
@@ -93,6 +95,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const tFloorplanner = useTranslations('BluePrint.floorplanner')
   const tMyFloorplans = useTranslations('BluePrint.myFloorplans')
   const tEstimate = useTranslations('BluePrint.estimate')
+  const tConfirmDelete = useTranslations('BluePrint.confirmDelete')
+  const tCustom = useTranslations('BluePrint.customItems')
 
   const contentRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<HTMLDivElement>(null)
@@ -175,6 +179,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [itemCostPanelWidth, setItemCostPanelWidth] = useState(320)
   const placementPreviewRef = useRef<THREE.Mesh | null>(null)
   const placementPositionRef = useRef<THREE.Vector3 | null>(null)
+  const placementMountHostKeyRef = useRef<string | null>(null)
+  const [deleteItemConfirmOpen, setDeleteItemConfirmOpen] = useState(false)
 
   const viewModeRef = useRef<'2d' | '3d'>('3d')
 
@@ -816,11 +822,18 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   )
 
   const handleDeleteItem = useCallback(() => {
+    setDeleteItemConfirmOpen(true)
+  }, [])
+
+  const confirmDeleteItem = useCallback(() => {
     if (selectedItem) {
       selectedItem.removeFromScene()
       setSelectedItem(null)
+      setLayoutEpoch((e) => e + 1)
+      requestHistoryCommit()
     }
-  }, [selectedItem])
+    setDeleteItemConfirmOpen(false)
+  }, [requestHistoryCommit, selectedItem])
 
   const handleResizeItem = useCallback(
     (height: number, width: number, depth: number) => {
@@ -1193,6 +1206,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         ? Number(pendingPlacementItem.depthCm)
         : 50 * 2.54
 
+    placementMountHostKeyRef.current = null
     const preview = new THREE.Mesh(
       new THREE.BoxGeometry(widthCm, heightCm, depthCm),
       new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.3 })
@@ -1211,6 +1225,22 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       const raycaster = new THREE.Raycaster()
       raycaster.setFromCamera(ndc, blueprint3d.three.camera)
       const itemType = parseInt(pendingPlacementItem.type)
+      if (itemType === 12) {
+        const sceneItems = blueprint3d.model.scene.getItems()
+        const hosts = getMountHostMeshes(sceneItems)
+        const hits = raycaster.intersectObjects(hosts as THREE.Object3D[], true)
+        const found = findMountHostFromHits(sceneItems, hits)
+        if (found) {
+          const { host, point } = found
+          placementMountHostKeyRef.current =
+            typeof host.metadata?.itemKey === 'string' ? host.metadata.itemKey : null
+          const topY = host.position.y + host.halfSize.y
+          preview.position.set(point.x, topY + heightCm / 2, point.z)
+          placementPositionRef.current = preview.position.clone()
+        }
+        return
+      }
+
       const targets =
         itemType === 3 || itemType === 7 || itemType === 9
           ? blueprint3d.model.floorplan.wallEdgePlanes()
@@ -1234,6 +1264,11 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     const onClick = (event: MouseEvent) => {
       event.preventDefault()
       event.stopPropagation()
+      const itemType = parseInt(pendingPlacementItem.type)
+      if (itemType === 12 && !placementMountHostKeyRef.current) {
+        toast.error(tCustom('placementOnItemHint'))
+        return
+      }
       const position = placementPositionRef.current?.clone() ?? preview.position.clone()
       const translatedName = customItemLabelMap[pendingPlacementItem.key] ?? pendingPlacementItem.name
       const toastId = toast.loading(tItems('loadingItem', { name: translatedName }))
@@ -1250,11 +1285,17 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           description: pendingPlacementItem.description,
           widthCm: pendingPlacementItem.widthCm ?? null,
           heightCm: pendingPlacementItem.heightCm ?? null,
-          depthCm: pendingPlacementItem.depthCm ?? null
+          depthCm: pendingPlacementItem.depthCm ?? null,
+          ...(placementMountHostKeyRef.current
+            ? { parentItemKey: placementMountHostKeyRef.current }
+            : {})
         },
         position
       )
+      placementMountHostKeyRef.current = null
       setPendingPlacementItem(null)
+      setLayoutEpoch((e) => e + 1)
+      requestHistoryCommit()
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -1276,7 +1317,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         placementPreviewRef.current = null
       }
     }
-  }, [customItemLabelMap, pendingPlacementItem, tItems, viewMode])
+  }, [customItemLabelMap, pendingPlacementItem, requestHistoryCommit, tCustom, tItems, viewMode])
 
   const costSummaryRows = useMemo(() => {
     if (!costEstimate) return []
@@ -1592,9 +1633,25 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         showOnlyCustomItems={showOnlyCustomItems}
         onShowOnlyCustomItemsChange={setShowOnlyCustomItems}
         userTextures={userTextures}
+        userItems={userItems}
         onTexturesChanged={loadUserTextures}
+        onUserItemsChanged={loadUserItems}
         onPricingChanged={loadPricing}
         onRoomTypesChanged={setRoomTypes}
+      />
+
+      <ConfirmDeleteDialog
+        open={deleteItemConfirmOpen}
+        onOpenChange={setDeleteItemConfirmOpen}
+        title={tConfirmDelete('title')}
+        description={
+          selectedItem?.metadata?.itemName
+            ? tConfirmDelete('descriptionNamed', { name: selectedItem.metadata.itemName })
+            : tConfirmDelete('description')
+        }
+        confirmLabel={tConfirmDelete('confirm')}
+        cancelLabel={tConfirmDelete('cancel')}
+        onConfirm={confirmDeleteItem}
       />
 
       {/* Save Floorplan Dialog */}

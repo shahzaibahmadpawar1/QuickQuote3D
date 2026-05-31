@@ -10,12 +10,13 @@ export const USER_ITEM_CATEGORIES = [
   'armchair',
   'stool',
   'door',
-  'window'
+  'window',
+  'decoration'
 ] as const
 
 export type UserItemCategory = (typeof USER_ITEM_CATEGORIES)[number]
 
-export const USER_ITEM_TYPES = [1, 3, 7, 9, 11] as const
+export const USER_ITEM_TYPES = [1, 3, 7, 9, 11, 12] as const
 export type UserItemType = (typeof USER_ITEM_TYPES)[number]
 
 export interface UserCatalogItem {

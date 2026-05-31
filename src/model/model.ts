@@ -3,6 +3,7 @@ import { Floorplan } from './floorplan'
 import { Scene } from './scene'
 import { EventEmitter } from '../core/events'
 import type { SavedFloorplan } from './floorplan'
+import { OnItemItem } from '../items/on_item'
 
 export interface SerializedItem {
   item_name: string
@@ -23,6 +24,8 @@ export interface SerializedItem {
   width_cm?: number
   height_cm?: number
   depth_cm?: number
+  /** Host catalog key for on-item decorations (type 12). */
+  parent_item_key?: string
 }
 
 /**
@@ -74,6 +77,11 @@ export class Model {
     for (let i = 0; i < objects.length; i++) {
       const object = objects[i]
       const metadata = object.metadata
+      const parentItemKey =
+        object instanceof OnItemItem
+          ? object.getMountedHost()?.metadata?.itemKey ??
+            (typeof metadata.parentItemKey === 'string' ? metadata.parentItemKey : undefined)
+          : undefined
       items_arr[i] = {
         item_name: metadata.itemName ?? '',
         item_type: metadata.itemType ?? 0,
@@ -91,7 +99,8 @@ export class Model {
         description: metadata.description,
         width_cm: object.getWidth(),
         height_cm: object.getHeight(),
-        depth_cm: object.getDepth()
+        depth_cm: object.getDepth(),
+        parent_item_key: parentItemKey
       }
     }
 
@@ -119,6 +128,7 @@ export class Model {
       if (item.width_cm != null) metadata.widthCm = item.width_cm
       if (item.height_cm != null) metadata.heightCm = item.height_cm
       if (item.depth_cm != null) metadata.depthCm = item.depth_cm
+      if (item.parent_item_key) metadata.parentItemKey = item.parent_item_key
       const scale = new THREE.Vector3(item.scale_x, item.scale_y, item.scale_z)
       this.scene.addItem(
         item.item_type,

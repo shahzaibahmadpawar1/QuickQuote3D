@@ -17,5 +17,8 @@ export interface Metadata {
 
   /** Description of the item for AI understanding */
   description?: string
+
+  /** Host catalog key when this item is mounted on furniture (type 12). */
+  parentItemKey?: string
 }
 

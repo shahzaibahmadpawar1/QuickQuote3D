@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -34,7 +35,8 @@ const CATEGORY_KEYS: Record<string, string> = {
   armchair: 'armchair',
   stool: 'stool',
   door: 'door',
-  window: 'window'
+  window: 'window',
+  decoration: 'decoration'
 }
 
 function filterLabel(row: CatalogFilterRow, tItems: (k: string) => string): string {
@@ -50,8 +52,10 @@ interface CatalogFilterManagerProps {
 export function CatalogFilterManager({ items }: CatalogFilterManagerProps) {
   const tItems = useTranslations('BluePrint.items')
   const tFilters = useTranslations('BluePrint.items.list.filters')
+  const tConfirmDelete = useTranslations('BluePrint.confirmDelete')
   const [filterConfig, setFilterConfig] = useState(() => loadCatalogFilterConfig())
   const [newFilterName, setNewFilterName] = useState('')
+  const [deleteFilterTarget, setDeleteFilterTarget] = useState<CatalogFilterRow | null>(null)
 
   useEffect(() => {
     setFilterConfig((prev) => {
@@ -76,7 +80,7 @@ export function CatalogFilterManager({ items }: CatalogFilterManagerProps) {
   }
 
   const handleDeleteFilter = (row: CatalogFilterRow) => {
-    persist(deleteFilter(filterConfig, row.id))
+    setDeleteFilterTarget(row)
   }
 
   const handleReorder = (from: number, to: number) => {
@@ -178,6 +182,26 @@ export function CatalogFilterManager({ items }: CatalogFilterManagerProps) {
           </div>
         ))}
       </div>
+      <ConfirmDeleteDialog
+        open={deleteFilterTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteFilterTarget(null)
+        }}
+        title={tConfirmDelete('title')}
+        description={
+          deleteFilterTarget
+            ? tConfirmDelete('descriptionNamed', { name: filterLabel(deleteFilterTarget, tItems) })
+            : tConfirmDelete('description')
+        }
+        confirmLabel={tConfirmDelete('confirm')}
+        cancelLabel={tConfirmDelete('cancel')}
+        onConfirm={() => {
+          if (deleteFilterTarget) {
+            persist(deleteFilter(filterConfig, deleteFilterTarget.id))
+            setDeleteFilterTarget(null)
+          }
+        }}
+      />
     </div>
   )
 }

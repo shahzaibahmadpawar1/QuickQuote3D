@@ -24,7 +24,8 @@ const DEFAULT_CATEGORY_ORDER: Array<ItemCategory | 'custom'> = [
   'armchair',
   'stool',
   'door',
-  'window'
+  'window',
+  'decoration'
 ]
 
 function defaultFilters(): CatalogFilterRow[] {

@@ -250,7 +250,8 @@
         "stool": "Stools",
         "door": "Doors",
         "window": "Windows",
-        "toilet": "Toilets"
+        "toilet": "Toilets",
+        "decoration": "Decorations"
       },
       "loadingItem": "Loading \"{name}\"...",
       "loadedSuccess": "\"{name}\" loaded successfully",
@@ -367,7 +368,22 @@
       "cancel": "Cancel",
       "save": "Save item",
       "saving": "Saving...",
-      "unexpectedError": "Could not add this item. Please try again."
+      "unexpectedError": "Could not add this item. Please try again.",
+      "typeOnItem": "On furniture (table, chair, etc.)",
+      "settingsTitle": "Custom items",
+      "settingsDescription": "Manage your uploaded furniture and decorations. Edit or remove items from your catalog.",
+      "addButton": "Add item",
+      "emptyList": "No custom items yet. Add one from the items panel or here.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "placementOnItemHint": "Click on a table, chair, or other floor furniture to place this item."
+    },
+    "confirmDelete": {
+      "title": "Delete this item?",
+      "description": "This action cannot be undone.",
+      "descriptionNamed": "Delete \"{name}\"? This action cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
     },
     "contextMenu": {
       "deleteItem": "Delete Item",

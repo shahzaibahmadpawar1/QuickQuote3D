@@ -250,7 +250,8 @@
         "stool": "凳子",
         "door": "门",
         "window": "窗户",
-        "toilet": "马桶"
+        "toilet": "马桶",
+        "decoration": "装饰品"
       },
       "loadingItem": "正在加载\"{name}\"...",
       "loadedSuccess": "\"{name}\"加载成功",
@@ -367,7 +368,22 @@
       "cancel": "取消",
       "save": "保存物品",
       "saving": "保存中...",
-      "unexpectedError": "无法添加该物品，请重试。"
+      "unexpectedError": "无法添加该物品，请重试。",
+      "typeOnItem": "放在家具上（桌子、椅子等）",
+      "settingsTitle": "自定义物品",
+      "settingsDescription": "管理您上传的家具和装饰品，可在此编辑或删除。",
+      "addButton": "添加物品",
+      "emptyList": "暂无自定义物品。可从物品面板或此处添加。",
+      "edit": "编辑",
+      "delete": "删除",
+      "placementOnItemHint": "请点击桌子、椅子或其他地面家具来放置此物品。"
+    },
+    "confirmDelete": {
+      "title": "确定删除？",
+      "description": "此操作无法撤销。",
+      "descriptionNamed": "确定删除「{name}」？此操作无法撤销。",
+      "confirm": "删除",
+      "cancel": "取消"
     },
     "contextMenu": {
       "deleteItem": "删除物品",

@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Settings } from './Settings'
-import type { CatalogListItem } from '@/types/user-item'
+import type { CatalogListItem, UserCatalogItem } from '@/types/user-item'
 import type { UserCatalogTexture } from '@/types/user-texture'
 
 interface SettingsDialogProps {
@@ -24,7 +24,9 @@ interface SettingsDialogProps {
   showOnlyCustomItems?: boolean
   onShowOnlyCustomItemsChange?: (value: boolean) => void
   userTextures?: UserCatalogTexture[]
+  userItems?: UserCatalogItem[]
   onTexturesChanged?: () => void
+  onUserItemsChanged?: () => void
   onPricingChanged?: () => void
   onRoomTypesChanged?: (roomTypes: string[]) => void
 }
@@ -43,7 +45,9 @@ export function SettingsDialog({
   showOnlyCustomItems,
   onShowOnlyCustomItemsChange,
   userTextures,
+  userItems,
   onTexturesChanged,
+  onUserItemsChanged,
   onPricingChanged,
   onRoomTypesChanged
 }: SettingsDialogProps) {
@@ -66,7 +70,9 @@ export function SettingsDialog({
             showOnlyCustomItems={showOnlyCustomItems}
             onShowOnlyCustomItemsChange={onShowOnlyCustomItemsChange}
             userTextures={userTextures}
+            userItems={userItems}
             onTexturesChanged={onTexturesChanged}
+            onUserItemsChanged={onUserItemsChanged}
             onPricingChanged={onPricingChanged}
             onRoomTypesChanged={onRoomTypesChanged}
           />

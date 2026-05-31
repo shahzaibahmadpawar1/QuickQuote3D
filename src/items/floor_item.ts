@@ -45,6 +45,7 @@ export abstract class FloorItem extends Item {
     this.hideError()
     vec3.y = this.position.y // keep it on the floor
     this.position.copy(vec3)
+    this.model.scene.syncMountedChildren(this)
   }
 
   /** Clear snapped wall when drag ends */

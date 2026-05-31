@@ -12,6 +12,7 @@ export type ItemCategory =
   | 'stool'
   | 'door'
   | 'window'
+  | 'decoration'
 
 export interface Item {
   key: string

@@ -25,7 +25,8 @@ const TYPE_OPTIONS: Array<{ value: UserItemType; labelKey: string }> = [
   { value: 3, labelKey: 'typeWindow' },
   { value: 7, labelKey: 'typeDoor' },
   { value: 9, labelKey: 'typeWall' },
-  { value: 11, labelKey: 'typeLight' }
+  { value: 11, labelKey: 'typeLight' },
+  { value: 12, labelKey: 'typeOnItem' }
 ]
 
 const UNIT_FACTORS_CM: Record<string, number> = {

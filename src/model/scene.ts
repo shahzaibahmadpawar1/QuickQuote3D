@@ -3,6 +3,7 @@ import { Utils } from '../core/utils'
 import { EventEmitter } from '../core/events'
 import { Factory } from '../items/factory'
 import type { Item } from '../items/item'
+import { OnItemItem } from '../items/on_item'
 import type { Model } from './model'
 import { JSONLoader } from '../loaders/JSONLoader'
 import { GLBLoader } from '../loaders/GLBLoader'
@@ -37,6 +38,9 @@ export class Scene {
 
   /** Item Load Error */
   public itemLoadErrorCallbacks = new EventEmitter<{ fileName: string; error: any }>()
+
+  private mountChildren = new Map<Item, Set<Item>>()
+  private childToHost = new Map<Item, Item>()
 
   /**
    * Constructs a scene.
@@ -109,12 +113,61 @@ export class Scene {
    * @param dontRemove If not set, also remove the item from the items list.
    */
   public removeItem(item: Item, dontRemove: boolean = false): void {
+    const mounted = this.mountChildren.get(item)
+    if (mounted) {
+      for (const child of [...mounted]) {
+        this.removeItem(child)
+      }
+    }
+    this.unregisterMount(item)
+
     // use this for item meshes
     this.itemRemovedCallbacks.fire(item)
     item.removed()
     this.scene.remove(item)
     if (!dontRemove) {
       Utils.removeValue(this.items, item)
+    }
+  }
+
+  public registerMount(host: Item, child: Item): void {
+    this.unregisterMount(child)
+    let set = this.mountChildren.get(host)
+    if (!set) {
+      set = new Set()
+      this.mountChildren.set(host, set)
+    }
+    set.add(child)
+    this.childToHost.set(child, host)
+  }
+
+  public unregisterMount(child: Item): void {
+    const host = this.childToHost.get(child)
+    if (host) {
+      const set = this.mountChildren.get(host)
+      set?.delete(child)
+      if (set && set.size === 0) {
+        this.mountChildren.delete(host)
+      }
+      this.childToHost.delete(child)
+    }
+  }
+
+  public syncMountedChildren(host: Item): void {
+    const children = this.mountChildren.get(host)
+    if (!children) return
+    for (const child of children) {
+      if (child instanceof OnItemItem) {
+        child.syncToHost()
+      }
+    }
+  }
+
+  public resolvePendingMounts(item: Item): void {
+    if (!(item instanceof OnItemItem)) return
+    const parentKey = item.metadata?.parentItemKey
+    if (parentKey && !item.getMountedHost()) {
+      item.tryMountByParentKey(parentKey)
     }
   }
 
@@ -165,6 +218,7 @@ export class Scene {
       scope.add(item)
 
       item.initObject()
+      scope.resolvePendingMounts(item)
       scope.itemLoadedCallbacks.fire(item)
     }
 

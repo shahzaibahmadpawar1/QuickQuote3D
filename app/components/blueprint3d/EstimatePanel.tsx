@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import {
   Dialog,
   DialogContent,
@@ -89,6 +90,7 @@ export function EstimatePanel({
   dialogOpen
 }: EstimatePanelProps) {
   const t = useTranslations('BluePrint.estimate')
+  const tConfirmDelete = useTranslations('BluePrint.confirmDelete')
   const locale = useLocale()
   const [dimensionUnit, setDimensionUnit] = useState('inch')
 
@@ -121,6 +123,8 @@ export function EstimatePanel({
   const [savedLoading, setSavedLoading] = useState(false)
   const [saveTitleOpen, setSaveTitleOpen] = useState(false)
   const [saveTitle, setSaveTitle] = useState('')
+  const [deleteSavedTarget, setDeleteSavedTarget] = useState<RemoteEstimateRow | null>(null)
+  const [deleteSavedConfirming, setDeleteSavedConfirming] = useState(false)
 
   const liveResult = result
   const displayResult = viewingSnapshot ? snapshotToDisplayResult(viewingSnapshot) : liveResult
@@ -352,17 +356,22 @@ export function EstimatePanel({
     }
   }
 
-  const deleteSaved = async (id: string) => {
+  const confirmDeleteSaved = async () => {
+    if (!deleteSavedTarget) return
+    setDeleteSavedConfirming(true)
     try {
-      await blueprintEstimateDelete(id)
+      await blueprintEstimateDelete(deleteSavedTarget.id)
       toast.success(t('deleteSavedSuccess'))
       void refreshSaved()
-      if (viewingSavedId === id) {
+      if (viewingSavedId === deleteSavedTarget.id) {
         setViewingSnapshot(null)
         setViewingSavedId(null)
       }
+      setDeleteSavedTarget(null)
     } catch {
       toast.error(t('deleteSavedError'))
+    } finally {
+      setDeleteSavedConfirming(false)
     }
   }
 
@@ -469,7 +478,7 @@ export function EstimatePanel({
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8 text-destructive"
-                        onClick={() => void deleteSaved(row.id)}
+                        onClick={() => setDeleteSavedTarget(row)}
                         aria-label={t('deleteSavedAria')}
                       >
                         <Trash2 className="size-4" />
@@ -743,6 +752,22 @@ export function EstimatePanel({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ConfirmDeleteDialog
+        open={deleteSavedTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteSavedTarget(null)
+        }}
+        title={tConfirmDelete('title')}
+        description={
+          deleteSavedTarget
+            ? tConfirmDelete('descriptionNamed', { name: deleteSavedTarget.title })
+            : tConfirmDelete('description')
+        }
+        confirmLabel={tConfirmDelete('confirm')}
+        cancelLabel={tConfirmDelete('cancel')}
+        confirming={deleteSavedConfirming}
+        onConfirm={confirmDeleteSaved}
+      />
     </div>
   )
 }

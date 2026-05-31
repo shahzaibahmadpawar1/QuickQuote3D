@@ -19,6 +19,7 @@ import type { CatalogListItem, UserCatalogItem } from '@/types/user-item'
 import type { UserCatalogTexture } from '@/types/user-texture'
 import { AddItemDialog } from './AddItemDialog'
 import { AddTextureDialog } from './AddTextureDialog'
+import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CatalogFilterManager } from './CatalogFilterManager'
 import { Switch } from '@/components/ui/switch'
@@ -50,7 +51,9 @@ interface SettingsProps {
   showOnlyCustomItems?: boolean
   onShowOnlyCustomItemsChange?: (value: boolean) => void
   userTextures?: UserCatalogTexture[]
+  userItems?: UserCatalogItem[]
   onTexturesChanged?: () => void
+  onUserItemsChanged?: () => void
   onPricingChanged?: () => void
   onRoomTypesChanged?: (roomTypes: string[]) => void
 }
@@ -68,13 +71,17 @@ export function Settings({
   showOnlyCustomItems = false,
   onShowOnlyCustomItemsChange,
   userTextures = [],
+  userItems = [],
   onTexturesChanged,
+  onUserItemsChanged,
   onPricingChanged,
   onRoomTypesChanged
 }: SettingsProps) {
   const t = useTranslations('BluePrint.settings')
   const tItems = useTranslations('BluePrint.items')
   const tTextures = useTranslations('BluePrint.catalogTextures')
+  const tCustom = useTranslations('BluePrint.customItems')
+  const tConfirmDelete = useTranslations('BluePrint.confirmDelete')
   const tAuth = useTranslations('auth')
   const locale = useLocale()
   const router = useRouter()
@@ -94,8 +101,16 @@ export function Settings({
   const [editingRoomType, setEditingRoomType] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState('')
   const [editingCustomItem, setEditingCustomItem] = useState<UserCatalogItem | null>(null)
+  const [isAddItemOpen, setIsAddItemOpen] = useState(false)
   const [isAddTextureOpen, setIsAddTextureOpen] = useState(false)
   const [editingTexture, setEditingTexture] = useState<UserCatalogTexture | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<
+    | { kind: 'item'; item: UserCatalogItem }
+    | { kind: 'texture'; texture: UserCatalogTexture }
+    | { kind: 'roomType'; name: string }
+    | null
+  >(null)
+  const [deleteConfirming, setDeleteConfirming] = useState(false)
 
   const locales = ['en', 'zh', 'tw'] as const
 
@@ -288,12 +303,61 @@ export function Settings({
   }
 
   const deleteRoomType = (roomTypeToDelete: string) => {
-    const next = roomTypes.filter((roomType) => roomType !== roomTypeToDelete)
-    commitRoomTypes(next)
-    if (editingRoomType === roomTypeToDelete) {
-      setEditingRoomType(null)
-      setEditingValue('')
+    setDeleteTarget({ kind: 'roomType', name: roomTypeToDelete })
+  }
+
+  const itemTypeLabel = (itemType: number) => {
+    switch (itemType) {
+      case 3:
+        return tCustom('typeWindow')
+      case 7:
+        return tCustom('typeDoor')
+      case 9:
+        return tCustom('typeWall')
+      case 11:
+        return tCustom('typeLight')
+      case 12:
+        return tCustom('typeOnItem')
+      default:
+        return tCustom('typeFloor')
     }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
+    setDeleteConfirming(true)
+    try {
+      if (deleteTarget.kind === 'item') {
+        await deleteUserItem(deleteTarget.item.id)
+        onUserItemsChanged?.()
+        onPricingChanged?.()
+      } else if (deleteTarget.kind === 'texture') {
+        await deleteUserTexture(deleteTarget.texture.id)
+        onTexturesChanged?.()
+        onPricingChanged?.()
+      } else if (deleteTarget.kind === 'roomType') {
+        const next = roomTypes.filter((roomType) => roomType !== deleteTarget.name)
+        commitRoomTypes(next)
+        if (editingRoomType === deleteTarget.name) {
+          setEditingRoomType(null)
+          setEditingValue('')
+        }
+      }
+      setDeleteTarget(null)
+    } finally {
+      setDeleteConfirming(false)
+    }
+  }
+
+  const deleteDescription = () => {
+    if (!deleteTarget) return tConfirmDelete('description')
+    if (deleteTarget.kind === 'item') {
+      return tConfirmDelete('descriptionNamed', { name: deleteTarget.item.name })
+    }
+    if (deleteTarget.kind === 'texture') {
+      return tConfirmDelete('descriptionNamed', { name: deleteTarget.texture.name })
+    }
+    return tConfirmDelete('descriptionNamed', { name: getRoomTypeLabel(deleteTarget.name) })
   }
 
   return (
@@ -531,6 +595,51 @@ export function Settings({
 
         <div className="mt-8 border-t border-border pt-6">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-foreground">{tCustom('settingsTitle')}</h2>
+            <Button type="button" size="sm" onClick={() => setIsAddItemOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              {tCustom('addButton')}
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">{tCustom('settingsDescription')}</p>
+          {userItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground rounded-md border border-dashed p-4">
+              {tCustom('emptyList')}
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {userItems.map((item) => (
+                <div key={item.id} className="flex flex-wrap items-center gap-2 rounded-md border p-2">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded border">
+                    <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{item.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {itemTypeLabel(item.itemType)}
+                      {' · '}
+                      {numberFormat.format(item.unitPrice)}
+                    </p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline" onClick={() => setEditingCustomItem(item)}>
+                    {tCustom('edit')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => setDeleteTarget({ kind: 'item', item })}
+                  >
+                    {tCustom('delete')}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-8 border-t border-border pt-6">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-foreground">{tTextures('settingsTitle')}</h2>
             <Button type="button" size="sm" onClick={() => setIsAddTextureOpen(true)}>
               <Plus className="h-4 w-4 mr-1" />
@@ -569,11 +678,7 @@ export function Settings({
                     type="button"
                     size="sm"
                     variant="destructive"
-                    onClick={async () => {
-                      await deleteUserTexture(texture.id)
-                      onTexturesChanged?.()
-                      onPricingChanged?.()
-                    }}
+                    onClick={() => setDeleteTarget({ kind: 'texture', texture })}
                   >
                     {tTextures('delete')}
                   </Button>
@@ -688,19 +793,6 @@ export function Settings({
                           >
                             Edit
                           </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="destructive"
-                            onClick={async () => {
-                              const editable = toUserCatalogItem(item)
-                              if (!editable) return
-                              await deleteUserItem(editable.id)
-                              onPricingChanged?.()
-                            }}
-                          >
-                            Delete
-                          </Button>
                         </div>
                       )
                     })}
@@ -787,6 +879,15 @@ export function Settings({
       </div>
     </div>
       <AddItemDialog
+        open={isAddItemOpen}
+        onOpenChange={setIsAddItemOpen}
+        onCreated={() => {
+          setIsAddItemOpen(false)
+          onUserItemsChanged?.()
+          onPricingChanged?.()
+        }}
+      />
+      <AddItemDialog
         open={editingCustomItem !== null}
         onOpenChange={(open) => {
           if (!open) setEditingCustomItem(null)
@@ -795,6 +896,7 @@ export function Settings({
         initialItem={editingCustomItem}
         onUpdated={() => {
           setEditingCustomItem(null)
+          onUserItemsChanged?.()
           onPricingChanged?.()
         }}
       />
@@ -818,6 +920,18 @@ export function Settings({
           onTexturesChanged?.()
           onPricingChanged?.()
         }}
+      />
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}
+        title={tConfirmDelete('title')}
+        description={deleteDescription()}
+        confirmLabel={tConfirmDelete('confirm')}
+        cancelLabel={tConfirmDelete('cancel')}
+        confirming={deleteConfirming}
+        onConfirm={handleConfirmDelete}
       />
     </>
   )
