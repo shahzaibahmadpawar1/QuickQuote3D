@@ -66,6 +66,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Share links use a locale-free route at `/share/[token]`.
+  if (isSharePath(request.nextUrl.pathname)) {
+    return NextResponse.next()
+  }
+
   const response = handleI18nRouting(request)
 
   if (!isSupabaseConfigured()) {
