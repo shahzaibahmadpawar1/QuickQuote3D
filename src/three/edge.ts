@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { Utils } from '../core/utils'
 import type { HalfEdge } from '../model/half_edge'
 import type { Controls } from './controls'
+import { NO_TEXTURE_URL } from '../constants'
 
 export class Edge {
   private readonly scene: THREE.Scene
@@ -133,8 +134,14 @@ export class Edge {
       })
     const textureData = this.edge.getTexture()
     const stretch = textureData.stretch
-    const url = textureData.url
+    const url = textureData.url?.trim() ?? ''
     const scale = textureData.scale
+
+    if (!url || url === NO_TEXTURE_URL) {
+      this.currentTextureUrl = NO_TEXTURE_URL
+      this.texture = null
+      return
+    }
 
     // Only reload texture if URL has changed
     if (url !== this.currentTextureUrl) {

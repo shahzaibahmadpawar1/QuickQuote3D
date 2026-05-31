@@ -34,33 +34,46 @@ export class Floor {
 
   private buildFloor(): THREE.Mesh {
     const textureSettings = this.room.getTexture()
-    // setup texture
-    const textureLoader = new THREE.TextureLoader()
-    const floorTexture = textureLoader.load(textureSettings.url)
-    floorTexture.wrapS = THREE.RepeatWrapping
-    floorTexture.wrapT = THREE.RepeatWrapping
-    floorTexture.repeat.set(1, 1)
-    floorTexture.colorSpace = THREE.SRGBColorSpace
-    // Apply anisotropic filtering for sharper textures at angles
-    floorTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
-    floorTexture.minFilter = THREE.LinearMipmapLinearFilter
-    floorTexture.magFilter = THREE.LinearFilter
-    const floorMaterialTop = new THREE.MeshPhongMaterial({
-      map: floorTexture,
-      side: THREE.DoubleSide,
-      // ambient: 0xffffff, TODO_Ekki
-      color: 0xffffff, // Changed from 0xcccccc to 0xffffff for brighter floor
-      specular: 0x111111,  // Very subtle specular to avoid moiré
-      shininess: 3  // Very matte finish to reduce artifacts
-    })
+    const url = textureSettings?.url?.trim() ?? ''
+    const hasTexture = url.length > 0
 
-    const textureScale = textureSettings.scale
-    // http://stackoverflow.com/questions/19182298/how-to-texture-a-three-js-mesh-created-with-shapegeometry
-    // scale down coords to fit 0 -> 1, then rescale
+    let floorMaterialTop: THREE.MeshPhongMaterial
+    let textureScale = 1
+
+    if (hasTexture && textureSettings) {
+      const textureLoader = new THREE.TextureLoader()
+      const floorTexture = textureLoader.load(url)
+      floorTexture.wrapS = THREE.RepeatWrapping
+      floorTexture.wrapT = THREE.RepeatWrapping
+      floorTexture.repeat.set(1, 1)
+      floorTexture.colorSpace = THREE.SRGBColorSpace
+      floorTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
+      floorTexture.minFilter = THREE.LinearMipmapLinearFilter
+      floorTexture.magFilter = THREE.LinearFilter
+      floorMaterialTop = new THREE.MeshPhongMaterial({
+        map: floorTexture,
+        side: THREE.DoubleSide,
+        color: 0xffffff,
+        specular: 0x111111,
+        shininess: 3
+      })
+      textureScale = textureSettings.scale
+    } else {
+      floorMaterialTop = new THREE.MeshPhongMaterial({
+        side: THREE.DoubleSide,
+        color: 0xf5f5f0,
+        specular: 0x111111,
+        shininess: 3
+      })
+    }
 
     const points: THREE.Vector2[] = []
     this.room.interiorCorners.forEach((corner) => {
-      points.push(new THREE.Vector2(corner.x / textureScale, corner.y / textureScale))
+      if (hasTexture) {
+        points.push(new THREE.Vector2(corner.x / textureScale, corner.y / textureScale))
+      } else {
+        points.push(new THREE.Vector2(corner.x, corner.y))
+      }
     })
     const shape = new THREE.Shape(points)
 
@@ -69,7 +82,9 @@ export class Floor {
     const floor = new THREE.Mesh(geometry, floorMaterialTop)
 
     floor.rotation.set(Math.PI / 2, 0, 0)
-    floor.scale.set(textureScale, textureScale, textureScale)
+    if (hasTexture) {
+      floor.scale.set(textureScale, textureScale, textureScale)
+    }
     floor.receiveShadow = true
     floor.castShadow = false
     return floor

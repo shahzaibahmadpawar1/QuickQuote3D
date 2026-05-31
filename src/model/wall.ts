@@ -1,13 +1,14 @@
 import { Configuration, configWallThickness, configWallHeight } from '../core/configuration'
 import { Utils } from '../core/utils'
 import { EventEmitter } from '../core/events'
+import { NO_TEXTURE_URL } from '../constants'
 import type { Item } from '../items/item'
 import type { Corner } from './corner'
 import type { HalfEdge } from './half_edge'
 
-/** The default wall texture. */
-const defaultWallTexture = {
-  url: 'https://cdn-images.lumenfeng.com/models-cover/wallmap.png',
+/** Plain wall with no user-selected finish. */
+const emptyWallTexture = {
+  url: NO_TEXTURE_URL,
   stretch: true,
   scale: 0
 }
@@ -38,10 +39,10 @@ export class Wall {
   public onItems: Item[] = []
 
   /** The front-side texture. */
-  public frontTexture = defaultWallTexture
+  public frontTexture = { ...emptyWallTexture }
 
   /** The back-side texture. */
-  public backTexture = defaultWallTexture
+  public backTexture = { ...emptyWallTexture }
 
   /** Wall thickness. */
   public thickness = Configuration.getNumericValue(configWallThickness)

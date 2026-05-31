@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { Utils } from '../core/utils'
 import { EventEmitter } from '../core/events'
+import { NO_TEXTURE_URL } from '../constants'
 import type { Room } from './room'
 import type { Wall } from './wall'
 import { Corner } from './corner'
@@ -87,6 +88,16 @@ export class HalfEdge {
       stretch: textureStretch,
       scale: textureScale
     }
+    if (this.front) {
+      this.wall.frontTexture = texture
+    } else {
+      this.wall.backTexture = texture
+    }
+    this.redrawCallbacks.fire()
+  }
+
+  public clearTexture(): void {
+    const texture = { url: NO_TEXTURE_URL, stretch: true, scale: 0 }
     if (this.front) {
       this.wall.frontTexture = texture
     } else {

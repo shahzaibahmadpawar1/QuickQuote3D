@@ -284,6 +284,10 @@ export class Floorplan {
     }
   }
 
+  public clearFloorTexture(uuid: string): void {
+    delete this.floorTextures[uuid]
+  }
+
   /** clear out obsolete floor textures */
   private updateFloorTextures(): void {
     const uuids = Utils.map(this.rooms, (room) => room.getUuid())

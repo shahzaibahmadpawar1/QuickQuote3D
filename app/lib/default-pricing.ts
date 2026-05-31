@@ -19,10 +19,7 @@ export function buildModelUrlToItemKey(): Record<string, string> {
 }
 
 export function buildDefaultTexturePricesPerSqM(): Record<string, number> {
-  const out: Record<string, number> = {
-    'https://cdn-images.lumenfeng.com/models-cover/hardwood.png': 40,
-    'https://cdn-images.lumenfeng.com/models-cover/wallmap.png': 30
-  }
+  const out: Record<string, number> = {}
   for (const t of FLOOR_TEXTURES) {
     out[t.url] = t.key === 'floor_light_fine_wood' ? 45 : 40
   }

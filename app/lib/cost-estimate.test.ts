@@ -58,7 +58,7 @@ describe('computeLayoutCostEstimate', () => {
     expect(res.grand_total).toBe(0)
   })
 
-  it('prices custom floor and wall textures by area × rate', () => {
+  it('prices custom floor and wall textures by area × rate on interior faces only', () => {
     const floorUrl = 'https://example.com/wood.png'
     const wallUrl = 'https://example.com/wallpaper.png'
     const layout = JSON.stringify({
@@ -70,10 +70,10 @@ describe('computeLayoutCostEstimate', () => {
           d: { x: 0, y: 300 }
         },
         walls: [
-          { corner1: 'a', corner2: 'b', frontTexture: { url: wallUrl, stretch: true, scale: 300 }, backTexture: { url: wallUrl, stretch: true, scale: 300 } },
-          { corner1: 'b', corner2: 'c', frontTexture: { url: wallUrl, stretch: true, scale: 300 }, backTexture: { url: wallUrl, stretch: true, scale: 300 } },
-          { corner1: 'c', corner2: 'd', frontTexture: { url: wallUrl, stretch: true, scale: 300 }, backTexture: { url: wallUrl, stretch: true, scale: 300 } },
-          { corner1: 'd', corner2: 'a', frontTexture: { url: wallUrl, stretch: true, scale: 300 }, backTexture: { url: wallUrl, stretch: true, scale: 300 } }
+          { corner1: 'a', corner2: 'b', frontTexture: { url: wallUrl, stretch: true, scale: 300 }, backTexture: { url: '', stretch: true, scale: 0 } },
+          { corner1: 'b', corner2: 'c', frontTexture: { url: wallUrl, stretch: true, scale: 300 }, backTexture: { url: '', stretch: true, scale: 0 } },
+          { corner1: 'c', corner2: 'd', frontTexture: { url: wallUrl, stretch: true, scale: 300 }, backTexture: { url: '', stretch: true, scale: 0 } },
+          { corner1: 'd', corner2: 'a', frontTexture: { url: wallUrl, stretch: true, scale: 300 }, backTexture: { url: '', stretch: true, scale: 0 } }
         ],
         wallTextures: [],
         floorTextures: {},
@@ -103,13 +103,52 @@ describe('computeLayoutCostEstimate', () => {
     expect(floorLine?.label).toBe('wood (floor)')
     expect(floorLine?.line_total).toBeCloseTo(7 * (floorLine?.area_sq_m ?? 0), 2)
 
-    const wallTotal = res.finish_lines
-      .filter((line) => line.kind.startsWith('wall'))
-      .reduce((sum, line) => sum + (line.line_total ?? 0), 0)
-    const wallArea = res.finish_lines
-      .filter((line) => line.kind.startsWith('wall'))
-      .reduce((sum, line) => sum + line.area_sq_m, 0)
+    const wallLines = res.finish_lines.filter((line) => line.kind === 'wall')
+    const wallArea = wallLines.reduce((sum, line) => sum + line.area_sq_m, 0)
+    const wallTotal = wallLines.reduce((sum, line) => sum + (line.line_total ?? 0), 0)
+    expect(wallLines.length).toBeGreaterThan(0)
     expect(wallTotal).toBeCloseTo(5 * wallArea, 2)
     expect(res.finishes_subtotal).toBeGreaterThan(0)
+  })
+
+  it('ignores legacy default wall textures and empty finishes', () => {
+    const layout = JSON.stringify({
+      floorplan: {
+        corners: {
+          a: { x: 0, y: 0 },
+          b: { x: 400, y: 0 },
+          c: { x: 400, y: 300 },
+          d: { x: 0, y: 300 }
+        },
+        walls: [
+          {
+            corner1: 'a',
+            corner2: 'b',
+            frontTexture: { url: 'https://cdn-images.lumenfeng.com/models-cover/wallmap.png', stretch: true, scale: 0 },
+            backTexture: { url: '', stretch: true, scale: 0 }
+          },
+          { corner1: 'b', corner2: 'c', frontTexture: { url: '', stretch: true, scale: 0 }, backTexture: { url: '', stretch: true, scale: 0 } },
+          { corner1: 'c', corner2: 'd', frontTexture: { url: '', stretch: true, scale: 0 }, backTexture: { url: '', stretch: true, scale: 0 } },
+          { corner1: 'd', corner2: 'a', frontTexture: { url: '', stretch: true, scale: 0 }, backTexture: { url: '', stretch: true, scale: 0 } }
+        ],
+        wallTextures: [],
+        floorTextures: {},
+        newFloorTextures: {}
+      },
+      items: []
+    })
+
+    const res = computeLayoutCostEstimate({
+      layout_json: layout,
+      item_unit_prices: {},
+      texture_price_per_sq_m_by_url: {
+        'https://cdn-images.lumenfeng.com/models-cover/wallmap.png': 30
+      },
+      wall_height_cm: 250,
+      settings: { ...defaultEstimateSettings }
+    })
+
+    expect(res.finish_lines).toHaveLength(0)
+    expect(res.finishes_subtotal).toBe(0)
   })
 })

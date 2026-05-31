@@ -752,3 +752,16 @@ export const WALL_TEXTURES: CatalogTexture[] = [
     scale: 100
   }
 ]
+
+/** Empty URL means the user chose no finish (plain surface, no estimate line). */
+export const NO_TEXTURE_URL = ''
+
+/** Legacy engine defaults — not billed unless the user picks a priced catalog texture. */
+export const LEGACY_DEFAULT_WALL_TEXTURE_URLS = [
+  'https://cdn-images.lumenfeng.com/models-cover/wallmap.png',
+  'rooms/textures/wallmap.png'
+] as const
+
+export const LEGACY_DEFAULT_FLOOR_TEXTURE_URLS = [
+  'https://cdn-images.lumenfeng.com/models-cover/hardwood.png'
+] as const

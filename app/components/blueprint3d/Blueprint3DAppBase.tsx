@@ -1157,11 +1157,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
   const handleTextureSelect = useCallback(
     (textureUrl: string, stretch: boolean, scale: number) => {
-      if (currentTarget) {
+      if (!currentTarget) return
+      if (!textureUrl.trim()) {
+        currentTarget.clearTexture()
+      } else {
         currentTarget.setTexture(textureUrl, stretch, scale)
-        setLayoutEpoch((e) => e + 1)
-        requestHistoryCommit()
       }
+      setLayoutEpoch((e) => e + 1)
+      requestHistoryCommit()
     },
     [currentTarget, requestHistoryCommit]
   )

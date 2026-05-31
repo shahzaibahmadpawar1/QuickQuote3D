@@ -1,6 +1,7 @@
 import { Floorplan } from '@blueprint3d/model/floorplan'
 import type { SavedFloorplan } from '@blueprint3d/model/floorplan'
 import type { SerializedItem } from '@blueprint3d/model/model'
+import { isAppliedTexture } from '@/lib/texture-pricing'
 
 export interface EstimateSettingsInput {
   labor_pct: number
@@ -19,7 +20,7 @@ export interface FurnitureLine {
 }
 
 export interface FinishLine {
-  kind: 'floor' | 'wall_front' | 'wall_back'
+  kind: 'floor' | 'wall'
   label: string
   texture_url: string
   area_sq_m: number
@@ -76,19 +77,6 @@ export function applyPercentages(
 
 function cm2ToM2(a: number): number {
   return a / 10000
-}
-
-function wallLenCm(
-  corners: Record<string, { x: number; y: number }>,
-  c1: string,
-  c2: string
-): number {
-  const a = corners[c1]
-  const b = corners[c2]
-  if (!a || !b) return 0
-  const dx = b.x - a.x
-  const dy = b.y - a.y
-  return Math.sqrt(dx * dx + dy * dy)
 }
 
 function resolveItemKey(
@@ -223,13 +211,18 @@ export function computeLayoutCostEstimate(input: CostEstimateInput): CostEstimat
   const labels = input.texture_label_by_url
 
   for (const room of floorplan.getRooms()) {
-    const tex = room.getTexture()
+    const tex = floorplan.getFloorTexture(room.getUuid())
+    if (!tex?.url || !isAppliedTexture(tex.url)) continue
+
     const areaCm2 = polygonAreaCm2(room.interiorCorners)
     const areaM2 = cm2ToM2(areaCm2)
     const rate = textureRate(tex.url, input.texture_price_per_sq_m_by_url)
     const line_total = rate != null ? rate * areaM2 : null
-    if (rate == null) warnings.push(`No floor price for texture: ${tex.url}`)
-    if (line_total != null) finishes_subtotal += line_total
+    if (rate == null) {
+      warnings.push(`No floor price for texture: ${tex.url}`)
+      continue
+    }
+    finishes_subtotal += line_total!
     finish_lines.push({
       kind: 'floor',
       label: textureLabel(tex.url, 'floor', labels),
@@ -237,45 +230,31 @@ export function computeLayoutCostEstimate(input: CostEstimateInput): CostEstimat
       area_sq_m: areaM2,
       price_per_sq_m: rate,
       line_total,
-      missing_price: rate == null
+      missing_price: false
     })
   }
 
-  for (const wall of floorplan.getWalls()) {
-    const corners = data.floorplan.corners
-    const len = wallLenCm(corners, wall.getStart().id, wall.getEnd().id)
+  for (const edge of floorplan.wallEdges()) {
+    const tex = edge.getTexture()
+    if (!tex?.url || !isAppliedTexture(tex.url)) continue
+
+    const len = edge.interiorDistance()
     const faceM2 = cm2ToM2(len * H)
-
-    const front = wall.frontTexture
-    const back = wall.backTexture
-    const frontRate = textureRate(front?.url, input.texture_price_per_sq_m_by_url)
-    const backRate = textureRate(back?.url, input.texture_price_per_sq_m_by_url)
-
-    if (frontRate == null && front?.url) warnings.push(`No wall price for texture: ${front.url}`)
-    if (backRate == null && back?.url) warnings.push(`No wall price for texture: ${back.url}`)
-
-    const frontTotal = frontRate != null ? frontRate * faceM2 : null
-    const backTotal = backRate != null ? backRate * faceM2 : null
-    if (frontTotal != null) finishes_subtotal += frontTotal
-    if (backTotal != null) finishes_subtotal += backTotal
-
+    const rate = textureRate(tex.url, input.texture_price_per_sq_m_by_url)
+    const line_total = rate != null ? rate * faceM2 : null
+    if (rate == null) {
+      warnings.push(`No wall price for texture: ${tex.url}`)
+      continue
+    }
+    finishes_subtotal += line_total!
     finish_lines.push({
-      kind: 'wall_front',
-      label: textureLabel(front?.url, 'wall_front', labels),
-      texture_url: front?.url ?? '',
+      kind: 'wall',
+      label: textureLabel(tex.url, 'wall', labels),
+      texture_url: tex.url,
       area_sq_m: faceM2,
-      price_per_sq_m: frontRate,
-      line_total: frontTotal,
-      missing_price: frontRate == null
-    })
-    finish_lines.push({
-      kind: 'wall_back',
-      label: textureLabel(back?.url, 'wall_back', labels),
-      texture_url: back?.url ?? '',
-      area_sq_m: faceM2,
-      price_per_sq_m: backRate,
-      line_total: backTotal,
-      missing_price: backRate == null
+      price_per_sq_m: rate,
+      line_total,
+      missing_price: false
     })
   }
 

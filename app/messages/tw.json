@@ -87,8 +87,9 @@
       "2d": "2D"
     },
     "textureSelector": {
-      "adjustFloor": "调整地板",
-      "adjustWall": "调整墙面",
+      "adjustFloor": "調整地板",
+      "adjustWall": "調整牆面",
+      "noTexture": "無",
       "noTextures": "此表面暫無可用紋理。"
     },
     "catalogTextures": {

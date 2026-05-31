@@ -89,6 +89,7 @@
     "textureSelector": {
       "adjustFloor": "调整地板",
       "adjustWall": "调整墙面",
+      "noTexture": "无",
       "noTextures": "此表面暂无可用纹理。"
     },
     "catalogTextures": {

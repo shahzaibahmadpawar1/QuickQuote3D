@@ -89,6 +89,7 @@
     "textureSelector": {
       "adjustFloor": "Adjust Floor",
       "adjustWall": "Adjust Wall",
+      "noTexture": "None",
       "noTextures": "No textures available for this surface."
     },
     "catalogTextures": {

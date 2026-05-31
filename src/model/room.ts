@@ -12,12 +12,6 @@ var segseg = require('segseg')
 var Polygon = require('polygon')
 */
 
-/** Default texture to be used if nothing is provided. */
-const defaultRoomTexture = {
-  url: 'https://cdn-images.lumenfeng.com/models-cover/hardwood.png',
-  scale: 400
-}
-
 /**
  * A Room is the combination of a Floorplan with a floor plane.
  */
@@ -62,19 +56,22 @@ export class Room {
     this.floorChangeCallbacks.add(callback)
   }
 
-  public getTexture(): { url: string; scale: number } {
+  public getTexture(): { url: string; scale: number } | null {
     const uuid = this.getUuid()
-    const tex = this.floorplan.getFloorTexture(uuid)
-    return tex || defaultRoomTexture
+    return this.floorplan.getFloorTexture(uuid)
   }
 
   /**
    * textureStretch always true, just an argument for consistency with walls
    */
-  // @ts-ignore - setTexture is declared but not used, keeping for future use
   public setTexture(textureUrl: string, textureStretch: boolean, textureScale: number): void {
     const uuid = this.getUuid()
     this.floorplan.setFloorTexture(uuid, textureUrl, textureScale)
+    this.floorChangeCallbacks.fire()
+  }
+
+  public clearTexture(): void {
+    this.floorplan.clearFloorTexture(this.getUuid())
     this.floorChangeCallbacks.fire()
   }
 
