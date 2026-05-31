@@ -23,7 +23,7 @@ import {
   blueprintCreate,
   blueprintUpdate
 } from '@/services/blueprintHub'
-import { computeLayoutCostEstimate } from '@/lib/cost-estimate'
+import { computeLayoutCostEstimate, aggregateFinishLines } from '@/lib/cost-estimate'
 import {
   buildDefaultItemUnitPrices,
   buildDefaultTexturePricesPerSqM,
@@ -38,7 +38,7 @@ import {
 } from '@/lib/catalog-preferences'
 import { listUserItems } from '@/services/user-items'
 import { listUserTextures } from '@/services/user-textures'
-import { buildTexturesForSurface } from '@/lib/catalog-textures'
+import { buildTexturesForSurface, buildTextureLabelMap, buildMergedTexturePricesPerSqM } from '@/lib/catalog-textures'
 import type { UserCatalogTexture } from '@/types/user-texture'
 import * as THREE from 'three'
 
@@ -627,6 +627,16 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     return out
   }, [userItems])
 
+  const texturePricesPerSqM = useMemo(
+    () =>
+      buildMergedTexturePricesPerSqM(
+        pricingPayload?.texturePricesPerSqM ?? buildDefaultTexturePricesPerSqM(),
+        userTextures
+      ),
+    [pricingPayload?.texturePricesPerSqM, userTextures]
+  )
+  const textureLabelByUrl = useMemo(() => buildTextureLabelMap(userTextures), [userTextures])
+
   useEffect(() => {
     if (!pricingPayload || !blueprint3dRef.current) return
     const json = blueprint3dRef.current.model.exportSerialized()
@@ -635,7 +645,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         layout_json: json,
         item_unit_prices: pricingPayload.itemPrices,
         model_url_to_item_key: modelUrlToItemKeyMap,
-        texture_price_per_sq_m_by_url: pricingPayload.texturePricesPerSqM,
+        texture_price_per_sq_m_by_url: texturePricesPerSqM,
+        texture_label_by_url: textureLabelByUrl,
         wall_height_cm: Configuration.getNumericValue(configWallHeight),
         settings: {
           labor_pct: pricingPayload.settings.labor_pct,
@@ -645,7 +656,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         }
       })
     )
-  }, [layoutEpoch, modelUrlToItemKeyMap, pricingPayload])
+  }, [layoutEpoch, modelUrlToItemKeyMap, pricingPayload, texturePricesPerSqM, textureLabelByUrl])
 
   useEffect(() => {
     if (!blueprint3dRef.current) return
@@ -1264,48 +1275,65 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
   }, [customItemLabelMap, pendingPlacementItem, tItems, viewMode])
 
-  const itemSummaryRows = useMemo(() => {
-    if (!blueprint3dRef.current || !pricingPayload) return []
-    const exported = JSON.parse(blueprint3dRef.current.model.exportSerialized())
-    const modelMap = modelUrlToItemKeyMap
-    const lines = new Map<
-      string,
-      { itemKey: string; label: string; quantity: number; unitPrice: number; lineTotal: number }
-    >()
-    for (const item of exported?.items ?? []) {
-      const itemKey = item.item_key || modelMap[item.model_url]
-      if (!itemKey) continue
-      const unitPrice = Number(pricingPayload.itemPrices[itemKey] ?? 0)
-      let label = customItemLabelMap[itemKey]
-      if (!label) {
+  const costSummaryRows = useMemo(() => {
+    if (!costEstimate) return []
+    const rows: {
+      id: string
+      kind: 'item' | 'finish'
+      itemKey?: string
+      label: string
+      quantity: number
+      unitPrice: number
+      lineTotal: number
+      areaSqM?: number
+    }[] = []
+
+    for (const line of costEstimate.furniture_lines) {
+      if (line.line_total == null || line.line_total <= 0) continue
+      let label = line.label
+      if (line.item_key && customItemLabelMap[line.item_key]) {
+        label = customItemLabelMap[line.item_key]
+      } else if (line.item_key) {
         try {
-          label = tItems(itemKey)
+          label = tItems(line.item_key)
         } catch {
-          label = itemKey
+          label = line.label
         }
       }
-      const current = lines.get(itemKey)
-      if (current) {
-        current.quantity += 1
-        current.lineTotal = current.quantity * unitPrice
-      } else {
-        lines.set(itemKey, {
-          itemKey,
-          label,
-          quantity: 1,
-          unitPrice,
-          lineTotal: unitPrice
-        })
-      }
+      rows.push({
+        id: `item:${line.item_key ?? label}`,
+        kind: 'item',
+        itemKey: line.item_key ?? undefined,
+        label,
+        quantity: line.quantity,
+        unitPrice: line.unit_price ?? 0,
+        lineTotal: line.line_total
+      })
     }
-    return Array.from(lines.values()).sort((a, b) => a.label.localeCompare(b.label))
-  }, [customItemLabelMap, layoutEpoch, modelUrlToItemKeyMap, pricingPayload, tItems])
+
+    for (const line of aggregateFinishLines(costEstimate.finish_lines)) {
+      rows.push({
+        id: `finish:${line.texture_url}:${line.kind}`,
+        kind: 'finish',
+        label: line.label,
+        quantity: line.area_sq_m,
+        areaSqM: line.area_sq_m,
+        unitPrice: line.price_per_sq_m ?? 0,
+        lineTotal: line.line_total ?? 0
+      })
+    }
+
+    return rows.sort((a, b) => {
+      if (a.kind !== b.kind) return a.kind === 'item' ? -1 : 1
+      return a.label.localeCompare(b.label)
+    })
+  }, [costEstimate, customItemLabelMap, tItems])
 
   useEffect(() => {
-    const longestLabel = itemSummaryRows.reduce((max, row) => Math.max(max, row.label.length), 0)
+    const longestLabel = costSummaryRows.reduce((max, row) => Math.max(max, row.label.length), 0)
     const calculated = Math.min(820, Math.max(320, 320 + Math.max(0, longestLabel - 20) * 8))
     setItemCostPanelWidth(calculated)
-  }, [itemSummaryRows])
+  }, [costSummaryRows])
 
   useEffect(() => {
     if (!blueprint3dRef.current) return
@@ -1437,7 +1465,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             !estimateOpen &&
             activeTab !== 'items' &&
             viewMode === '3d' &&
-            itemSummaryRows.length > 0 && (
+            costSummaryRows.length > 0 && (
             <div
               ref={itemCostPanelRef}
               className="absolute z-60 w-[320px] max-w-[calc(100vw-1rem)]"
@@ -1448,8 +1476,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
               }}
             >
               <ItemPriceSummaryPanel
-                rows={itemSummaryRows}
+                rows={costSummaryRows}
                 currency={pricingPayload?.settings.currency ?? defaultEstimateSettings.currency}
+                dimensionUnit={dimensionUnit}
                 minimized={itemCostMinimized}
                 onToggleMinimize={() => setItemCostMinimized((prev) => !prev)}
                 onDragStart={handleItemCostPanelDragStart}

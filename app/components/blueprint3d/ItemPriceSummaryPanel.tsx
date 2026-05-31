@@ -6,18 +6,23 @@ import { Maximize2, Minimize2, Move } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
+import { SQ_FT_PER_SQ_M, sqMToDisplayArea } from '@/lib/texture-pricing'
 
-interface SummaryRow {
-  itemKey: string
+export interface CostSummaryRow {
+  id: string
+  kind: 'item' | 'finish'
+  itemKey?: string
   label: string
   quantity: number
   unitPrice: number
   lineTotal: number
+  areaSqM?: number
 }
 
 interface ItemPriceSummaryPanelProps {
-  rows: SummaryRow[]
+  rows: CostSummaryRow[]
   currency: string
+  dimensionUnit: string
   minimized: boolean
   onToggleMinimize: () => void
   onDragStart: (event: React.MouseEvent<HTMLDivElement>) => void
@@ -27,12 +32,14 @@ interface ItemPriceSummaryPanelProps {
 export function ItemPriceSummaryPanel({
   rows,
   currency,
+  dimensionUnit,
   minimized,
   onToggleMinimize,
   onDragStart,
   onItemClick
 }: ItemPriceSummaryPanelProps) {
   const t = useTranslations('BluePrint.estimate.itemPanel')
+  const tEstimate = useTranslations('BluePrint.estimate')
   const locale = useLocale()
   const formatter = useMemo(() => {
     try {
@@ -41,8 +48,67 @@ export function ItemPriceSummaryPanel({
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
     }
   }, [locale, currency])
+
+  const itemRows = rows.filter((row) => row.kind === 'item')
+  const finishRows = rows.filter((row) => row.kind === 'finish')
   const grandTotal = rows.reduce((sum, row) => sum + row.lineTotal, 0)
   const titleWithTotal = `${t('title')} (${formatter.format(grandTotal)})`
+
+  const formatArea = (areaSqM: number) => {
+    const area = sqMToDisplayArea(areaSqM, dimensionUnit)
+    return area.unitLabel === 'sq_ft'
+      ? `${area.value.toFixed(1)} ${tEstimate('sqFt')}`
+      : `${area.value.toFixed(2)} ${tEstimate('sqM')}`
+  }
+
+  const formatFinishRate = (ratePerSqM: number) => {
+    if (dimensionUnit === 'inch') {
+      return `${formatter.format(ratePerSqM / SQ_FT_PER_SQ_M)}${tEstimate('perSqFt')}`
+    }
+    return `${formatter.format(ratePerSqM)}${tEstimate('perSqM')}`
+  }
+
+  const renderTable = (tableRows: CostSummaryRow[], qtyHeader: string) => (
+    <table className="min-w-max w-full text-xs">
+      <thead className="sticky top-0 z-10 border-b border-border bg-background shadow-[0_1px_0_0_hsl(var(--border))]">
+        <tr className="text-muted-foreground">
+          <th className="px-3 py-2 text-left font-medium">{t('item')}</th>
+          <th className="px-2 py-2 text-right font-medium">{qtyHeader}</th>
+          <th className="px-2 py-2 text-right font-medium">{t('price')}</th>
+          <th className="px-3 py-2 text-right font-medium">{t('total')}</th>
+        </tr>
+      </thead>
+      <tbody className="bg-background">
+        {tableRows.map((row) => (
+          <tr key={row.id} className="border-t border-border/60">
+            <td className="px-3 py-2">
+              {row.kind === 'item' && onItemClick && row.itemKey ? (
+                <button
+                  type="button"
+                  className="truncate text-left text-primary hover:underline"
+                  onClick={() => onItemClick(row.itemKey!)}
+                  title={row.label}
+                >
+                  {row.label}
+                </button>
+              ) : (
+                row.label
+              )}
+            </td>
+            <td className="px-2 py-2 text-right whitespace-nowrap">
+              {row.kind === 'finish' && row.areaSqM != null
+                ? formatArea(row.areaSqM)
+                : row.quantity}
+            </td>
+            <td className="px-2 py-2 text-right whitespace-nowrap">
+              {row.kind === 'finish' ? formatFinishRate(row.unitPrice) : formatter.format(row.unitPrice)}
+            </td>
+            <td className="px-3 py-2 text-right whitespace-nowrap">{formatter.format(row.lineTotal)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
 
   return (
     <div
@@ -78,39 +144,15 @@ export function ItemPriceSummaryPanel({
           <div className="min-h-0 flex-1 overflow-hidden bg-background">
             <ScrollArea className="h-[min(52vh,420px)] w-full">
               <div className="bg-background">
-                <table className="min-w-max w-full text-xs">
-                  <thead className="sticky top-0 z-10 border-b border-border bg-background shadow-[0_1px_0_0_hsl(var(--border))]">
-                    <tr className="text-muted-foreground">
-                      <th className="px-3 py-2 text-left font-medium">{t('item')}</th>
-                      <th className="px-2 py-2 text-right font-medium">{t('qty')}</th>
-                      <th className="px-2 py-2 text-right font-medium">{t('price')}</th>
-                      <th className="px-3 py-2 text-right font-medium">{t('total')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-background">
-                    {rows.map((row) => (
-                      <tr key={row.itemKey} className="border-t border-border/60">
-                        <td className="px-3 py-2">
-                          {onItemClick ? (
-                            <button
-                              type="button"
-                              className="truncate text-left text-primary hover:underline"
-                              onClick={() => onItemClick(row.itemKey)}
-                              title={row.label}
-                            >
-                              {row.label}
-                            </button>
-                          ) : (
-                            row.label
-                          )}
-                        </td>
-                        <td className="px-2 py-2 text-right whitespace-nowrap">{row.quantity}</td>
-                        <td className="px-2 py-2 text-right whitespace-nowrap">{formatter.format(row.unitPrice)}</td>
-                        <td className="px-3 py-2 text-right whitespace-nowrap">{formatter.format(row.lineTotal)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                {itemRows.length > 0 && renderTable(itemRows, t('qty'))}
+                {finishRows.length > 0 && (
+                  <div className={itemRows.length > 0 ? 'border-t border-border' : undefined}>
+                    {itemRows.length > 0 && (
+                      <p className="px-3 py-2 text-xs font-medium text-muted-foreground">{tEstimate('finishes')}</p>
+                    )}
+                    {renderTable(finishRows, t('area'))}
+                  </div>
+                )}
               </div>
             </ScrollArea>
           </div>

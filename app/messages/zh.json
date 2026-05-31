@@ -427,9 +427,10 @@
       "sqM": "m²",
       "sqFt": "ft²",
       "itemPanel": {
-        "title": "物品费用",
+        "title": "费用汇总",
         "item": "物品",
         "qty": "数量",
+        "area": "面积",
         "price": "单价",
         "total": "小计",
         "grandTotal": "总计"

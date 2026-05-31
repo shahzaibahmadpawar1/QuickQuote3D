@@ -427,9 +427,10 @@
       "sqM": "m²",
       "sqFt": "ft²",
       "itemPanel": {
-        "title": "Items cost",
+        "title": "Cost summary",
         "item": "Item",
         "qty": "Qty",
+        "area": "Area",
         "price": "Price",
         "total": "Total",
         "grandTotal": "Grand total"

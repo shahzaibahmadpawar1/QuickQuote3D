@@ -1,5 +1,6 @@
 import { FLOOR_TEXTURES, WALL_TEXTURES, type CatalogTexture } from '@blueprint3d/constants'
 import type { CatalogTextureEntry, UserCatalogTexture } from '@/types/user-texture'
+import { buildTexturePriceMap } from '@/lib/texture-pricing'
 
 function mapUserTexture(texture: UserCatalogTexture): CatalogTextureEntry {
   return {
@@ -44,4 +45,25 @@ export function buildTexturesForSurface(
   userTextures: UserCatalogTexture[]
 ): CatalogTextureEntry[] {
   return surface === 'floor' ? buildFloorTextures(userTextures) : buildWallTextures(userTextures)
+}
+
+export function buildTextureLabelMap(userTextures: UserCatalogTexture[]): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const texture of userTextures) {
+    out[texture.textureUrl] = texture.name
+  }
+  for (const texture of FLOOR_TEXTURES) {
+    out[texture.url] = texture.name
+  }
+  for (const texture of WALL_TEXTURES) {
+    out[texture.url] = texture.name
+  }
+  return out
+}
+
+export function buildMergedTexturePricesPerSqM(
+  base: Record<string, number>,
+  userTextures: UserCatalogTexture[]
+): Record<string, number> {
+  return { ...base, ...buildTexturePriceMap(userTextures) }
 }

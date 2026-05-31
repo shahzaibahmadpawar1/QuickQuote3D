@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Plus, Trash2 } from 'lucide-react'
 import type { CostEstimateResult } from '@/lib/cost-estimate'
+import { aggregateFinishLines } from '@/lib/cost-estimate'
 import {
   buildSnapshotV1,
   computeChargeBreakdown,
@@ -169,6 +170,11 @@ export function EstimatePanel({
     const rowsForCompute = snapshotRowState ?? chargeRows
     return computeChargeBreakdown(materials, rowsForCompute)
   }, [displayResult, chargeRows, snapshotRowState])
+
+  const aggregatedFinishLines = useMemo(
+    () => (displayResult ? aggregateFinishLines(displayResult.finish_lines) : []),
+    [displayResult]
+  )
 
   const handleDownloadPdf = useCallback(async () => {
     if (!displayResult || !breakdown || viewingSnapshot) return
@@ -381,8 +387,7 @@ export function EstimatePanel({
   }
 
   const hasLines =
-    displayResult.furniture_lines.length > 0 ||
-    displayResult.finish_lines.some((line) => line.line_total != null && line.line_total > 0)
+    displayResult.furniture_lines.length > 0 || aggregatedFinishLines.length > 0
   const canPdf =
     !viewingSnapshot && hasLines && breakdown != null && displayResult.materials_subtotal > 0
   const readOnly = !!viewingSnapshot
@@ -480,13 +485,11 @@ export function EstimatePanel({
           <p className="text-sm text-muted-foreground">{t('noLineItems')}</p>
         ) : (
           <div className="mx-auto max-w-full space-y-5 pb-4">
-            {displayResult.finish_lines.filter((line) => line.line_total != null && line.line_total > 0).length > 0 && (
+            {aggregatedFinishLines.length > 0 && (
               <section>
                 <h3 className="mb-2 text-sm font-medium text-muted-foreground">{t('finishes')}</h3>
                 <ul className="space-y-2 text-sm">
-                  {displayResult.finish_lines
-                    .filter((line) => line.line_total != null && line.line_total > 0)
-                    .map((line, i) => {
+                  {aggregatedFinishLines.map((line, i) => {
                       const area = sqMToDisplayArea(line.area_sq_m, dimensionUnit)
                       const areaLabel =
                         area.unitLabel === 'sq_ft'
@@ -527,8 +530,7 @@ export function EstimatePanel({
               </section>
             )}
 
-            {(displayResult.furniture_lines.length > 0 ||
-              displayResult.finish_lines.some((line) => line.line_total != null && line.line_total > 0)) && (
+            {(displayResult.furniture_lines.length > 0 || aggregatedFinishLines.length > 0) && (
               <Separator />
             )}
 

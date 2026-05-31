@@ -47,6 +47,7 @@ export interface CostEstimateInput {
   item_unit_prices: Record<string, number>
   model_url_to_item_key?: Record<string, string>
   texture_price_per_sq_m_by_url: Record<string, number>
+  texture_label_by_url?: Record<string, string>
   wall_height_cm: number
   settings: EstimateSettingsInput
 }
@@ -101,10 +102,52 @@ function resolveItemKey(
   return null
 }
 
+function normalizeTextureUrl(url: string): string {
+  return url.trim().replace(/\/+$/, '')
+}
+
 function textureRate(url: string | undefined, map: Record<string, number>): number | null {
   if (!url) return null
+  const normalized = normalizeTextureUrl(url)
+  if (normalized in map) return map[normalized]!
   if (url in map) return map[url]!
   return null
+}
+
+function textureLabel(
+  url: string | undefined,
+  kind: FinishLine['kind'],
+  labels: Record<string, string> | undefined
+): string {
+  if (!url) return kind === 'floor' ? 'Floor' : 'Wall'
+  const normalized = normalizeTextureUrl(url)
+  const name = labels?.[normalized] ?? labels?.[url]
+  if (name) {
+    return kind === 'floor' ? `${name} (floor)` : `${name} (wall)`
+  }
+  return kind === 'floor' ? 'Floor finish' : 'Wall finish'
+}
+
+/** Combine finish lines that share the same texture and surface type. */
+export function aggregateFinishLines(lines: FinishLine[]): FinishLine[] {
+  const map = new Map<string, FinishLine>()
+  for (const line of lines) {
+    if (line.missing_price || line.line_total == null || line.line_total <= 0) continue
+    const surface = line.kind === 'floor' ? 'floor' : 'wall'
+    const key = `${surface}:${normalizeTextureUrl(line.texture_url)}`
+    const prev = map.get(key)
+    if (prev) {
+      prev.area_sq_m += line.area_sq_m
+      prev.line_total = (prev.line_total ?? 0) + line.line_total
+    } else {
+      map.set(key, {
+        ...line,
+        kind: surface === 'floor' ? 'floor' : line.kind,
+        label: line.label
+      })
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label))
 }
 
 /**
@@ -177,6 +220,7 @@ export function computeLayoutCostEstimate(input: CostEstimateInput): CostEstimat
   const floorplan = new Floorplan()
   floorplan.loadFloorplan(data.floorplan)
   const H = input.wall_height_cm
+  const labels = input.texture_label_by_url
 
   for (const room of floorplan.getRooms()) {
     const tex = room.getTexture()
@@ -188,7 +232,7 @@ export function computeLayoutCostEstimate(input: CostEstimateInput): CostEstimat
     if (line_total != null) finishes_subtotal += line_total
     finish_lines.push({
       kind: 'floor',
-      label: `Floor (${room.getUuid().slice(0, 8)}…)`,
+      label: textureLabel(tex.url, 'floor', labels),
       texture_url: tex.url,
       area_sq_m: areaM2,
       price_per_sq_m: rate,
@@ -207,8 +251,8 @@ export function computeLayoutCostEstimate(input: CostEstimateInput): CostEstimat
     const frontRate = textureRate(front?.url, input.texture_price_per_sq_m_by_url)
     const backRate = textureRate(back?.url, input.texture_price_per_sq_m_by_url)
 
-    if (frontRate == null) warnings.push(`No wall price for texture: ${front?.url}`)
-    if (backRate == null) warnings.push(`No wall price for texture: ${back?.url}`)
+    if (frontRate == null && front?.url) warnings.push(`No wall price for texture: ${front.url}`)
+    if (backRate == null && back?.url) warnings.push(`No wall price for texture: ${back.url}`)
 
     const frontTotal = frontRate != null ? frontRate * faceM2 : null
     const backTotal = backRate != null ? backRate * faceM2 : null
@@ -217,7 +261,7 @@ export function computeLayoutCostEstimate(input: CostEstimateInput): CostEstimat
 
     finish_lines.push({
       kind: 'wall_front',
-      label: `Wall front ${wall.getStart().id.slice(0, 4)}→${wall.getEnd().id.slice(0, 4)}`,
+      label: textureLabel(front?.url, 'wall_front', labels),
       texture_url: front?.url ?? '',
       area_sq_m: faceM2,
       price_per_sq_m: frontRate,
@@ -226,7 +270,7 @@ export function computeLayoutCostEstimate(input: CostEstimateInput): CostEstimat
     })
     finish_lines.push({
       kind: 'wall_back',
-      label: `Wall back ${wall.getStart().id.slice(0, 4)}→${wall.getEnd().id.slice(0, 4)}`,
+      label: textureLabel(back?.url, 'wall_back', labels),
       texture_url: back?.url ?? '',
       area_sq_m: faceM2,
       price_per_sq_m: backRate,
