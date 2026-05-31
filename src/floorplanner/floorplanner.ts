@@ -66,6 +66,9 @@ export class Floorplanner {
   /** Optional callback to commit one history step after a completed edit gesture. */
   private editGestureCompleteHandler: (() => void) | null = null
 
+  /** When true, 2D view allows pan/zoom only (no wall edits). */
+  private viewOnly = false
+
   /** */
   private mouseDown = false
 
@@ -189,6 +192,7 @@ export class Floorplanner {
 
   /** */
   private handledblclick(event: MouseEvent): void {
+    if (this.viewOnly) return
     if (this.mode !== floorplannerModes.MOVE || !this.wallLengthEditHandler) return
     const rect = this.canvasElement.getBoundingClientRect()
     const mouseX = (event.clientX - rect.left) * this.cmPerPixel + this.originX * this.cmPerPixel
@@ -206,6 +210,8 @@ export class Floorplanner {
     this.mouseMoved = false
     this.lastX = this.rawMouseX
     this.lastY = this.rawMouseY
+
+    if (this.viewOnly) return
 
     // delete
     if (this.mode == floorplannerModes.DELETE) {
@@ -267,7 +273,7 @@ export class Floorplanner {
     }
 
     // update object target
-    if (this.mode != floorplannerModes.DRAW && !this.mouseDown) {
+    if (!this.viewOnly && this.mode != floorplannerModes.DRAW && !this.mouseDown) {
       const hoverCorner: Corner | null = this.floorplan.overlappedCorner(this.mouseX, this.mouseY)
       const hoverWall: Wall | null = this.floorplan.overlappedWall(this.mouseX, this.mouseY)
       let draw = false
@@ -299,7 +305,7 @@ export class Floorplanner {
     }
 
     // dragging
-    if (this.mode == floorplannerModes.MOVE && this.mouseDown) {
+    if (!this.viewOnly && this.mode == floorplannerModes.MOVE && this.mouseDown) {
       if (this.activeCorner) {
         this.activeCorner.move(this.mouseX, this.mouseY)
         this.activeCorner.snapToAxis(snapTolerance)
@@ -329,7 +335,7 @@ export class Floorplanner {
     this.mouseDown = false
 
     // drawing
-    if (this.mode == floorplannerModes.DRAW && !this.mouseMoved) {
+    if (!this.viewOnly && this.mode == floorplannerModes.DRAW && !this.mouseMoved) {
       const corner = this.floorplan.newCorner(this.targetX, this.targetY)
       if (this.lastNode != null) {
         this.floorplan.newWall(this.lastNode, corner)
@@ -391,6 +397,16 @@ export class Floorplanner {
   /** */
   public setEditGestureCompleteHandler(handler: (() => void) | null): void {
     this.editGestureCompleteHandler = handler
+  }
+
+  /** Pan/zoom only — disables wall drawing and editing. */
+  public setViewOnly(viewOnly: boolean): void {
+    this.viewOnly = viewOnly
+    if (viewOnly) {
+      this.activeCorner = null
+      this.activeWall = null
+      this.setMode(floorplannerModes.MOVE)
+    }
   }
 
   /** Sets the origin so that floorplan is centered */

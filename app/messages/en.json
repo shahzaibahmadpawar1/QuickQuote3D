@@ -385,6 +385,29 @@
       "confirm": "Delete",
       "cancel": "Cancel"
     },
+    "share": {
+      "shareButton": "Share",
+      "dialogTitle": "Share this plan",
+      "dialogDescription": "Anyone with the link can view \"{name}\" in 2D and 3D with a read-only cost estimate.",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied to clipboard",
+      "copyFailed": "Could not copy link",
+      "saveFirst": "Save your floorplan to the cloud before sharing.",
+      "saveFirstHint": "Use Save in the toolbar, then open Share again.",
+      "revokeLink": "Revoke link",
+      "updateShare": "Update link",
+      "createLink": "Create link",
+      "sharedViewTitle": "Shared: {name}",
+      "viewOnlyBadge": "View only",
+      "shareError": "Could not create share link. Please try again.",
+      "shareRevoked": "Share link revoked",
+      "shareUpdated": "Share link ready",
+      "noLinkYet": "Create a link to share this plan as a read-only snapshot.",
+      "untitledPlan": "Untitled plan",
+      "notFoundTitle": "Share link not found",
+      "notFoundDescription": "This link may have been revoked or never existed.",
+      "backHome": "Back to home"
+    },
     "contextMenu": {
       "deleteItem": "Delete Item",
       "adjustSize": "Current size",
@@ -499,6 +522,7 @@
       "deleteSavedSuccess": "Estimate deleted.",
       "deleteSavedError": "Could not delete estimate.",
       "viewingSnapshot": "Viewing saved estimate from {date}",
+      "sharedSnapshotHint": "Cost estimate frozen when this plan was shared ({date}).",
       "closeSnapshot": "Back to live"
     },
     "bedSizeInput": {

@@ -47,6 +47,18 @@ function isPlannerPath(pathname: string): boolean {
   )
 }
 
+function isSharePath(pathname: string): boolean {
+  const p = stripPathQuery(pathname)
+  if (p.startsWith('/share/') && p.length > '/share/'.length) return true
+  const seg = p.split('/').filter(Boolean)
+  return (
+    seg.length >= 2 &&
+    seg[1] === 'share' &&
+    seg.length >= 3 &&
+    routing.locales.includes(seg[0] as SupportedLanguage)
+  )
+}
+
 export async function middleware(request: NextRequest) {
   // Auth callback lives outside `[locale]`. next-intl would rewrite `/auth/...`
   // to `/en/auth/...`, which has no route and becomes a 404.
@@ -82,7 +94,8 @@ export async function middleware(request: NextRequest) {
     isLocaleHomePath(pathname) ||
     pathname.includes('/login') ||
     pathname.includes('/signup') ||
-    pathname.startsWith('/auth/')
+    pathname.startsWith('/auth/') ||
+    isSharePath(pathname)
 
   const {
     data: { user }

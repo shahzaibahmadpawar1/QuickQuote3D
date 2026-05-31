@@ -52,6 +52,9 @@ interface EstimatePanelProps {
   embedded?: boolean
   /** Parent dialog open — refetch saved list when opened. */
   dialogOpen?: boolean
+  /** Frozen snapshot for shared read-only view. */
+  forcedSnapshot?: EstimateSnapshotV1 | null
+  sharedView?: boolean
 }
 
 function snapshotToDisplayResult(s: EstimateSnapshotV1): CostEstimateResult {
@@ -87,7 +90,9 @@ export function EstimatePanel({
   markupSettings,
   blueprintId,
   embedded,
-  dialogOpen
+  dialogOpen,
+  forcedSnapshot,
+  sharedView = false
 }: EstimatePanelProps) {
   const t = useTranslations('BluePrint.estimate')
   const tConfirmDelete = useTranslations('BluePrint.confirmDelete')
@@ -114,7 +119,9 @@ export function EstimatePanel({
     }
   }, [locale])
 
-  const [viewingSnapshot, setViewingSnapshot] = useState<EstimateSnapshotV1 | null>(null)
+  const [viewingSnapshot, setViewingSnapshot] = useState<EstimateSnapshotV1 | null>(
+    forcedSnapshot ?? null
+  )
   const [viewingSavedId, setViewingSavedId] = useState<string | null>(null)
   const [chargeRows, setChargeRows] = useState<EstimateChargeRowState[]>(() => seedDefaultChargeRows())
   const prevBlueprintId = useRef<string | null>(blueprintId)
@@ -414,7 +421,7 @@ export function EstimatePanel({
       )}
 
       <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-3 [-webkit-overflow-scrolling:touch] sm:px-6">
-        {viewingSnapshot && (
+        {viewingSnapshot && !sharedView && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
             <span>
               {t('viewingSnapshot', {
@@ -438,6 +445,18 @@ export function EstimatePanel({
           </div>
         )}
 
+        {sharedView && viewingSnapshot && (
+          <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-muted-foreground">
+            {t('sharedSnapshotHint', {
+              date: new Date(viewingSnapshot.savedAt).toLocaleString(locale, {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+              })
+            })}
+          </div>
+        )}
+
+        {!sharedView && (
         <section className="mb-6 rounded-lg border bg-muted/20 p-3">
             <h3 className="mb-2 text-sm font-medium">{t('savedEstimates')}</h3>
             {savedLoading ? (
@@ -489,6 +508,7 @@ export function EstimatePanel({
               </ul>
             )}
         </section>
+        )}
 
         {!hasLines ? (
           <p className="text-sm text-muted-foreground">{t('noLineItems')}</p>
@@ -728,7 +748,7 @@ export function EstimatePanel({
           <Button
             variant="secondary"
             className="min-w-0 flex-1 sm:flex-none"
-            disabled={!!viewingSnapshot || !liveResult}
+            disabled={!!viewingSnapshot || !liveResult || sharedView}
             onClick={openSaveDialog}
           >
             {t('saveEstimate')}

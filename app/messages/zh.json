@@ -385,6 +385,29 @@
       "confirm": "删除",
       "cancel": "取消"
     },
+    "share": {
+      "shareButton": "分享",
+      "dialogTitle": "分享此方案",
+      "dialogDescription": "持有链接的人可只读查看「{name}」的 2D/3D 视图及成本估算。",
+      "copyLink": "复制链接",
+      "linkCopied": "链接已复制",
+      "copyFailed": "无法复制链接",
+      "saveFirst": "分享前请先将方案保存到云端。",
+      "saveFirstHint": "请先点击工具栏中的保存，然后再打开分享。",
+      "revokeLink": "撤销链接",
+      "updateShare": "更新链接",
+      "createLink": "创建链接",
+      "sharedViewTitle": "已分享：{name}",
+      "viewOnlyBadge": "仅查看",
+      "shareError": "无法创建分享链接，请重试。",
+      "shareRevoked": "分享链接已撤销",
+      "shareUpdated": "分享链接已就绪",
+      "noLinkYet": "创建链接以只读快照形式分享此方案。",
+      "untitledPlan": "未命名方案",
+      "notFoundTitle": "找不到分享链接",
+      "notFoundDescription": "该链接可能已被撤销或不存在。",
+      "backHome": "返回首页"
+    },
     "contextMenu": {
       "deleteItem": "删除物品",
       "adjustSize": "当前尺寸",
@@ -499,6 +522,7 @@
       "deleteSavedSuccess": "估算已删除。",
       "deleteSavedError": "无法删除估算。",
       "viewingSnapshot": "正在查看 {date} 保存的估算",
+      "sharedSnapshotHint": "成本估算为分享此方案时的快照（{date}）。",
       "closeSnapshot": "返回实时"
     },
     "bedSizeInput": {

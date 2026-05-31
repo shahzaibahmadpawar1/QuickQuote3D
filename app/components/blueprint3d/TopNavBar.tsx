@@ -1,6 +1,6 @@
 'use client'
 
-import { Settings, FilePlus, Undo2, Redo2, Lock } from 'lucide-react'
+import { Settings, FilePlus, Undo2, Redo2, Lock, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,7 @@ interface TopNavBarProps {
   onSettingsClick: () => void
   onSave: () => void
   onNew: () => void
+  onShare?: () => void
   onUndo: () => void
   onRedo: () => void
   canUndo: boolean
@@ -37,6 +38,7 @@ export function TopNavBar({
   onSettingsClick,
   onSave,
   onNew,
+  onShare,
   onUndo,
   onRedo,
   canUndo,
@@ -48,6 +50,7 @@ export function TopNavBar({
 }: TopNavBarProps) {
   const t = useTranslations('BluePrint.sidebar')
   const tMain = useTranslations('BluePrint.mainControls')
+  const tShare = useTranslations('BluePrint.share')
   const isMobile = useIsMobile()
 
   const tabs = [
@@ -160,6 +163,18 @@ export function TopNavBar({
           >
             {tMain('savePlan')}
           </Button>
+
+          {onShare && (
+            <Button
+              onClick={onShare}
+              variant="outline"
+              size="sm"
+              className={cn(isMobile && 'h-8 px-3 text-xs')}
+            >
+              <Share2 className={cn('h-4 w-4', !isMobile && 'mr-1.5')} />
+              {!isMobile && tShare('shareButton')}
+            </Button>
+          )}
 
           <Button
             onClick={onUndo}

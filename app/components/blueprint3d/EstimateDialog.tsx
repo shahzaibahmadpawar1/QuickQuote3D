@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog'
 import { useTranslations } from 'next-intl'
 import type { CostEstimateResult } from '@/lib/cost-estimate'
+import type { EstimateSnapshotV1 } from '@/lib/estimate-snapshot'
 import { EstimatePanel } from './EstimatePanel'
 
 interface EstimateDialogProps {
@@ -16,6 +17,8 @@ interface EstimateDialogProps {
   result: CostEstimateResult | null
   markupSettings?: { labor_pct: number; delivery_pct: number; contingency_pct: number }
   blueprintId: string | null
+  forcedSnapshot?: EstimateSnapshotV1
+  sharedView?: boolean
 }
 
 export function EstimateDialog({
@@ -23,7 +26,9 @@ export function EstimateDialog({
   onOpenChange,
   result,
   markupSettings,
-  blueprintId
+  blueprintId,
+  forcedSnapshot,
+  sharedView
 }: EstimateDialogProps) {
   const t = useTranslations('BluePrint.estimate')
 
@@ -44,6 +49,8 @@ export function EstimateDialog({
             blueprintId={blueprintId}
             embedded
             dialogOpen={isOpen}
+            forcedSnapshot={forcedSnapshot}
+            sharedView={sharedView}
           />
         </div>
       </DialogContent>

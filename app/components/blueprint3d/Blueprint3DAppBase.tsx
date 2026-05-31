@@ -16,6 +16,8 @@ import { EstimateDialog } from './EstimateDialog'
 import { WallLengthDialog } from './WallLengthDialog'
 import { ItemPriceSummaryPanel } from './ItemPriceSummaryPanel'
 import { NewPlanConfirmDialog } from './NewPlanConfirmDialog'
+import { ShareLinkDialog } from './ShareLinkDialog'
+import { SharedViewNavBar } from './SharedViewNavBar'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import { TouchHelp } from './TouchHelp'
 import { ControlsHelp } from './ControlsHelp'
@@ -55,6 +57,8 @@ import type { Room } from '@blueprint3d/model/room'
 import { Blueprint3DModes, type Blueprint3DMode } from '@blueprint3d/config/modes'
 import { RoomType, isValidRoomType } from '@blueprint3d/types/room_types'
 import { loadRoomTypes } from '@/lib/room-types'
+import type { EstimateSnapshotV1 } from '@/lib/estimate-snapshot'
+import { snapshotToCostEstimate } from '@/lib/estimate-snapshot'
 import type { UserCatalogItem } from '@/types/user-item'
 
 export interface Blueprint3DAppConfig {
@@ -69,6 +73,11 @@ export interface Blueprint3DAppConfig {
   onViewModeChange?: (mode: '2d' | '3d') => void
   renderOverlay?: () => React.ReactNode
   alwaysSpin?: boolean
+  /** Read-only shared view — no edits, frozen estimate snapshot. */
+  readOnly?: boolean
+  initialLayout?: string
+  sharedEstimateSnapshot?: EstimateSnapshotV1
+  sharedTitle?: string
 }
 
 interface Blueprint3DAppBaseProps {
@@ -87,7 +96,11 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     isFullscreen = false,
     onViewModeChange,
     renderOverlay,
-    alwaysSpin = false
+    alwaysSpin = false,
+    readOnly = false,
+    initialLayout,
+    sharedEstimateSnapshot,
+    sharedTitle
   } = config
 
   const t = useTranslations('BluePrint.saveDialog')
@@ -181,8 +194,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const placementPositionRef = useRef<THREE.Vector3 | null>(null)
   const placementMountHostKeyRef = useRef<string | null>(null)
   const [deleteItemConfirmOpen, setDeleteItemConfirmOpen] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
 
+  const readOnlyRef = useRef(readOnly)
   const viewModeRef = useRef<'2d' | '3d'>('3d')
+
+  useEffect(() => {
+    readOnlyRef.current = readOnly
+  }, [readOnly])
 
   const getWheelZoomEnabled = useCallback(() => {
     if (typeof enableWheelZoom === 'function') {
@@ -275,12 +294,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     })
 
     blueprint3d.three.wallClicked.add((halfEdge) => {
+      if (readOnlyRef.current) return
       setCurrentTarget(halfEdge)
       setTextureType('wall')
       setSelectedItem(null)
     })
 
     blueprint3d.three.floorClicked.add((room) => {
+      if (readOnlyRef.current) return
       setCurrentTarget(room)
       setTextureType('floor')
       setSelectedItem(null)
@@ -312,7 +333,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     })
 
     blueprint3d.model.scene.itemLoadedCallbacks.add((item) => {
-      if (lockAllItemsRef.current) {
+      if (readOnlyRef.current || lockAllItemsRef.current) {
         item.setFixed(true)
       }
       const itemKey = item?.metadata?.itemKey
@@ -366,6 +387,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     const loadInitialFloorplan = async () => {
       draftPersistenceReadyRef.current = false
       try {
+        if (initialLayout) {
+          blueprint3d.model.loadSerialized(initialLayout)
+          lockAllItemsRef.current = true
+          blueprint3d.model.scene.getItems().forEach((item) => item.setFixed(true))
+          blueprint3d.floorplanner?.setViewOnly(true)
+          return
+        }
+
         const { blueprintTemplateDB } = await import('@blueprint3d/indexdb/blueprint-template')
         const savedTemplate = await blueprintTemplateDB.getTemplate()
 
@@ -403,6 +432,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     loadInitialFloorplan()
 
     if (blueprint3d.floorplanner) {
+      if (readOnly) {
+        blueprint3d.floorplanner.setViewOnly(true)
+      }
       blueprint3d.floorplanner.wallLengthEditHandler = (wall) => {
         setWallLengthTarget(wall)
         setWallLengthDialogOpen(true)
@@ -430,7 +462,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       blueprint3d.floorplanner!.setEditGestureCompleteHandler(null)
       blueprint3d.three.getController().setEditGestureCompleteHandler(null)
     }
-  }, [CUSTOM_ITEM_DEFAULT_SIZE_CM, clearRestoreGuardIfDone, getWheelZoomEnabled, requestHistoryCommit, tItems, mode, onBlueprint3DReady])
+  }, [CUSTOM_ITEM_DEFAULT_SIZE_CM, clearRestoreGuardIfDone, getWheelZoomEnabled, initialLayout, readOnly, requestHistoryCommit, tItems, mode, onBlueprint3DReady])
 
   useEffect(() => {
     blueprint3dRef.current?.floorplanner?.setWallLengthLock(wallLengthLocked)
@@ -477,6 +509,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
   // Persist in-progress layout as draft so refresh does not lose unsaved work.
   useEffect(() => {
+    if (readOnly) return
     if (!blueprint3dRef.current || !draftPersistenceReadyRef.current) return
     const timeoutId = window.setTimeout(async () => {
       try {
@@ -490,10 +523,11 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }, 300)
 
     return () => window.clearTimeout(timeoutId)
-  }, [layoutEpoch])
+  }, [layoutEpoch, readOnly])
 
   // Best-effort flush on tab close / reload.
   useEffect(() => {
+    if (readOnly) return
     const flushDraft = async () => {
       if (!draftPersistenceReadyRef.current) return
       try {
@@ -561,6 +595,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   }, [])
 
   useEffect(() => {
+    if (readOnly) return
     let cancelled = false
     ;(async () => {
       if (cancelled) return
@@ -569,9 +604,10 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     return () => {
       cancelled = true
     }
-  }, [loadPricing])
+  }, [loadPricing, readOnly])
 
   useEffect(() => {
+    if (readOnly) return
     let cancelled = false
     ;(async () => {
       if (cancelled) return
@@ -580,9 +616,10 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     return () => {
       cancelled = true
     }
-  }, [loadUserItems])
+  }, [loadUserItems, readOnly])
 
   useEffect(() => {
+    if (readOnly) return
     let cancelled = false
     ;(async () => {
       if (cancelled) return
@@ -591,7 +628,23 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     return () => {
       cancelled = true
     }
-  }, [loadUserTextures])
+  }, [loadUserTextures, readOnly])
+
+  useEffect(() => {
+    if (!readOnly || !sharedEstimateSnapshot) return
+    setCostEstimate(snapshotToCostEstimate(sharedEstimateSnapshot))
+    setPricingPayload({
+      itemPrices: {},
+      userItemOverrides: {},
+      texturePricesPerSqM: {},
+      settings: {
+        labor_pct: 0,
+        delivery_pct: 0,
+        contingency_pct: 0,
+        currency: sharedEstimateSnapshot.currency
+      }
+    })
+  }, [readOnly, sharedEstimateSnapshot])
 
   useEffect(() => {
     setRoomTypes(loadRoomTypes())
@@ -1185,7 +1238,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   useEffect(() => {
     const blueprint3d = blueprint3dRef.current
     const viewer = viewerRef.current
-    if (!blueprint3d || !viewer || !pendingPlacementItem || viewMode !== '3d') {
+    if (!blueprint3d || !viewer || !pendingPlacementItem || viewMode !== '3d' || readOnly) {
       if (placementPreviewRef.current) {
         blueprint3d?.model.scene.remove(placementPreviewRef.current)
         placementPreviewRef.current = null
@@ -1317,7 +1370,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         placementPreviewRef.current = null
       }
     }
-  }, [customItemLabelMap, pendingPlacementItem, requestHistoryCommit, tCustom, tItems, viewMode])
+  }, [customItemLabelMap, pendingPlacementItem, readOnly, requestHistoryCommit, tCustom, tItems, viewMode])
 
   const costSummaryRows = useMemo(() => {
     if (!costEstimate) return []
@@ -1395,25 +1448,36 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       {/* Top Navigation Bar */}
       {!isFullscreen && (
         <div className="absolute top-0 left-0 right-0 z-50">
-          <TopNavBar
-            activeTab={activeTab}
-            estimateOpen={estimateOpen}
-            onTabChange={handleTabChange}
-            onEstimateClick={() => setEstimateOpen(true)}
-            viewMode={viewMode}
-            onViewModeChange={handleViewChange}
-            onSettingsClick={() => setSettingsOpen(true)}
-            onSave={handleSave}
-            onNew={handleNew}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            canUndo={canUndo}
-            canRedo={canRedo}
-            ceilingVisible={ceilingVisible}
-            onCeilingVisibleChange={setCeilingVisible}
-            lockAllItems={lockAllItems}
-            onLockAllItemsChange={handleLockAllItemsChange}
-          />
+          {readOnly ? (
+            <SharedViewNavBar
+              title={sharedTitle ?? 'Shared plan'}
+              estimateOpen={estimateOpen}
+              onEstimateClick={() => setEstimateOpen(true)}
+              viewMode={viewMode}
+              onViewModeChange={handleViewChange}
+            />
+          ) : (
+            <TopNavBar
+              activeTab={activeTab}
+              estimateOpen={estimateOpen}
+              onTabChange={handleTabChange}
+              onEstimateClick={() => setEstimateOpen(true)}
+              viewMode={viewMode}
+              onViewModeChange={handleViewChange}
+              onSettingsClick={() => setSettingsOpen(true)}
+              onSave={handleSave}
+              onNew={handleNew}
+              onShare={() => setShareDialogOpen(true)}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              ceilingVisible={ceilingVisible}
+              onCeilingVisibleChange={setCeilingVisible}
+              lockAllItems={lockAllItems}
+              onLockAllItemsChange={handleLockAllItemsChange}
+            />
+          )}
         </div>
       )}
 
@@ -1424,9 +1488,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         {/* Projects View */}
         <div
           className="absolute inset-0"
-          style={{ display: activeTab === 'projects' ? 'block' : 'none' }}
+          style={{ display: activeTab === 'projects' && !readOnly ? 'block' : 'none' }}
         >
-          {activeTab === 'projects' && (
+          {activeTab === 'projects' && !readOnly && (
             <ProjectsView
               onBlueprintLoad={(layoutData, roomType, id, name) => {
                 handleLoadFloorplan(layoutData, roomType, id, name)
@@ -1440,7 +1504,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         {/* Edit View */}
         <div
           className="absolute inset-0"
-          style={{ display: activeTab === 'edit' || activeTab === 'items' ? 'block' : 'none' }}
+          style={{ display: activeTab === 'edit' || activeTab === 'items' || readOnly ? 'block' : 'none' }}
         >
           {/* 3D Viewer */}
           <div
@@ -1481,19 +1545,21 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             <canvas id="floorplanner-canvas" ref={floorplannerCanvasRef}></canvas>
             {viewMode === '2d' && !isFullscreen && (
               <>
-                <FloorplannerControls
-                  mode={floorplannerMode}
-                  wallLengthLocked={wallLengthLocked}
-                  onModeChange={handleFloorplannerModeChange}
-                  onWallLengthLockedChange={setWallLengthLocked}
-                  onUndo={handleUndo}
-                  onRedo={handleRedo}
-                  canUndo={canUndo}
-                  canRedo={canRedo}
-                  displayUnit={dimensionUnit}
-                  onDisplayUnitChange={handleUnitChange}
-                />
-                {floorplannerMode === 'draw' && (
+                {!readOnly && (
+                  <FloorplannerControls
+                    mode={floorplannerMode}
+                    wallLengthLocked={wallLengthLocked}
+                    onModeChange={handleFloorplannerModeChange}
+                    onWallLengthLockedChange={setWallLengthLocked}
+                    onUndo={handleUndo}
+                    onRedo={handleRedo}
+                    canUndo={canUndo}
+                    canRedo={canRedo}
+                    displayUnit={dimensionUnit}
+                    onDisplayUnitChange={handleUnitChange}
+                  />
+                )}
+                {!readOnly && floorplannerMode === 'draw' && (
                   <div className="absolute left-5 bottom-5 bg-black/50 text-primary-foreground px-2.5 py-1.5 rounded text-sm">
                     {tFloorplanner('escHint')}
                   </div>
@@ -1526,13 +1592,13 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
                 minimized={itemCostMinimized}
                 onToggleMinimize={() => setItemCostMinimized((prev) => !prev)}
                 onDragStart={handleItemCostPanelDragStart}
-                onItemClick={handleSummaryItemClick}
+                onItemClick={readOnly ? undefined : handleSummaryItemClick}
               />
             </div>
           )}
 
           {/* Context Menu */}
-          {selectedItem && !textureType && !isFullscreen && !settingsOpen && !estimateOpen && (
+          {selectedItem && !readOnly && !textureType && !isFullscreen && !settingsOpen && !estimateOpen && (
             <div className="absolute right-2 md:right-4 top-16 md:top-20 z-70">
               <ContextMenu
                 selectedItem={selectedItem}
@@ -1548,7 +1614,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           )}
 
           {/* Texture Selector */}
-          {textureType && !isFullscreen && viewMode === '3d' && (
+          {textureType && !readOnly && !isFullscreen && viewMode === '3d' && (
             <div className="absolute right-2 md:right-4 top-16 md:top-20 z-70 max-h-[calc(100vh-100px)] md:max-h-[calc(100vh-120px)] overflow-y-auto">
               <TextureSelector
                 type={textureType}
@@ -1580,7 +1646,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
       {/* Items Drawer */}
       <ItemsDrawer
-        isOpen={activeTab === 'items'}
+        isOpen={!readOnly && activeTab === 'items'}
         onClose={() => setActiveTab('edit')}
         onItemSelect={handleItemSelect}
         itemPrices={pricingPayload?.itemPrices}
@@ -1606,8 +1672,12 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             : undefined
         }
         blueprintId={currentBlueprint?.id ?? null}
+        forcedSnapshot={readOnly ? sharedEstimateSnapshot : undefined}
+        sharedView={readOnly}
       />
 
+      {!readOnly && (
+        <>
       <WallLengthDialog
         wall={wallLengthTarget}
         open={wallLengthDialogOpen}
@@ -1680,6 +1750,15 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         onSaveAndContinue={handleSaveAndNew}
         onDiscard={handleDiscardAndNew}
       />
+
+      <ShareLinkDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        blueprintId={currentBlueprint?.id ?? null}
+        blueprintName={currentBlueprint?.name}
+      />
+        </>
+      )}
     </div>
   )
 }

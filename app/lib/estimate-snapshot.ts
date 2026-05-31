@@ -150,3 +150,19 @@ export function buildSnapshotV1(
     warnings: [...result.warnings]
   }
 }
+
+export function snapshotToCostEstimate(s: EstimateSnapshotV1): CostEstimateResult {
+  return {
+    currency: s.currency,
+    furniture_lines: s.furniture_lines,
+    finish_lines: s.finish_lines,
+    furniture_subtotal: s.furniture_subtotal,
+    finishes_subtotal: s.finishes_subtotal,
+    materials_subtotal: s.materials_subtotal,
+    labor: 0,
+    delivery: 0,
+    contingency: 0,
+    grand_total: s.grandTotal,
+    warnings: s.warnings
+  }
+}
