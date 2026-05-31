@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createUserItem, updateUserItem } from '@/services/user-items'
+import { detectGlbDimensionsFromFile } from '@/lib/glb-dimensions'
 import { USER_ITEM_CATEGORIES, type UserCatalogItem, type UserItemCategory, type UserItemType } from '@/types/user-item'
 
 interface AddItemDialogProps {
@@ -50,11 +51,15 @@ export function AddItemDialog({
   const [itemType, setItemType] = useState<UserItemType>(1)
   const [price, setPrice] = useState('')
   const [dimensionUnit, setDimensionUnit] = useState<'inch' | 'm' | 'cm' | 'mm'>('inch')
-  const [width, setWidth] = useState('50')
-  const [height, setHeight] = useState('50')
-  const [depth, setDepth] = useState('50')
+  const [width, setWidth] = useState('')
+  const [height, setHeight] = useState('')
+  const [depth, setDepth] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [modelFile, setModelFile] = useState<File | null>(null)
+  const [detectingDimensions, setDetectingDimensions] = useState(false)
+  const [dimensionHint, setDimensionHint] = useState<string | null>(null)
+  const [dimensionsTouched, setDimensionsTouched] = useState(false)
+  const detectRequestRef = useRef(0)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -73,9 +78,10 @@ export function AddItemDialog({
       heightNum > 0 &&
       Number.isFinite(depthNum) &&
       depthNum > 0 &&
+      !detectingDimensions &&
       (mode === 'edit' || (imageFile != null && modelFile != null))
     )
-  }, [depth, height, imageFile, mode, modelFile, name, price, width])
+  }, [depth, detectingDimensions, height, imageFile, mode, modelFile, name, price, width])
 
   function resetForm() {
     setName('')
@@ -84,18 +90,68 @@ export function AddItemDialog({
     setItemType(1)
     setPrice('')
     setDimensionUnit('inch')
-    setWidth('50')
-    setHeight('50')
-    setDepth('50')
+    setWidth('')
+    setHeight('')
+    setDepth('')
     setImageFile(null)
     setModelFile(null)
+    setDetectingDimensions(false)
+    setDimensionHint(null)
+    setDimensionsTouched(false)
     setError(null)
   }
 
-  function fromCm(cm: number | null | undefined, unit: keyof typeof UNIT_FACTORS_CM): string {
-    if (cm == null || !Number.isFinite(cm)) return '50'
+  function cmToDisplayString(cm: number, unit: keyof typeof UNIT_FACTORS_CM): string {
     return String(Number((cm / UNIT_FACTORS_CM[unit]).toFixed(2)))
   }
+
+  function fromStoredCm(cm: number | null | undefined, unit: keyof typeof UNIT_FACTORS_CM): string {
+    if (cm == null || !Number.isFinite(cm) || cm <= 0) return ''
+    return cmToDisplayString(cm, unit)
+  }
+
+  const runDimensionDetection = useCallback(
+    async (file: File, itemCategory: UserItemCategory, unit: keyof typeof UNIT_FACTORS_CM) => {
+      const requestId = ++detectRequestRef.current
+      setDetectingDimensions(true)
+      setDimensionHint(t('detectingDimensions'))
+      setError(null)
+      try {
+        const result = await detectGlbDimensionsFromFile(file, itemCategory)
+        if (requestId !== detectRequestRef.current) return
+        const hintKey =
+          result.wasCategoryNormalized || result.wasClamped || result.wasUnitScaled
+            ? 'dimensionsNormalized'
+            : 'dimensionsAutoDetected'
+        setWidth(cmToDisplayString(result.widthCm, unit))
+        setHeight(cmToDisplayString(result.heightCm, unit))
+        setDepth(cmToDisplayString(result.depthCm, unit))
+        setDimensionHint(t(hintKey))
+        setDimensionsTouched(false)
+      } catch {
+        if (requestId !== detectRequestRef.current) return
+        setDimensionHint(t('dimensionsDetectError'))
+      } finally {
+        if (requestId === detectRequestRef.current) {
+          setDetectingDimensions(false)
+        }
+      }
+    },
+    [t]
+  )
+
+  useEffect(() => {
+    if (!open) return
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('dimensionUnit') : null
+    if (raw === 'inch' || raw === 'm' || raw === 'cm' || raw === 'mm') {
+      setDimensionUnit(raw)
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open || !modelFile || dimensionsTouched) return
+    void runDimensionDetection(modelFile, category, dimensionUnit)
+  }, [open, modelFile, category, dimensionUnit, dimensionsTouched, runDimensionDetection])
 
   useEffect(() => {
     if (!open || mode !== 'edit' || !initialItem) return
@@ -108,9 +164,11 @@ export function AddItemDialog({
     setCategory(initialItem.category)
     setItemType(initialItem.itemType)
     setPrice(String(initialItem.unitPrice))
-    setWidth(fromCm(initialItem.widthCm, u))
-    setHeight(fromCm(initialItem.heightCm, u))
-    setDepth(fromCm(initialItem.depthCm, u))
+    setWidth(fromStoredCm(initialItem.widthCm, u))
+    setHeight(fromStoredCm(initialItem.heightCm, u))
+    setDepth(fromStoredCm(initialItem.depthCm, u))
+    setDimensionHint(null)
+    setDimensionsTouched(true)
   }, [open, mode, initialItem])
 
   function applyDimensionUnitChange(nextUnit: typeof dimensionUnit) {
@@ -209,7 +267,15 @@ export function AddItemDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>{t('category')}</Label>
-              <Select value={category} onValueChange={(v) => setCategory(v as UserItemCategory)}>
+              <Select
+                value={category}
+                onValueChange={(v) => {
+                  setCategory(v as UserItemCategory)
+                  if (modelFile) {
+                    setDimensionsTouched(false)
+                  }
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -252,8 +318,13 @@ export function AddItemDialog({
                 <Input
                   id="custom-item-width"
                   value={width}
-                  onChange={(e) => setWidth(e.target.value)}
+                  onChange={(e) => {
+                    setDimensionsTouched(true)
+                    setDimensionHint(t('dimensionsManualHint'))
+                    setWidth(e.target.value)
+                  }}
                   inputMode="decimal"
+                  disabled={detectingDimensions}
                 />
               </div>
               <div className="space-y-1">
@@ -263,8 +334,13 @@ export function AddItemDialog({
                 <Input
                   id="custom-item-height"
                   value={height}
-                  onChange={(e) => setHeight(e.target.value)}
+                  onChange={(e) => {
+                    setDimensionsTouched(true)
+                    setDimensionHint(t('dimensionsManualHint'))
+                    setHeight(e.target.value)
+                  }}
                   inputMode="decimal"
+                  disabled={detectingDimensions}
                 />
               </div>
               <div className="space-y-1">
@@ -274,8 +350,13 @@ export function AddItemDialog({
                 <Input
                   id="custom-item-length"
                   value={depth}
-                  onChange={(e) => setDepth(e.target.value)}
+                  onChange={(e) => {
+                    setDimensionsTouched(true)
+                    setDimensionHint(t('dimensionsManualHint'))
+                    setDepth(e.target.value)
+                  }}
                   inputMode="decimal"
+                  disabled={detectingDimensions}
                 />
               </div>
               <div className="space-y-1">
@@ -296,6 +377,9 @@ export function AddItemDialog({
                 </Select>
               </div>
             </div>
+            {dimensionHint ? (
+              <p className="text-xs text-muted-foreground">{dimensionHint}</p>
+            ) : null}
           </div>
           <div className="space-y-1">
             <Label>{t('image')}</Label>
@@ -307,7 +391,21 @@ export function AddItemDialog({
           </div>
           <div className="space-y-1">
             <Label>{t('model')}</Label>
-            <Input type="file" accept=".glb,model/gltf-binary" onChange={(e) => setModelFile(e.target.files?.[0] ?? null)} />
+            <Input
+              type="file"
+              accept=".glb,model/gltf-binary"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null
+                setModelFile(file)
+                setDimensionsTouched(false)
+                if (!file) {
+                  setWidth('')
+                  setHeight('')
+                  setDepth('')
+                  setDimensionHint(null)
+                }
+              }}
+            />
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <div className="flex justify-end gap-2">
