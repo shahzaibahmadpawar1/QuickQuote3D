@@ -21,6 +21,7 @@ interface ContextMenuProps {
   itemPrices?: Record<string, number>
   currency?: string
   catalogItems?: CatalogListItem[]
+  lockAllItems?: boolean
 }
 
 export function ContextMenu({
@@ -30,7 +31,8 @@ export function ContextMenu({
   onFixedChange,
   itemPrices = {},
   currency = 'USD',
-  catalogItems = []
+  catalogItems = [],
+  lockAllItems = false
 }: ContextMenuProps) {
   const t = useTranslations('BluePrint.contextMenu')
   const tItems = useTranslations('BluePrint.items')
@@ -135,7 +137,7 @@ export function ContextMenu({
       setDepth(Number(cmToDisplay(selectedItem.getDepth(), unit).toFixed(decimals)))
       setFixed(selectedItem.fixed || false)
     }
-  }, [selectedItem])
+  }, [selectedItem, lockAllItems])
 
   const handleResize = (field: 'width' | 'height' | 'depth', value: number) => {
     const newWidth = field === 'width' ? value : width

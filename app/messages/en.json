@@ -64,7 +64,8 @@
       "downloadPlan": "Download Plan",
       "loadPlan": "Load Plan",
       "undo": "Undo",
-      "redo": "Redo"
+      "redo": "Redo",
+      "lockAll": "Lock all"
     },
     "floorplanner": {
       "moveWalls": "Move Walls",
@@ -87,7 +88,38 @@
     },
     "textureSelector": {
       "adjustFloor": "Adjust Floor",
-      "adjustWall": "Adjust Wall"
+      "adjustWall": "Adjust Wall",
+      "noTextures": "No textures available for this surface."
+    },
+    "catalogTextures": {
+      "settingsTitle": "Wall & floor textures",
+      "settingsDescription": "Upload your own finishes. Set a price per square meter or square foot — the cost estimate uses the measured wall or floor area automatically.",
+      "addButton": "Add texture",
+      "emptyList": "No custom textures yet. Add one to use it in 3D view and in cost estimates.",
+      "title": "Add texture",
+      "editTitle": "Edit texture",
+      "name": "Name",
+      "namePlaceholder": "Oak hardwood",
+      "surface": "Surface",
+      "surfaceFloor": "Floor",
+      "surfaceWall": "Wall",
+      "price": "Price",
+      "priceUnit": "Price unit",
+      "priceUnitSqM": "/ m²",
+      "priceUnitSqFt": "/ ft²",
+      "stretch": "Stretch to fit",
+      "stretchHint": "When off, the image tiles across the surface.",
+      "scale": "Tile scale",
+      "scaleHint": "Higher values produce larger tiles (typical: 100–400).",
+      "image": "Texture image (.png, .jpg)",
+      "imageOptionalEdit": "Leave blank to keep the current image.",
+      "cancel": "Cancel",
+      "add": "Add texture",
+      "save": "Save",
+      "saving": "Saving...",
+      "edit": "Edit",
+      "delete": "Delete",
+      "unexpectedError": "Could not save this texture. Please try again."
     },
     "myFloorplans": {
       "title": "My Saved Floorplans",
@@ -166,7 +198,11 @@
         "overrideBadge": "Your override",
         "save": "Save",
         "reset": "Reset",
-        "priceInputAria": "Set price for {name}"
+        "priceInputAria": "Set price for {name}",
+        "showOnlyCustomItems": {
+          "label": "Your catalog only",
+          "description": "Hide built-in sample furniture from the item list. Items already on your floorplan are not affected."
+        }
       },
       "roomTypes": {
         "title": "Room types",
@@ -378,10 +414,13 @@
       "contingency": "Contingency ({pct}%)",
       "grandTotal": "Estimated total",
       "warnings": "Notes",
-      "noLineItems": "Add furniture or draw a room to see costs.",
+      "noLineItems": "Add furniture, apply textures, or draw a room to see costs.",
       "loadPricingError": "Could not load pricing; using built-in defaults.",
       "perUnit": "ea.",
       "perSqM": "/ m²",
+      "perSqFt": "/ ft²",
+      "sqM": "m²",
+      "sqFt": "ft²",
       "itemPanel": {
         "title": "Items cost",
         "item": "Item",

@@ -1,6 +1,6 @@
 'use client'
 
-import { Settings, FilePlus, Undo2, Redo2 } from 'lucide-react'
+import { Settings, FilePlus, Undo2, Redo2, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
@@ -23,6 +23,8 @@ interface TopNavBarProps {
   canRedo: boolean
   ceilingVisible: boolean
   onCeilingVisibleChange: (visible: boolean) => void
+  lockAllItems: boolean
+  onLockAllItemsChange: (locked: boolean) => void
 }
 
 export function TopNavBar({
@@ -40,7 +42,9 @@ export function TopNavBar({
   canUndo,
   canRedo,
   ceilingVisible,
-  onCeilingVisibleChange
+  onCeilingVisibleChange,
+  lockAllItems,
+  onLockAllItemsChange
 }: TopNavBarProps) {
   const t = useTranslations('BluePrint.sidebar')
   const tMain = useTranslations('BluePrint.mainControls')
@@ -177,6 +181,18 @@ export function TopNavBar({
             disabled={!canRedo}
           >
             <Redo2 className={cn(isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
+          </Button>
+
+          <Button
+            onClick={() => onLockAllItemsChange(!lockAllItems)}
+            variant={lockAllItems ? 'secondary' : 'outline'}
+            size="sm"
+            className={cn(isMobile && 'h-8 px-3 text-xs')}
+            aria-label={tMain('lockAll')}
+            aria-pressed={lockAllItems}
+          >
+            <Lock className={cn('h-4 w-4', !isMobile && 'mr-1.5')} />
+            {!isMobile && tMain('lockAll')}
           </Button>
 
           <Button

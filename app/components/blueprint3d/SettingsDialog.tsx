@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog"
 import { Settings } from './Settings'
 import type { CatalogListItem } from '@/types/user-item'
+import type { UserCatalogTexture } from '@/types/user-texture'
 
 interface SettingsDialogProps {
   isOpen: boolean
@@ -20,6 +21,10 @@ interface SettingsDialogProps {
   userItemOverrides?: Record<string, number>
   currency?: string
   catalogItems?: CatalogListItem[]
+  showOnlyCustomItems?: boolean
+  onShowOnlyCustomItemsChange?: (value: boolean) => void
+  userTextures?: UserCatalogTexture[]
+  onTexturesChanged?: () => void
   onPricingChanged?: () => void
   onRoomTypesChanged?: (roomTypes: string[]) => void
 }
@@ -35,6 +40,10 @@ export function SettingsDialog({
   userItemOverrides,
   currency,
   catalogItems,
+  showOnlyCustomItems,
+  onShowOnlyCustomItemsChange,
+  userTextures,
+  onTexturesChanged,
   onPricingChanged,
   onRoomTypesChanged
 }: SettingsDialogProps) {
@@ -54,6 +63,10 @@ export function SettingsDialog({
             userItemOverrides={userItemOverrides}
             currency={currency}
             catalogItems={catalogItems}
+            showOnlyCustomItems={showOnlyCustomItems}
+            onShowOnlyCustomItemsChange={onShowOnlyCustomItemsChange}
+            userTextures={userTextures}
+            onTexturesChanged={onTexturesChanged}
             onPricingChanged={onPricingChanged}
             onRoomTypesChanged={onRoomTypesChanged}
           />

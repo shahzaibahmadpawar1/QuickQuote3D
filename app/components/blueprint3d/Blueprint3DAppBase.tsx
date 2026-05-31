@@ -31,7 +31,15 @@ import {
   defaultEstimateSettings
 } from '@/lib/default-pricing'
 import { buildCatalogItems } from '@/lib/catalog-items'
+import {
+  filterVisibleCatalogItems,
+  loadShowOnlyCustomItems,
+  SHOW_ONLY_CUSTOM_ITEMS_EVENT
+} from '@/lib/catalog-preferences'
 import { listUserItems } from '@/services/user-items'
+import { listUserTextures } from '@/services/user-textures'
+import { buildTexturesForSurface } from '@/lib/catalog-textures'
+import type { UserCatalogTexture } from '@/types/user-texture'
 import * as THREE from 'three'
 
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
@@ -118,7 +126,10 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [itemCostMinimized, setItemCostMinimized] = useState(false)
   const [itemCostPosition, setItemCostPosition] = useState({ x: 16, y: 80 })
   const [ceilingVisible, setCeilingVisible] = useState(false)
+  const [lockAllItems, setLockAllItems] = useState(false)
+  const lockAllItemsRef = useRef(false)
   const [roomTypes, setRoomTypes] = useState<string[]>([])
+  const [showOnlyCustomItems, setShowOnlyCustomItems] = useState(false)
   const [wallHeightCm, setWallHeightCm] = useState(
     Configuration.getNumericValue(configWallHeight)
   )
@@ -142,6 +153,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [wallLengthDialogOpen, setWallLengthDialogOpen] = useState(false)
   const [wallLengthTarget, setWallLengthTarget] = useState<Wall | null>(null)
   const [userItems, setUserItems] = useState<UserCatalogItem[]>([])
+  const [userTextures, setUserTextures] = useState<UserCatalogTexture[]>([])
   const [canUndo, setCanUndo] = useState(false)
   const [canRedo, setCanRedo] = useState(false)
   const [newPlanConfirmOpen, setNewPlanConfirmOpen] = useState(false)
@@ -294,6 +306,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     })
 
     blueprint3d.model.scene.itemLoadedCallbacks.add((item) => {
+      if (lockAllItemsRef.current) {
+        item.setFixed(true)
+      }
       const itemKey = item?.metadata?.itemKey
       if (typeof itemKey === 'string' && itemKey.startsWith('usr_')) {
         const metadataWidth = Number((item.metadata as any)?.widthCm)
@@ -530,6 +545,15 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
   }, [])
 
+  const loadUserTextures = useCallback(async () => {
+    try {
+      const textures = await listUserTextures()
+      setUserTextures(textures)
+    } catch {
+      setUserTextures([])
+    }
+  }, [])
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -553,10 +577,41 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   }, [loadUserItems])
 
   useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (cancelled) return
+      await loadUserTextures()
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [loadUserTextures])
+
+  useEffect(() => {
     setRoomTypes(loadRoomTypes())
   }, [])
 
+  useEffect(() => {
+    setShowOnlyCustomItems(loadShowOnlyCustomItems())
+    const onPreferenceChange = (event: Event) => {
+      const value = (event as CustomEvent<{ value: boolean }>).detail?.value
+      if (typeof value === 'boolean') {
+        setShowOnlyCustomItems(value)
+      }
+    }
+    window.addEventListener(SHOW_ONLY_CUSTOM_ITEMS_EVENT, onPreferenceChange)
+    return () => window.removeEventListener(SHOW_ONLY_CUSTOM_ITEMS_EVENT, onPreferenceChange)
+  }, [])
+
   const mergedCatalogItems = useMemo(() => buildCatalogItems(userItems), [userItems])
+  const visibleCatalogItems = useMemo(
+    () => filterVisibleCatalogItems(mergedCatalogItems, showOnlyCustomItems),
+    [mergedCatalogItems, showOnlyCustomItems]
+  )
+  const activeSelectorTextures = useMemo(
+    () => (textureType ? buildTexturesForSurface(textureType, userTextures) : []),
+    [textureType, userTextures]
+  )
   const customItemLabelMap = useMemo(() => {
     const out: Record<string, string> = {}
     for (const item of userItems) {
@@ -765,10 +820,25 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
   const handleFixedChange = useCallback(
     (fixed: boolean) => {
-      if (selectedItem) selectedItem.setFixed(fixed)
+      if (selectedItem) {
+        selectedItem.setFixed(fixed)
+        if (!fixed) setLockAllItems(false)
+      }
     },
     [selectedItem]
   )
+
+  const handleLockAllItemsChange = useCallback((locked: boolean) => {
+    setLockAllItems(locked)
+    lockAllItemsRef.current = locked
+    const blueprint3d = blueprint3dRef.current
+    if (!blueprint3d) return
+    blueprint3d.model.scene.getItems().forEach((item) => item.setFixed(locked))
+  }, [])
+
+  useEffect(() => {
+    lockAllItemsRef.current = lockAllItems
+  }, [lockAllItems])
 
   // Generate top-down thumbnail
   const generateTopDownThumbnail = useCallback((): string => {
@@ -1269,6 +1339,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             canRedo={canRedo}
             ceilingVisible={ceilingVisible}
             onCeilingVisibleChange={setCeilingVisible}
+            lockAllItems={lockAllItems}
+            onLockAllItemsChange={handleLockAllItemsChange}
           />
         </div>
       )}
@@ -1397,6 +1469,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
                 itemPrices={pricingPayload?.itemPrices}
                 currency={pricingPayload?.settings.currency}
                 catalogItems={mergedCatalogItems}
+                lockAllItems={lockAllItems}
               />
             </div>
           )}
@@ -1404,7 +1477,11 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           {/* Texture Selector */}
           {textureType && !isFullscreen && viewMode === '3d' && (
             <div className="absolute right-2 md:right-4 top-16 md:top-20 z-70 max-h-[calc(100vh-100px)] md:max-h-[calc(100vh-120px)] overflow-y-auto">
-              <TextureSelector type={textureType} onTextureSelect={handleTextureSelect} />
+              <TextureSelector
+                type={textureType}
+                textures={activeSelectorTextures}
+                onTextureSelect={handleTextureSelect}
+              />
             </div>
           )}
 
@@ -1435,7 +1512,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         onItemSelect={handleItemSelect}
         itemPrices={pricingPayload?.itemPrices}
         currency={pricingPayload?.settings.currency}
-        items={mergedCatalogItems}
+        items={visibleCatalogItems}
         onCustomItemCreated={(item) => {
           setUserItems((prev) => [item, ...prev])
           void loadPricing()
@@ -1479,7 +1556,11 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         itemPrices={pricingPayload?.itemPrices}
         userItemOverrides={pricingPayload?.userItemOverrides}
         currency={pricingPayload?.settings.currency}
-        catalogItems={mergedCatalogItems}
+        catalogItems={visibleCatalogItems}
+        showOnlyCustomItems={showOnlyCustomItems}
+        onShowOnlyCustomItemsChange={setShowOnlyCustomItems}
+        userTextures={userTextures}
+        onTexturesChanged={loadUserTextures}
         onPricingChanged={loadPricing}
         onRoomTypesChanged={setRoomTypes}
       />

@@ -36,8 +36,9 @@ export async function GET() {
     ])
 
     let userOverrides: Record<string, number> = {}
+    let userTexturePrices: Record<string, number> = {}
     if (user) {
-      const [overridesRes, customCatalogRes] = await Promise.all([
+      const [overridesRes, customCatalogRes, userTexturesRes] = await Promise.all([
         supabase
           .from('user_item_prices')
           .select('item_key, unit_price')
@@ -45,6 +46,10 @@ export async function GET() {
         supabase
           .from('user_catalog_items')
           .select('item_key, unit_price')
+          .eq('user_id', user.id),
+        supabase
+          .from('user_catalog_textures')
+          .select('texture_url, price_per_unit, price_unit')
           .eq('user_id', user.id)
       ])
       for (const source of [overridesRes.data ?? [], customCatalogRes.data ?? []]) {
@@ -53,6 +58,13 @@ export async function GET() {
             userOverrides[row.item_key] = Number(row.unit_price)
           }
         }
+      }
+      for (const row of userTexturesRes.data ?? []) {
+        if (row.texture_url == null || row.price_per_unit == null) continue
+        const unit = row.price_unit === 'sq_ft' ? 'sq_ft' : 'sq_m'
+        const perUnit = Number(row.price_per_unit)
+        userTexturePrices[row.texture_url] =
+          unit === 'sq_m' ? perUnit : perUnit * 10.763910416709722
       }
     }
 
@@ -74,6 +86,7 @@ export async function GET() {
         }
       }
     }
+    Object.assign(texturePricesPerSqM, userTexturePrices)
 
     const settings = settingsRes.data
       ? {

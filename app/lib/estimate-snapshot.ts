@@ -127,7 +127,7 @@ export function buildSnapshotV1(
   rows: EstimateChargeRowState[],
   locale: string
 ): EstimateSnapshotV1 {
-  const { subtotalExTax, grandTotal } = computeChargeBreakdown(result.furniture_subtotal, rows)
+  const { subtotalExTax, grandTotal } = computeChargeBreakdown(result.materials_subtotal, rows)
   const chargeRows: EstimateChargeRowSnapshot[] = rows.map((r) => ({
     label: r.label,
     kind: r.kind,
@@ -143,7 +143,7 @@ export function buildSnapshotV1(
     finish_lines: result.finish_lines,
     furniture_subtotal: result.furniture_subtotal,
     finishes_subtotal: result.finishes_subtotal,
-    materials_subtotal: result.furniture_subtotal,
+    materials_subtotal: result.materials_subtotal,
     chargeRows,
     subtotalExTax,
     grandTotal,

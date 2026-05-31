@@ -64,7 +64,8 @@
       "downloadPlan": "下载方案",
       "loadPlan": "加载方案",
       "undo": "撤销",
-      "redo": "重做"
+      "redo": "重做",
+      "lockAll": "全部锁定"
     },
     "floorplanner": {
       "moveWalls": "移动墙体",
@@ -87,7 +88,38 @@
     },
     "textureSelector": {
       "adjustFloor": "调整地板",
-      "adjustWall": "调整墙面"
+      "adjustWall": "调整墙面",
+      "noTextures": "此表面暂无可用纹理。"
+    },
+    "catalogTextures": {
+      "settingsTitle": "墙面与地板纹理",
+      "settingsDescription": "上传自定义饰面。按平方米或平方英尺定价——成本估算会自动使用测量的墙面或地板面积。",
+      "addButton": "添加纹理",
+      "emptyList": "暂无自定义纹理。添加后可在 3D 视图中使用并计入成本估算。",
+      "title": "添加纹理",
+      "editTitle": "编辑纹理",
+      "name": "名称",
+      "namePlaceholder": "橡木地板",
+      "surface": "表面",
+      "surfaceFloor": "地板",
+      "surfaceWall": "墙面",
+      "price": "价格",
+      "priceUnit": "计价单位",
+      "priceUnitSqM": "/ m²",
+      "priceUnitSqFt": "/ ft²",
+      "stretch": "拉伸铺满",
+      "stretchHint": "关闭时，图像会在表面上平铺。",
+      "scale": "平铺比例",
+      "scaleHint": "数值越大，平铺块越大（典型值：100–400）。",
+      "image": "纹理图片 (.png, .jpg)",
+      "imageOptionalEdit": "留空则保留当前图片。",
+      "cancel": "取消",
+      "add": "添加纹理",
+      "save": "保存",
+      "saving": "保存中...",
+      "edit": "编辑",
+      "delete": "删除",
+      "unexpectedError": "无法保存此纹理，请重试。"
     },
     "myFloorplans": {
       "title": "我保存的平面图",
@@ -166,7 +198,11 @@
         "overrideBadge": "我的覆盖",
         "save": "保存",
         "reset": "重置",
-        "priceInputAria": "设置{name}的价格"
+        "priceInputAria": "设置{name}的价格",
+        "showOnlyCustomItems": {
+          "label": "仅显示您的目录",
+          "description": "从物品列表中隐藏内置示例家具。已放置在平面图上的物品不受影响。"
+        }
       },
       "roomTypes": {
         "title": "房间类型",
@@ -378,10 +414,13 @@
       "contingency": "预备金（{pct}%）",
       "grandTotal": "估算总计",
       "warnings": "提示",
-      "noLineItems": "添加家具或绘制房间以查看成本。",
+      "noLineItems": "添加家具、应用纹理或绘制房间以查看成本。",
       "loadPricingError": "无法加载定价，已使用内置默认值。",
       "perUnit": "件",
       "perSqM": "/ m²",
+      "perSqFt": "/ ft²",
+      "sqM": "m²",
+      "sqFt": "ft²",
       "itemPanel": {
         "title": "物品费用",
         "item": "物品",

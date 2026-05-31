@@ -33,6 +33,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { sqMToDisplayArea, SQ_FT_PER_SQ_M } from '@/lib/texture-pricing'
 import {
   blueprintEstimateDelete,
   blueprintEstimateList,
@@ -88,6 +89,18 @@ export function EstimatePanel({
 }: EstimatePanelProps) {
   const t = useTranslations('BluePrint.estimate')
   const locale = useLocale()
+  const [dimensionUnit, setDimensionUnit] = useState('inch')
+
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('dimensionUnit') : null
+    if (saved) setDimensionUnit(saved)
+    const onUnitChange = (event: Event) => {
+      const unit = (event as CustomEvent<{ unit: string }>).detail?.unit
+      if (unit) setDimensionUnit(unit)
+    }
+    window.addEventListener('dimensionUnitChanged', onUnitChange)
+    return () => window.removeEventListener('dimensionUnitChanged', onUnitChange)
+  }, [])
   const formatter = useMemo(() => {
     return (amount: number, currency: string) => {
       try {
@@ -152,8 +165,7 @@ export function EstimatePanel({
 
   const breakdown = useMemo(() => {
     if (!displayResult) return null
-    /** Quote excludes finishes; optional charges use furniture subtotal only. */
-    const materials = displayResult.furniture_subtotal
+    const materials = displayResult.materials_subtotal
     const rowsForCompute = snapshotRowState ?? chargeRows
     return computeChargeBreakdown(materials, rowsForCompute)
   }, [displayResult, chargeRows, snapshotRowState])
@@ -368,9 +380,11 @@ export function EstimatePanel({
     )
   }
 
-  const hasLines = displayResult.furniture_lines.length > 0
+  const hasLines =
+    displayResult.furniture_lines.length > 0 ||
+    displayResult.finish_lines.some((line) => line.line_total != null && line.line_total > 0)
   const canPdf =
-    !viewingSnapshot && hasLines && breakdown != null && displayResult.furniture_subtotal > 0
+    !viewingSnapshot && hasLines && breakdown != null && displayResult.materials_subtotal > 0
   const readOnly = !!viewingSnapshot
 
   const rootClass = embedded
@@ -466,6 +480,58 @@ export function EstimatePanel({
           <p className="text-sm text-muted-foreground">{t('noLineItems')}</p>
         ) : (
           <div className="mx-auto max-w-full space-y-5 pb-4">
+            {displayResult.finish_lines.filter((line) => line.line_total != null && line.line_total > 0).length > 0 && (
+              <section>
+                <h3 className="mb-2 text-sm font-medium text-muted-foreground">{t('finishes')}</h3>
+                <ul className="space-y-2 text-sm">
+                  {displayResult.finish_lines
+                    .filter((line) => line.line_total != null && line.line_total > 0)
+                    .map((line, i) => {
+                      const area = sqMToDisplayArea(line.area_sq_m, dimensionUnit)
+                      const areaLabel =
+                        area.unitLabel === 'sq_ft'
+                          ? `${area.value.toFixed(1)} ${t('sqFt')}`
+                          : `${area.value.toFixed(2)} ${t('sqM')}`
+                      const rateLabel =
+                        line.price_per_sq_m != null
+                          ? dimensionUnit === 'inch'
+                            ? `${formatter(line.price_per_sq_m / SQ_FT_PER_SQ_M, displayResult.currency)} ${t('perSqFt')}`
+                            : `${formatter(line.price_per_sq_m, displayResult.currency)} ${t('perSqM')}`
+                          : null
+                      return (
+                        <li
+                          key={`finish-${i}`}
+                          className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 border-b border-border/40 pb-2 last:border-0 last:pb-0"
+                        >
+                          <div className="min-w-0">
+                            <span className="font-medium">{line.label}</span>
+                            <span className="mt-0.5 block text-xs text-muted-foreground">
+                              {areaLabel}
+                              {rateLabel ? ` · ${rateLabel}` : null}
+                            </span>
+                          </div>
+                          <span
+                            className={cn(
+                              'shrink-0 text-right tabular-nums',
+                              line.missing_price && 'text-amber-600'
+                            )}
+                          >
+                            {line.line_total != null
+                              ? formatter(line.line_total, displayResult.currency)
+                              : '—'}
+                          </span>
+                        </li>
+                      )
+                    })}
+                </ul>
+              </section>
+            )}
+
+            {(displayResult.furniture_lines.length > 0 ||
+              displayResult.finish_lines.some((line) => line.line_total != null && line.line_total > 0)) && (
+              <Separator />
+            )}
+
             {displayResult.furniture_lines.length > 0 && (
               <section>
                 <h3 className="mb-2 text-sm font-medium text-muted-foreground">{t('furniture')}</h3>
@@ -594,6 +660,14 @@ export function EstimatePanel({
                   {formatter(displayResult.furniture_subtotal, displayResult.currency)}
                 </span>
               </div>
+              {displayResult.finishes_subtotal > 0 && (
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 text-muted-foreground">
+                  <span>{t('finishesSubtotal')}</span>
+                  <span className="text-right tabular-nums">
+                    {formatter(displayResult.finishes_subtotal, displayResult.currency)}
+                  </span>
+                </div>
+              )}
               {breakdown && (
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-t border-border/60 pt-2 text-muted-foreground">
                   <span>{t('subtotalExTax')}</span>

@@ -14,10 +14,15 @@ import { isSupabaseConfigured } from '@/lib/supabase/env'
 import { ITEMS, type ItemCategory } from '@blueprint3d/constants'
 import { loadRoomTypes, saveRoomTypes, normalizeRoomTypeName, getRoomTypeLabel } from '@/lib/room-types'
 import { deleteUserItem } from '@/services/user-items'
+import { deleteUserTexture } from '@/services/user-textures'
 import type { CatalogListItem, UserCatalogItem } from '@/types/user-item'
+import type { UserCatalogTexture } from '@/types/user-texture'
 import { AddItemDialog } from './AddItemDialog'
+import { AddTextureDialog } from './AddTextureDialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CatalogFilterManager } from './CatalogFilterManager'
+import { Switch } from '@/components/ui/switch'
+import { saveShowOnlyCustomItems } from '@/lib/catalog-preferences'
 
 type WallHeightDisplayUnit = 'cm' | 'mm' | 'm' | 'inch' | 'ft'
 
@@ -42,6 +47,10 @@ interface SettingsProps {
   userItemOverrides?: Record<string, number>
   currency?: string
   catalogItems?: CatalogListItem[]
+  showOnlyCustomItems?: boolean
+  onShowOnlyCustomItemsChange?: (value: boolean) => void
+  userTextures?: UserCatalogTexture[]
+  onTexturesChanged?: () => void
   onPricingChanged?: () => void
   onRoomTypesChanged?: (roomTypes: string[]) => void
 }
@@ -56,11 +65,16 @@ export function Settings({
   userItemOverrides = {},
   currency = 'USD',
   catalogItems = ITEMS,
+  showOnlyCustomItems = false,
+  onShowOnlyCustomItemsChange,
+  userTextures = [],
+  onTexturesChanged,
   onPricingChanged,
   onRoomTypesChanged
 }: SettingsProps) {
   const t = useTranslations('BluePrint.settings')
   const tItems = useTranslations('BluePrint.items')
+  const tTextures = useTranslations('BluePrint.catalogTextures')
   const tAuth = useTranslations('auth')
   const locale = useLocale()
   const router = useRouter()
@@ -80,6 +94,8 @@ export function Settings({
   const [editingRoomType, setEditingRoomType] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState('')
   const [editingCustomItem, setEditingCustomItem] = useState<UserCatalogItem | null>(null)
+  const [isAddTextureOpen, setIsAddTextureOpen] = useState(false)
+  const [editingTexture, setEditingTexture] = useState<UserCatalogTexture | null>(null)
 
   const locales = ['en', 'zh', 'tw'] as const
 
@@ -514,6 +530,60 @@ export function Settings({
         ) : null}
 
         <div className="mt-8 border-t border-border pt-6">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-foreground">{tTextures('settingsTitle')}</h2>
+            <Button type="button" size="sm" onClick={() => setIsAddTextureOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              {tTextures('addButton')}
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">{tTextures('settingsDescription')}</p>
+          {userTextures.length === 0 ? (
+            <p className="text-sm text-muted-foreground rounded-md border border-dashed p-4">
+              {tTextures('emptyList')}
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {userTextures.map((texture) => (
+                <div key={texture.id} className="flex flex-wrap items-center gap-2 rounded-md border p-2">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded border">
+                    <img
+                      src={texture.thumbnailUrl}
+                      alt={texture.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{texture.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {texture.surface === 'floor' ? tTextures('surfaceFloor') : tTextures('surfaceWall')}
+                      {' · '}
+                      {numberFormat.format(texture.pricePerUnit)}
+                      {texture.priceUnit === 'sq_ft' ? tTextures('priceUnitSqFt') : tTextures('priceUnitSqM')}
+                    </p>
+                  </div>
+                  <Button type="button" size="sm" variant="outline" onClick={() => setEditingTexture(texture)}>
+                    {tTextures('edit')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    onClick={async () => {
+                      await deleteUserTexture(texture.id)
+                      onTexturesChanged?.()
+                      onPricingChanged?.()
+                    }}
+                  >
+                    {tTextures('delete')}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-8 border-t border-border pt-6">
           <div className="mb-2 flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-foreground">{t('itemPricing.title')}</h2>
             <Button type="button" variant="outline" size="sm" onClick={() => setShowPricingItems((v) => !v)}>
@@ -521,6 +591,24 @@ export function Settings({
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mb-4">{t('itemPricing.description', { currency })}</p>
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-md border bg-card p-3">
+            <div className="space-y-1">
+              <Label htmlFor="show-only-custom-items" className="text-sm font-medium">
+                {t('itemPricing.showOnlyCustomItems.label')}
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {t('itemPricing.showOnlyCustomItems.description')}
+              </p>
+            </div>
+            <Switch
+              id="show-only-custom-items"
+              checked={showOnlyCustomItems}
+              onCheckedChange={(checked) => {
+                saveShowOnlyCustomItems(checked)
+                onShowOnlyCustomItemsChange?.(checked)
+              }}
+            />
+          </div>
           <div className="mb-4 space-y-2">
             <p className="text-sm font-medium text-foreground">{t('itemPricing.filtersDescription')}</p>
             <CatalogFilterManager items={catalogItems} />
@@ -707,6 +795,27 @@ export function Settings({
         initialItem={editingCustomItem}
         onUpdated={() => {
           setEditingCustomItem(null)
+          onPricingChanged?.()
+        }}
+      />
+      <AddTextureDialog
+        open={isAddTextureOpen}
+        onOpenChange={setIsAddTextureOpen}
+        onCreated={() => {
+          onTexturesChanged?.()
+          onPricingChanged?.()
+        }}
+      />
+      <AddTextureDialog
+        open={editingTexture !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingTexture(null)
+        }}
+        mode="edit"
+        initialTexture={editingTexture}
+        onUpdated={() => {
+          setEditingTexture(null)
+          onTexturesChanged?.()
           onPricingChanged?.()
         }}
       />
