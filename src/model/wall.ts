@@ -44,6 +44,12 @@ export class Wall {
   /** The back-side texture. */
   public backTexture = { ...emptyWallTexture }
 
+  /** Decorative paint on the front face (hex, e.g. #3D5A6C). Not used in cost estimates. */
+  public frontColor: string | null = null
+
+  /** Decorative paint on the back face (hex). Not used in cost estimates. */
+  public backColor: string | null = null
+
   /** Wall thickness. */
   public thickness = Configuration.getNumericValue(configWallThickness)
 

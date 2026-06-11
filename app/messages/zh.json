@@ -65,7 +65,15 @@
       "loadPlan": "加载方案",
       "undo": "撤销",
       "redo": "重做",
-      "lockAll": "全部锁定"
+      "lockAll": "全部锁定",
+      "actionsMenu": "操作",
+      "viewMenu": "视图",
+      "ceiling": "天花板",
+      "wallVisibility": "墙体",
+      "wallVisibilitySolid": "实心",
+      "wallVisibilityHidden": "隐藏",
+      "wallVisibilityTranslucent": "半透明",
+      "wallOpacity": "透明度"
     },
     "floorplanner": {
       "moveWalls": "移动墙体",
@@ -89,6 +97,12 @@
     "textureSelector": {
       "adjustFloor": "调整地板",
       "adjustWall": "调整墙面",
+      "wallTextureTab": "纹理",
+      "wallColorTab": "颜色",
+      "wallColorHint": "仅作装饰，不计入成本估算。",
+      "noWallColor": "默认",
+      "wallApplySelected": "此墙",
+      "wallApplyAll": "全部墙体",
       "noTexture": "无",
       "noTextures": "此表面暂无可用纹理。"
     },

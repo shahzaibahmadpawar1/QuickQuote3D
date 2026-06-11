@@ -79,6 +79,31 @@ export class HalfEdge {
     }
   }
 
+  public getColor(): string | null {
+    if (this.front) {
+      return this.wall.frontColor
+    }
+    return this.wall.backColor
+  }
+
+  public setColor(hexColor: string): void {
+    if (this.front) {
+      this.wall.frontColor = hexColor
+    } else {
+      this.wall.backColor = hexColor
+    }
+    this.redrawCallbacks.fire()
+  }
+
+  public clearColor(): void {
+    if (this.front) {
+      this.wall.frontColor = null
+    } else {
+      this.wall.backColor = null
+    }
+    this.redrawCallbacks.fire()
+  }
+
   /**
    *
    */

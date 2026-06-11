@@ -3,6 +3,11 @@ import { Utils } from '../core/utils'
 import type { HalfEdge } from '../model/half_edge'
 import type { Controls } from './controls'
 import { NO_TEXTURE_URL } from '../constants'
+import {
+  DEFAULT_WALL_OPACITY,
+  isInteriorWall,
+  type WallVisibilityMode
+} from './wall-visibility'
 
 export class Edge {
   private readonly scene: THREE.Scene
@@ -23,6 +28,8 @@ export class Edge {
   private readonly baseColor = 0xffffff
 
   public visible = false
+  private wallVisibilityMode: WallVisibilityMode = 'solid'
+  private wallOpacity = DEFAULT_WALL_OPACITY
 
   // Store bound function references for proper callback removal
   private readonly boundRedraw: () => void
@@ -49,6 +56,16 @@ export class Edge {
     this.edge.redrawCallbacks.remove(this.boundRedraw)
     this.controls.cameraMovedCallbacks.remove(this.boundUpdateVisibility)
     this.removeFromScene()
+  }
+
+  public setWallVisibilitySettings(mode: WallVisibilityMode, opacity: number): void {
+    this.wallVisibilityMode = mode
+    this.wallOpacity = opacity
+    this.refreshVisibility()
+  }
+
+  public refreshVisibility(): void {
+    this.updateVisibility()
   }
 
   private init(): void {
@@ -88,32 +105,93 @@ export class Edge {
   }
 
   private updateVisibility(): void {
-    // finds the normal from the specified edge
+    const mode = this.wallVisibilityMode
+    const interior = isInteriorWall(this.wall)
+
+    // Solid mode, or outer/perimeter walls: keep original camera culling
+    if (mode === 'solid' || !interior) {
+      this.applySolidCulling()
+      return
+    }
+
+    if (mode === 'hidden') {
+      this.applyInteriorHidden()
+      return
+    }
+
+    this.applyInteriorTranslucent()
+  }
+
+  private applySolidCulling(): void {
+    const cameraPos = this.controls.object.position
     const start = this.edge.interiorStart()
     const end = this.edge.interiorEnd()
     const x = end.x - start.x
     const y = end.y - start.y
-    // rotate 90 degrees CCW
     const normal = new THREE.Vector3(-y, 0, x)
     normal.normalize()
 
-    // setup camera
-    const position = this.controls.object.position.clone()
+    const position = cameraPos.clone()
     const focus = new THREE.Vector3((start.x + end.x) / 2.0, 0, (start.y + end.y) / 2.0)
     const direction = position.sub(focus).normalize()
-
-    // find dot
     const dot = normal.dot(direction)
-
-    // update visible
     this.visible = dot >= 0
 
-    // show or hide plans
     this.planes.forEach((plane) => {
       plane.visible = this.visible
+      this.applyMaterialOpacity(plane, 1.0)
     })
-
+    this.basePlanes.forEach((plane) => {
+      plane.visible = true
+      this.applyMaterialOpacity(plane, 1.0)
+    })
     this.updateObjectVisibility()
+  }
+
+  private applyInteriorHidden(): void {
+    this.visible = false
+    this.setAllMeshes(false, 1.0)
+    this.updateObjectVisibility()
+  }
+
+  private applyInteriorTranslucent(): void {
+    this.visible = true
+    this.planes.forEach((plane, index) => {
+      const showInteriorFace = index === 1
+      plane.visible = showInteriorFace
+      this.applyMaterialOpacity(plane, showInteriorFace ? this.wallOpacity : 1.0)
+    })
+    this.basePlanes.forEach((plane) => {
+      plane.visible = false
+      this.applyMaterialOpacity(plane, 1.0)
+    })
+    this.updateObjectVisibility()
+  }
+
+  private setAllMeshes(visible: boolean, opacity: number): void {
+    const allMeshes = [...this.planes, ...this.basePlanes]
+    allMeshes.forEach((plane) => {
+      plane.visible = visible
+      this.applyMaterialOpacity(plane, opacity)
+    })
+  }
+
+  private applyMaterialOpacity(mesh: THREE.Mesh, opacity: number): void {
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+    materials.forEach((material) => {
+      const mat = material as THREE.MeshStandardMaterial | THREE.MeshBasicMaterial
+      const isTransparent = opacity < 1
+      mat.transparent = isTransparent
+      mat.opacity = opacity
+      mat.depthWrite = true
+      mat.depthTest = true
+      if (isTransparent) {
+        mat.side = THREE.DoubleSide
+      } else if (mat instanceof THREE.MeshStandardMaterial) {
+        mat.side = THREE.FrontSide
+      }
+      mat.needsUpdate = true
+    })
   }
 
   private updateObjectVisibility(): void {
@@ -169,14 +247,35 @@ export class Edge {
   }
 
   private updatePlanes(): void {
-    // Switched to MeshLambertMaterial for proper lighting interaction
-    const wallMaterial = new THREE.MeshLambertMaterial({
-      color: 0xffffff,
-      side: THREE.FrontSide,
-      map: this.texture,
-      emissive: 0xffffff,       // Keeps walls bright
-      emissiveIntensity: 0.3    // While showing depth from lighting
-    })
+    const textureData = this.edge.getTexture()
+    const textureUrl = textureData.url?.trim() ?? ''
+    const hasTexture = textureUrl.length > 0 && textureUrl !== NO_TEXTURE_URL
+    const wallColor = this.edge.getColor()
+
+    let wallMaterial: THREE.MeshStandardMaterial
+    if (hasTexture) {
+      wallMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        side: THREE.FrontSide,
+        map: this.texture,
+        roughness: 0.85,
+        metalness: 0.0
+      })
+    } else if (wallColor) {
+      wallMaterial = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(wallColor),
+        side: THREE.FrontSide,
+        roughness: 0.85,
+        metalness: 0.0
+      })
+    } else {
+      wallMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf7f5f2,
+        side: THREE.FrontSide,
+        roughness: 0.85,
+        metalness: 0.0
+      })
+    }
 
     const fillerMaterial = new THREE.MeshBasicMaterial({
       color: this.fillerColor,

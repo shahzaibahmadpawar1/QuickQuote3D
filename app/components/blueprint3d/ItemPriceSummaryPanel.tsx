@@ -113,18 +113,26 @@ export function ItemPriceSummaryPanel({
   return (
     <div
       className={cn(
-        'flex w-full flex-col overflow-hidden rounded-md border border-border bg-background text-foreground shadow-md',
-        'max-h-[min(78vh,640px)]'
+        'flex w-full flex-col overflow-hidden text-foreground',
+        minimized
+          ? 'rounded-full border-0 bg-white/95 shadow-lg backdrop-blur-md'
+          : 'max-h-[min(78vh,640px)] rounded-2xl border-0 bg-white/95 shadow-xl backdrop-blur-md'
       )}
     >
       <div
-        className="flex shrink-0 cursor-move select-none items-center justify-between gap-2 border-b border-border bg-background px-3 py-2"
+        className={cn(
+          'flex shrink-0 cursor-move select-none items-center justify-between gap-2',
+          minimized ? 'px-4 py-2' : 'border-b border-border/50 bg-white/80 px-3 py-2'
+        )}
         onMouseDown={onDragStart}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
-          <Move className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <h3 className="truncate text-sm font-semibold" title={titleWithTotal}>
-            {titleWithTotal}
+          {!minimized && <Move className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+          <h3
+            className={cn('truncate font-semibold', minimized ? 'text-xs' : 'text-sm')}
+            title={titleWithTotal}
+          >
+            {minimized ? formatter.format(grandTotal) : titleWithTotal}
           </h3>
         </div>
         <Button

@@ -1,11 +1,29 @@
 'use client'
 
-import { Settings, FilePlus, Undo2, Redo2, Lock, Share2 } from 'lucide-react'
+import {
+  Settings,
+  FilePlus,
+  Undo2,
+  Redo2,
+  Lock,
+  Share2,
+  MoreHorizontal,
+  Eye
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { useIsMobile } from '@/hooks/use-media-query'
+import { WallVisibilityControl } from './WallVisibilityControl'
+import type { WallVisibilityPrefs } from '@/lib/wall-visibility-preferences'
 
 interface TopNavBarProps {
   activeTab: 'projects' | 'edit' | 'items'
@@ -24,6 +42,8 @@ interface TopNavBarProps {
   canRedo: boolean
   ceilingVisible: boolean
   onCeilingVisibleChange: (visible: boolean) => void
+  wallVisibility: WallVisibilityPrefs
+  onWallVisibilityChange: (prefs: WallVisibilityPrefs) => void
   lockAllItems: boolean
   onLockAllItemsChange: (locked: boolean) => void
 }
@@ -45,6 +65,8 @@ export function TopNavBar({
   canRedo,
   ceilingVisible,
   onCeilingVisibleChange,
+  wallVisibility,
+  onWallVisibilityChange,
   lockAllItems,
   onLockAllItemsChange
 }: TopNavBarProps) {
@@ -59,55 +81,58 @@ export function TopNavBar({
     { id: 'items' as const, label: t('addItems') }
   ]
 
+  const pillShell = 'rounded-full border-0 bg-white/90 shadow-md backdrop-blur-md'
+
   return (
     <div className={cn('pointer-events-none relative bg-transparent', isMobile ? 'h-12' : 'h-14')}>
-      {/* Left: Tabs + Estimate — Hidden in 2D mode */}
       {!(activeTab === 'edit' && viewMode === '2d') && (
         <div
           className={cn(
-            'pointer-events-auto absolute top-0 flex flex-wrap items-center gap-1',
+            'pointer-events-auto absolute top-0 flex items-center',
             isMobile ? 'left-2 h-12' : 'left-4 h-14'
           )}
         >
-          {tabs.map((tab) => (
+          <div className={cn('flex flex-wrap items-center gap-0.5 px-1 py-1', pillShell)}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onTabChange(tab.id)}
+                className={cn(
+                  'rounded-full font-medium transition-colors',
+                  isMobile ? 'px-2.5 py-1 text-xs' : 'px-3.5 py-1.5 text-sm',
+                  activeTab === tab.id
+                    ? 'bg-foreground text-background shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
             <button
-              key={tab.id}
               type="button"
-              onClick={() => onTabChange(tab.id)}
+              onClick={onEstimateClick}
               className={cn(
-                'rounded-md font-medium transition-colors',
-                isMobile ? 'px-2 py-1.5 text-xs' : 'px-4 py-2 text-sm',
-                activeTab === tab.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                'rounded-full font-medium transition-colors',
+                isMobile ? 'px-2.5 py-1 text-xs' : 'px-3.5 py-1.5 text-sm',
+                estimateOpen
+                  ? 'bg-foreground text-background shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              {tab.label}
+              {t('estimate')}
             </button>
-          ))}
-          <button
-            type="button"
-            onClick={onEstimateClick}
-            className={cn(
-              'rounded-md font-medium transition-colors',
-              isMobile ? 'px-2 py-1.5 text-xs' : 'px-4 py-2 text-sm',
-              estimateOpen
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            )}
-          >
-            {t('estimate')}
-          </button>
+          </div>
         </div>
       )}
 
-      {/* Center: 2D/3D Switch - Absolutely centered */}
       {activeTab === 'edit' && (
         <div className="pointer-events-auto absolute top-1/2 left-1/2 z-100 -translate-x-1/2 -translate-y-1/2">
           <div
             className={cn(
-              'flex items-center rounded-full border border-border/50 bg-background/50 backdrop-blur-sm',
-              isMobile ? 'gap-2 px-3 py-1.5' : 'gap-3 px-4 py-2'
+              'flex items-center gap-2 px-3 py-1.5',
+              pillShell,
+              isMobile ? 'gap-2' : 'gap-3 px-4 py-2'
             )}
           >
             <span
@@ -137,97 +162,95 @@ export function TopNavBar({
         </div>
       )}
 
-      {/* Right: Tools - Hidden in 2D mode */}
       {!(activeTab === 'edit' && viewMode === '2d') && (
         <div
           className={cn(
             'pointer-events-auto absolute top-0 flex items-center',
-            isMobile ? 'right-2 h-12 gap-1' : 'right-4 h-14 gap-2'
+            isMobile ? 'right-2 h-12 gap-1' : 'right-4 h-14 gap-1.5'
           )}
         >
-          <Button
-            onClick={onNew}
-            variant="outline"
-            size="sm"
-            className={cn(isMobile && 'h-8 px-3 text-xs')}
-          >
-            <FilePlus className={cn('h-4 w-4', !isMobile && 'mr-1.5')} />
-            {!isMobile && tMain('newPlan')}
-          </Button>
-
-          <Button
-            onClick={onSave}
-            variant="default"
-            size="sm"
-            className={cn(isMobile && 'h-8 px-3 text-xs')}
-          >
-            {tMain('savePlan')}
-          </Button>
-
-          {onShare && (
+          <div className={cn('flex items-center gap-1 px-1 py-1', pillShell)}>
             <Button
-              onClick={onShare}
-              variant="outline"
+              onClick={onSave}
+              variant="default"
               size="sm"
-              className={cn(isMobile && 'h-8 px-3 text-xs')}
+              className={cn('rounded-full shadow-none', isMobile && 'h-8 px-3 text-xs')}
             >
-              <Share2 className={cn('h-4 w-4', !isMobile && 'mr-1.5')} />
-              {!isMobile && tShare('shareButton')}
+              {tMain('savePlan')}
             </Button>
-          )}
 
-          <Button
-            onClick={onUndo}
-            variant="outline"
-            size="icon"
-            className={cn(isMobile ? 'h-8 w-8' : 'h-9 w-9')}
-            aria-label={tMain('undo')}
-            disabled={!canUndo}
-          >
-            <Undo2 className={cn(isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
-          </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn('rounded-full', isMobile && 'h-8 px-2 text-xs')}
+                >
+                  <MoreHorizontal className={cn('h-4 w-4', !isMobile && 'mr-1')} />
+                  {!isMobile && tMain('actionsMenu')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="rounded-xl">
+                <DropdownMenuItem onClick={onNew}>
+                  <FilePlus className="mr-2 h-4 w-4" />
+                  {tMain('newPlan')}
+                </DropdownMenuItem>
+                {onShare && (
+                  <DropdownMenuItem onClick={onShare}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    {tShare('shareButton')}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
+                  <Undo2 className="mr-2 h-4 w-4" />
+                  {tMain('undo')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
+                  <Redo2 className="mr-2 h-4 w-4" />
+                  {tMain('redo')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <Button
-            onClick={onRedo}
-            variant="outline"
-            size="icon"
-            className={cn(isMobile ? 'h-8 w-8' : 'h-9 w-9')}
-            aria-label={tMain('redo')}
-            disabled={!canRedo}
-          >
-            <Redo2 className={cn(isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
-          </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn('rounded-full', isMobile && 'h-8 px-2 text-xs')}
+                >
+                  <Eye className={cn('h-4 w-4', !isMobile && 'mr-1')} />
+                  {!isMobile && tMain('viewMenu')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="rounded-xl">
+                <DropdownMenuItem onClick={() => onLockAllItemsChange(!lockAllItems)}>
+                  <Lock className="mr-2 h-4 w-4" />
+                  {lockAllItems ? `${tMain('lockAll')} ✓` : tMain('lockAll')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onCeilingVisibleChange(!ceilingVisible)}>
+                  {ceilingVisible ? `${tMain('ceiling')} ✓` : tMain('ceiling')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <Button
-            onClick={() => onLockAllItemsChange(!lockAllItems)}
-            variant={lockAllItems ? 'secondary' : 'outline'}
-            size="sm"
-            className={cn(isMobile && 'h-8 px-3 text-xs')}
-            aria-label={tMain('lockAll')}
-            aria-pressed={lockAllItems}
-          >
-            <Lock className={cn('h-4 w-4', !isMobile && 'mr-1.5')} />
-            {!isMobile && tMain('lockAll')}
-          </Button>
+            <WallVisibilityControl
+              wallVisibility={wallVisibility}
+              onWallVisibilityChange={onWallVisibilityChange}
+              isMobile={isMobile}
+            />
 
-          <Button
-            onClick={() => onCeilingVisibleChange(!ceilingVisible)}
-            variant={ceilingVisible ? 'secondary' : 'outline'}
-            size="sm"
-            className={cn(isMobile && 'h-8 px-3 text-xs')}
-          >
-            {!isMobile ? 'Ceiling' : 'Roof'}
-          </Button>
-
-          <Button
-            onClick={onSettingsClick}
-            variant="outline"
-            size="icon"
-            className={cn(isMobile ? 'h-8 w-8' : 'h-9 w-9')}
-            aria-label="Settings"
-          >
-            <Settings className={cn(isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
-          </Button>
+            <Button
+              onClick={onSettingsClick}
+              variant="ghost"
+              size="icon"
+              className={cn('rounded-full', isMobile ? 'h-8 w-8' : 'h-9 w-9')}
+              aria-label="Settings"
+            >
+              <Settings className={cn(isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
+            </Button>
+          </div>
         </div>
       )}
     </div>

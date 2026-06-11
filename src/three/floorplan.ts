@@ -3,6 +3,10 @@ import { Floor } from './floor'
 import { Edge } from './edge'
 import type { Floorplan as FloorplanModel } from '../model/floorplan'
 import type { Controls } from './controls'
+import {
+  DEFAULT_WALL_OPACITY,
+  type WallVisibilityMode
+} from './wall-visibility'
 
 export class FloorplanThree {
   public readonly scene: THREE.Scene
@@ -11,6 +15,8 @@ export class FloorplanThree {
   public readonly renderer: THREE.WebGLRenderer
   public floors: Floor[] = []
   public edges: Edge[] = []
+  private wallVisibilityMode: WallVisibilityMode = 'solid'
+  private wallOpacity = DEFAULT_WALL_OPACITY
 
   constructor(scene: THREE.Scene, floorplan: FloorplanModel, controls: Controls, renderer: THREE.WebGLRenderer) {
     this.scene = scene
@@ -43,7 +49,16 @@ export class FloorplanThree {
     // draw edges
     this.floorplan.wallEdges().forEach((edge) => {
       const threeEdge = new Edge(this.scene, edge, this.controls, this.renderer)
+      threeEdge.setWallVisibilitySettings(this.wallVisibilityMode, this.wallOpacity)
       this.edges.push(threeEdge)
+    })
+  }
+
+  public setWallVisibility(mode: WallVisibilityMode, opacity: number): void {
+    this.wallVisibilityMode = mode
+    this.wallOpacity = opacity
+    this.edges.forEach((edge) => {
+      edge.setWallVisibilitySettings(mode, opacity)
     })
   }
 }

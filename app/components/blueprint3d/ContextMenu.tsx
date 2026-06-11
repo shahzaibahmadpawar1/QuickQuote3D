@@ -191,7 +191,7 @@ export function ContextMenu({
 
   return (
     <div className={cn(
-      'bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg animate-in fade-in-0 slide-in-from-right-5 duration-300',
+      'rounded-2xl border-0 bg-white/95 shadow-xl backdrop-blur-md animate-in fade-in-0 slide-in-from-right-5 duration-300',
       isMobile ? 'p-4 max-w-[340px]' : 'p-3 max-w-[300px]'
     )}>
       {/* Header with item name */}

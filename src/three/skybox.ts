@@ -5,9 +5,10 @@ export class Skybox {
   private readonly topColor: number
   private readonly bottomColor: number
   private readonly verticalOffset = 500
-  private readonly sphereRadius = 4000
+  private readonly sphereRadius = 20000
   private readonly widthSegments = 32
   private readonly heightSegments = 15
+  private mesh!: THREE.Mesh
 
   private readonly vertexShader = [
     'varying vec3 vWorldPosition;',
@@ -66,10 +67,20 @@ export class Skybox {
       vertexShader: this.vertexShader,
       fragmentShader: this.fragmentShader,
       uniforms: uniforms,
-      side: THREE.BackSide
+      side: THREE.BackSide,
+      depthWrite: false,
+      depthTest: false
     })
 
     const sky = new THREE.Mesh(skyGeo, skyMat)
+    sky.frustumCulled = false
+    sky.renderOrder = -1000
+    this.mesh = sky
     this.scene.add(sky)
+  }
+
+  /** Center the skybox on the camera so zoom-out never shows a bright disc at the target. */
+  public setCenter(position: THREE.Vector3): void {
+    this.mesh.position.copy(position)
   }
 }

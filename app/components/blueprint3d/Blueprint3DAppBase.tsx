@@ -11,6 +11,7 @@ import { ContextMenu } from './ContextMenu'
 import { BedSizeInput } from './BedSizeInput'
 import { FloorplannerControls } from './FloorplannerControls'
 import { TextureSelector } from './TextureSelector'
+import { WallSurfaceSelector, type WallApplyScope } from './WallSurfaceSelector'
 import { SaveFloorplanDialog } from './SaveFloorplanDialog'
 import { EstimateDialog } from './EstimateDialog'
 import { WallLengthDialog } from './WallLengthDialog'
@@ -39,6 +40,11 @@ import {
   loadShowOnlyCustomItems,
   SHOW_ONLY_CUSTOM_ITEMS_EVENT
 } from '@/lib/catalog-preferences'
+import {
+  loadWallVisibilityPrefs,
+  saveWallVisibilityPrefs,
+  type WallVisibilityPrefs
+} from '@/lib/wall-visibility-preferences'
 import { listUserItems } from '@/services/user-items'
 import { listUserTextures } from '@/services/user-textures'
 import { buildTexturesForSurface, buildTextureLabelMap, buildMergedTexturePricesPerSqM } from '@/lib/catalog-textures'
@@ -46,6 +52,7 @@ import type { UserCatalogTexture } from '@/types/user-texture'
 import * as THREE from 'three'
 
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
+import { NO_TEXTURE_URL } from '@blueprint3d/constants'
 import { findMountHostFromHits, getMountHostMeshes } from '@blueprint3d/items/mount-utils'
 import { floorplannerModes } from '@blueprint3d/floorplanner/floorplanner_view'
 import { Configuration, configDimUnit, configWallHeight } from '@blueprint3d/core/configuration'
@@ -143,6 +150,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [itemCostMinimized, setItemCostMinimized] = useState(false)
   const [itemCostPosition, setItemCostPosition] = useState({ x: 16, y: 80 })
   const [ceilingVisible, setCeilingVisible] = useState(false)
+  const [wallVisibility, setWallVisibility] = useState<WallVisibilityPrefs>(() =>
+    loadWallVisibilityPrefs()
+  )
   const [lockAllItems, setLockAllItems] = useState(false)
   const lockAllItemsRef = useRef(false)
   const [roomTypes, setRoomTypes] = useState<string[]>([])
@@ -279,6 +289,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
     const blueprint3d = new Blueprint3d(opts)
     blueprint3dRef.current = blueprint3d
+
+    const initialWallPrefs = loadWallVisibilityPrefs()
+    blueprint3d.three.setWallVisibility(initialWallPrefs.mode, initialWallPrefs.opacity)
 
     if (onBlueprint3DReady) {
       onBlueprint3DReady(blueprint3d)
@@ -1235,6 +1248,50 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     [currentTarget, requestHistoryCommit]
   )
 
+  const getWallApplyTargets = useCallback(
+    (scope: WallApplyScope): HalfEdge[] => {
+      if (!currentTarget || !('getColor' in currentTarget)) return []
+      const selected = currentTarget as HalfEdge
+      if (scope === 'selected') return [selected]
+      return blueprint3dRef.current?.model.floorplan.wallEdges() ?? []
+    },
+    [currentTarget]
+  )
+
+  const handleWallTextureSelect = useCallback(
+    (textureUrl: string, stretch: boolean, scale: number, scope: WallApplyScope) => {
+      const targets = getWallApplyTargets(scope)
+      if (targets.length === 0) return
+      const clear = !textureUrl.trim() || textureUrl === NO_TEXTURE_URL
+      targets.forEach((edge) => {
+        if (clear) edge.clearTexture()
+        else edge.setTexture(textureUrl, stretch, scale)
+      })
+      setLayoutEpoch((e) => e + 1)
+      requestHistoryCommit()
+    },
+    [getWallApplyTargets, requestHistoryCommit]
+  )
+
+  const handleWallColorSelect = useCallback(
+    (color: string | null, scope: WallApplyScope) => {
+      const targets = getWallApplyTargets(scope)
+      if (targets.length === 0) return
+      targets.forEach((edge) => {
+        if (color) edge.setColor(color)
+        else edge.clearColor()
+      })
+      setLayoutEpoch((e) => e + 1)
+      requestHistoryCommit()
+    },
+    [getWallApplyTargets, requestHistoryCommit]
+  )
+
+  const selectedWallColor =
+    currentTarget && 'getColor' in currentTarget
+      ? (currentTarget as HalfEdge).getColor()
+      : null
+
   useEffect(() => {
     const blueprint3d = blueprint3dRef.current
     const viewer = viewerRef.current
@@ -1443,6 +1500,19 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
   }, [ceilingVisible])
 
+  useEffect(() => {
+    if (!blueprint3dRef.current) return
+    blueprint3dRef.current.three.setWallVisibility(
+      wallVisibility.mode,
+      wallVisibility.opacity
+    )
+  }, [wallVisibility])
+
+  const handleWallVisibilityChange = useCallback((prefs: WallVisibilityPrefs) => {
+    saveWallVisibilityPrefs(prefs)
+    setWallVisibility(prefs)
+  }, [])
+
   return (
     <div className="relative h-full w-full">
       {/* Top Navigation Bar */}
@@ -1474,6 +1544,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
               canRedo={canRedo}
               ceilingVisible={ceilingVisible}
               onCeilingVisibleChange={setCeilingVisible}
+              wallVisibility={wallVisibility}
+              onWallVisibilityChange={handleWallVisibilityChange}
               lockAllItems={lockAllItems}
               onLockAllItemsChange={handleLockAllItemsChange}
             />
@@ -1599,7 +1671,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
           {/* Context Menu */}
           {selectedItem && !readOnly && !textureType && !isFullscreen && !settingsOpen && !estimateOpen && (
-            <div className="absolute right-2 md:right-4 top-16 md:top-20 z-70">
+            <div className="absolute bottom-4 right-2 z-70 md:right-4">
               <ContextMenu
                 selectedItem={selectedItem}
                 onDelete={handleDeleteItem}
@@ -1615,12 +1687,21 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
           {/* Texture Selector */}
           {textureType && !readOnly && !isFullscreen && viewMode === '3d' && (
-            <div className="absolute right-2 md:right-4 top-16 md:top-20 z-70 max-h-[calc(100vh-100px)] md:max-h-[calc(100vh-120px)] overflow-y-auto">
-              <TextureSelector
-                type={textureType}
-                textures={activeSelectorTextures}
-                onTextureSelect={handleTextureSelect}
-              />
+            <div className="absolute bottom-4 left-1/2 z-70 max-h-[min(50vh,420px)] w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 overflow-y-auto">
+              {textureType === 'wall' ? (
+                <WallSurfaceSelector
+                  textures={activeSelectorTextures}
+                  selectedColor={selectedWallColor}
+                  onTextureSelect={handleWallTextureSelect}
+                  onColorSelect={handleWallColorSelect}
+                />
+              ) : (
+                <TextureSelector
+                  type={textureType}
+                  textures={activeSelectorTextures}
+                  onTextureSelect={handleTextureSelect}
+                />
+              )}
             </div>
           )}
 

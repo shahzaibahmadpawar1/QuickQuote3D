@@ -65,7 +65,15 @@
       "loadPlan": "Load Plan",
       "undo": "Undo",
       "redo": "Redo",
-      "lockAll": "Lock all"
+      "lockAll": "Lock all",
+      "actionsMenu": "Actions",
+      "viewMenu": "View",
+      "ceiling": "Ceiling",
+      "wallVisibility": "Walls",
+      "wallVisibilitySolid": "Solid",
+      "wallVisibilityHidden": "Hidden",
+      "wallVisibilityTranslucent": "Translucent",
+      "wallOpacity": "Opacity"
     },
     "floorplanner": {
       "moveWalls": "Move Walls",
@@ -89,6 +97,12 @@
     "textureSelector": {
       "adjustFloor": "Adjust Floor",
       "adjustWall": "Adjust Wall",
+      "wallTextureTab": "Texture",
+      "wallColorTab": "Color",
+      "wallColorHint": "Decorative only — not included in cost estimate.",
+      "noWallColor": "Default",
+      "wallApplySelected": "This wall",
+      "wallApplyAll": "All walls",
       "noTexture": "None",
       "noTextures": "No textures available for this surface."
     },

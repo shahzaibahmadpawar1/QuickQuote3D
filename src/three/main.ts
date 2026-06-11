@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { animate } from 'animejs'
 import { EventEmitter } from '../core/events'
 import { Controller } from './controller'
@@ -10,31 +11,18 @@ import { HUD } from './hud'
 import type { Model } from '../model/model'
 import type { Scene } from '../model/scene'
 import type { Item } from '../items/item'
+import type { WallVisibilityMode } from './wall-visibility'
 import type { HalfEdge } from '../model/half_edge'
 import type { Room } from '../model/room'
 
-function createNeutralEnvironment(renderer: THREE.WebGLRenderer): THREE.Texture {
+function createRoomEnvironment(renderer: THREE.WebGLRenderer): THREE.Texture {
   const pmremGenerator = new THREE.PMREMGenerator(renderer)
   pmremGenerator.compileEquirectangularShader()
-
-  const envScene = new THREE.Scene()
-  envScene.background = new THREE.Color(0xcccccc)
-
-  // Soft warm upper light
-  const light1 = new THREE.DirectionalLight(0xffffff, 2)
-  light1.position.set(1, 3, 2)
-  envScene.add(light1)
-
-  // Softer fill light from below/side
-  const light2 = new THREE.DirectionalLight(0xffffff, 1)
-  light2.position.set(-1, 0.5, -1)
-  envScene.add(light2)
-
-  const envMap = pmremGenerator.fromScene(envScene, 0.04).texture
+  const roomEnvironment = new RoomEnvironment()
+  const envMap = pmremGenerator.fromScene(roomEnvironment, 0.04).texture
   pmremGenerator.dispose()
   return envMap
 }
-
 
 interface MainOptions {
   resize?: boolean
@@ -75,6 +63,7 @@ export class Main {
   private mouseOver = false
   private hasClicked = false
   private hud!: HUD
+  private skybox!: Skybox
   private viewMode: '2d' | '3d' = '3d'
   private saved3DPosition: THREE.Vector3 | null = null
   // @ts-ignore - saved3DRotation is declared but not used, keeping for future use
@@ -111,26 +100,25 @@ export class Main {
 
   private init(): void {
     this.domElement = this.element // Container
-    this.camera = new THREE.PerspectiveCamera(45, 1, 1, 10000)
+    this.camera = new THREE.PerspectiveCamera(45, 1, 1, 30000)
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       preserveDrawingBuffer: true // required to support .toDataURL()
     })
     this.renderer.autoClear = false
     this.renderer.shadowMap.enabled = true
-    this.renderer.shadowMap.type = THREE.PCFShadowMap // Optimized: PCFShadowMap is faster than PCFSoftShadowMap
-    // Fix color space for proper color saturation (matching legacy behavior)
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping
+    this.renderer.toneMappingExposure = 1.0
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
+    this.renderer.setClearColor(0xfaf8f5, 1)
 
-    // Provide a neutral environment map so PBR materials (MeshStandardMaterial)
-    // from imported GLB models render with proper lighting/reflections.
-    const envMap = createNeutralEnvironment(this.renderer)
+    const envMap = createRoomEnvironment(this.renderer)
     this.scene.getScene().environment = envMap
 
     // Get skybox colors from CSS variables (if available)
     const { topColor, bottomColor } = this.getSkyboxColors()
-    // @ts-ignore - Item is imported but not used, keeping for future use
-    const skybox = new Skybox(this.scene.getScene(), topColor, bottomColor)
+    this.skybox = new Skybox(this.scene.getScene(), topColor, bottomColor)
 
     this.controls = new Controls(this.camera, this.domElement, this.options.enableWheelZoom)
 
@@ -183,8 +171,8 @@ export class Main {
   private getSkyboxColors(): { topColor: number; bottomColor: number } {
     // Default colors (fallback if CSS variables are not available)
     // Using subtle sky gradient for better wall contrast
-    const defaultTopColor = 0xE8F4F8 // Very light sky blue
-    const defaultBottomColor = 0xD5D5D0 // Light warm gray
+    const defaultTopColor = 0xf2f0ed
+    const defaultBottomColor = 0xfaf8f5
 
     // Try to read from CSS variables (browser environment only)
     if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -306,6 +294,13 @@ export class Main {
     this._needsUpdate = true
   }
 
+  public setWallVisibility(mode: WallVisibilityMode, opacity: number): void {
+    if (this.floorplan) {
+      this.floorplan.setWallVisibility(mode, opacity)
+    }
+    this._needsUpdate = true
+  }
+
   public getCamera(): THREE.PerspectiveCamera {
     return this.camera
   }
@@ -335,6 +330,7 @@ export class Main {
   private render(): void {
     this.spin()
     if (this.shouldRender()) {
+      this.skybox.setCenter(this.camera.position)
       this.renderer.clear()
       this.renderer.render(this.scene.getScene(), this.camera)
       this.renderer.clearDepth()
@@ -364,6 +360,10 @@ export class Main {
       this.elementHeight = this.element.clientHeight
     }
 
+    if (this.elementWidth <= 0 || this.elementHeight <= 0) {
+      return
+    }
+
     this.camera.aspect = this.elementWidth / this.elementHeight
     this.camera.updateProjectionMatrix()
 
@@ -379,9 +379,9 @@ export class Main {
 
     this.controls.target = pan
 
-    const distance = this.model.floorplan.getSize().z * 1.5
+    const distance = this.model.floorplan.getSize().z * 1.7
 
-    const offset = pan.clone().add(new THREE.Vector3(0, distance, distance))
+    const offset = pan.clone().add(new THREE.Vector3(0, distance * 0.95, distance * 0.85))
     this.camera.position.copy(offset)
 
     this.controls.update()
@@ -495,6 +495,12 @@ export class Main {
       this.controls.noRotate = false
       this.controls.maxPolarAngle = Math.PI * 0.95
       this.controls.minPolarAngle = 0
+
+      // Force a resize + redraw after the viewer becomes visible again.
+      requestAnimationFrame(() => {
+        this.updateWindowSize()
+        this._needsUpdate = true
+      })
     }
 
     this._needsUpdate = true

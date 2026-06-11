@@ -37,7 +37,7 @@ export class Floor {
     const url = textureSettings?.url?.trim() ?? ''
     const hasTexture = url.length > 0
 
-    let floorMaterialTop: THREE.MeshPhongMaterial
+    let floorMaterialTop: THREE.MeshStandardMaterial
     let textureScale = 1
 
     if (hasTexture && textureSettings) {
@@ -50,20 +50,20 @@ export class Floor {
       floorTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
       floorTexture.minFilter = THREE.LinearMipmapLinearFilter
       floorTexture.magFilter = THREE.LinearFilter
-      floorMaterialTop = new THREE.MeshPhongMaterial({
+      floorMaterialTop = new THREE.MeshStandardMaterial({
         map: floorTexture,
         side: THREE.DoubleSide,
         color: 0xffffff,
-        specular: 0x111111,
-        shininess: 3
+        roughness: 0.8,
+        metalness: 0.05
       })
       textureScale = textureSettings.scale
     } else {
-      floorMaterialTop = new THREE.MeshPhongMaterial({
+      floorMaterialTop = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
-        color: 0xf5f5f0,
-        specular: 0x111111,
-        shininess: 3
+        color: 0xe8e0d4,
+        roughness: 0.88,
+        metalness: 0.0
       })
     }
 
@@ -90,12 +90,12 @@ export class Floor {
     return floor
   }
 
-  // @ts-ignore - buildRoof is declared but not used, keeping for future use
   private buildRoof(): THREE.Mesh {
-    const roofMaterial = new THREE.MeshPhongMaterial({
+    const roofMaterial = new THREE.MeshStandardMaterial({
       side: THREE.DoubleSide,
       color: 0xf1f1f1,
-      shininess: 2
+      roughness: 0.95,
+      metalness: 0.0
     })
 
     const points: THREE.Vector2[] = []
@@ -121,7 +121,6 @@ export class Floor {
       this.roofPlane.visible = this.roofVisible
       this.scene.add(this.roofPlane)
     }
-    // hack so we can do intersect testing
     this.scene.add(this.room.floorPlane)
     this.scene.add(this.room.ceilingPlane)
   }

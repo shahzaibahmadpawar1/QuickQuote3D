@@ -15,6 +15,8 @@ export interface SavedFloorplan {
     corner2: string
     frontTexture?: WallTexture
     backTexture?: WallTexture
+    frontColor?: string | null
+    backColor?: string | null
   }>
   wallTextures?: unknown[]
   floorTextures?: Record<string, FloorTexture>
@@ -232,7 +234,9 @@ export class Floorplan {
         corner1: wall.getStart().id,
         corner2: wall.getEnd().id,
         frontTexture: wall.frontTexture,
-        backTexture: wall.backTexture
+        backTexture: wall.backTexture,
+        frontColor: wall.frontColor,
+        backColor: wall.backColor
       })
     })
     floorplan.newFloorTextures = this.floorTextures
@@ -258,6 +262,12 @@ export class Floorplan {
       }
       if (wall.backTexture) {
         newWall.backTexture = wall.backTexture
+      }
+      if (wall.frontColor !== undefined) {
+        newWall.frontColor = wall.frontColor
+      }
+      if (wall.backColor !== undefined) {
+        newWall.backColor = wall.backColor
       }
     })
 

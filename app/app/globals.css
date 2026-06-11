@@ -99,39 +99,39 @@
 ------------------------------------------------------------------ */
 @layer base {
   :root {
-    /* ===== Brand Primary (Modern Blue) ===== */
+    /* ===== Brand Primary (reserved for Save / key CTAs) ===== */
     --primary: 217 72% 45%;
     --primary-foreground: 0 0% 100%;
 
-    /* ===== Base surfaces ===== */
-    --background: 214 10% 97%;
-    --foreground: 217 20% 15%;
+    /* ===== Warm interior-studio surfaces ===== */
+    --background: 40 20% 97%;
+    --foreground: 30 10% 12%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 217 20% 15%;
+    --card: 40 25% 99%;
+    --card-foreground: 30 10% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 217 20% 15%;
+    --popover: 40 25% 99%;
+    --popover-foreground: 30 10% 12%;
 
     /* ===== Sidebar ===== */
-    --sidebar-background: 214 15% 97%;
+    --sidebar-background: 40 18% 96%;
     --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: 217 10% 92%;
+    --sidebar-accent: 40 15% 92%;
     --sidebar-accent-foreground: var(--foreground);
-    --sidebar-border: 214 10% 90%;
+    --sidebar-border: 40 12% 88%;
     --sidebar-ring: var(--ring);
 
     /* ===== Functional colors ===== */
-    --secondary: 214 10% 94%;
-    --secondary-foreground: 217 30% 20%;
+    --secondary: 40 15% 93%;
+    --secondary-foreground: 30 15% 22%;
 
-    --muted: 214 10% 94%;
-    --muted-foreground: 217 10% 50%;
+    --muted: 40 12% 92%;
+    --muted-foreground: 30 8% 42%;
 
-    --accent: 0 0% 0% / 10%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 40 20% 90%;
+    --accent-foreground: 30 10% 15%;
 
     --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 98%;
@@ -139,10 +139,10 @@
     --warning: 35 80% 50%;
     --warning-foreground: 35 80% 10%;
 
-    --border: 214 15% 90%;
-    --input: 214 15% 90%;
+    --border: 40 12% 88%;
+    --input: 40 12% 88%;
     --ring: 217 72% 45%;
-    --gradient: 200 40% 75%;
+    --gradient: 40 30% 88%;
 
     /* ===== Charts (blue palette) ===== */
     --chart-1: 217 72% 45%;
@@ -151,7 +151,7 @@
     --chart-4: 231 50% 55%;
     --chart-5: 217 10% 30%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
