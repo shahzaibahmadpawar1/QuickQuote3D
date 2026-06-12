@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useTransition } from 'react'
-import { Settings as SettingsIcon, Languages, Check, Pencil, Trash2, Plus } from 'lucide-react'
+import { Languages, Check, Pencil, Trash2, Plus } from 'lucide-react'
 import Image from 'next/image'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter, usePathname } from '@/i18n/routing'
@@ -362,13 +362,8 @@ export function Settings({
 
   return (
     <>
-      <div className="bg-card rounded-lg shadow-sm border border-border p-8">
-      <div className="flex items-center gap-3 text-foreground mb-6">
-        <SettingsIcon className="h-7 w-7" />
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-      </div>
-
-      <div className="space-y-8">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+      <div className="space-y-10">
         {/* Language Settings */}
         {isLanguageOption && (
           <div>

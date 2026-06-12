@@ -68,7 +68,7 @@ export function WallSurfaceSelector({
   return (
     <div
       className={cn(
-        'rounded-2xl border-0 bg-white/95 shadow-xl backdrop-blur-md',
+        'planner-panel',
         isMobile ? 'max-w-[min(360px,calc(100vw-2rem))] p-4' : 'max-w-[320px] p-3'
       )}
     >

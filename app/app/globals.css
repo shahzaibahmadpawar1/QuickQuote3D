@@ -67,6 +67,8 @@
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
 
+  --color-accent-gold: hsl(var(--accent-gold));
+
   /* Sidebar */
   --color-sidebar: hsl(var(--sidebar-background));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
@@ -152,6 +154,9 @@
     --chart-5: 217 10% 30%;
 
     --radius: 0.75rem;
+
+    /* Gold accent for estimate highlights only */
+    --accent-gold: 43 74% 52%;
   }
 
   .dark {
@@ -279,6 +284,39 @@
 
 .gradient-background:hover:before {
   opacity: 1;
+}
+
+/* ------------------------------------------------------------------
+   Planner & marketing chrome
+------------------------------------------------------------------ */
+@layer components {
+  .planner-panel {
+    @apply rounded-2xl border-0 bg-white/95 shadow-xl backdrop-blur-md;
+  }
+
+  .planner-pill {
+    @apply rounded-full border-0 bg-white/90 shadow-md backdrop-blur-md;
+  }
+
+  .type-display {
+    @apply font-semibold tracking-[-0.03em];
+  }
+
+  .estimate-total-accent {
+    color: hsl(var(--accent-gold));
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
 }
 
 /* ------------------------------------------------------------------

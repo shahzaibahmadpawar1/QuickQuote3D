@@ -38,17 +38,19 @@ export function FloorplannerControls({
   const isMobile = useIsMobile()
 
   return (
-    <div className={cn('absolute left-0 top-0 w-full z-60 pointer-events-none', isMobile ? 'my-3 px-3' : 'my-3 px-5')}>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className={cn('flex flex-wrap pointer-events-auto', isMobile ? 'gap-1.5' : 'gap-2')}>
+    <div className={cn('pointer-events-none absolute left-0 top-0 z-60 w-full', isMobile ? 'my-3 px-3' : 'my-3 px-5')}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div
+          className={cn(
+            'planner-pill pointer-events-auto flex flex-wrap items-center',
+            isMobile ? 'gap-1 p-1' : 'gap-1 p-1.5'
+          )}
+        >
           <Button
             size={isMobile ? 'icon' : 'sm'}
-            variant={mode === 'move' ? 'default' : 'secondary'}
+            variant={mode === 'move' ? 'default' : 'ghost'}
             onClick={() => onModeChange('move')}
-            className={cn(
-              !isMobile && 'flex items-center gap-2',
-              isMobile && 'h-11 w-11 shadow-lg active:scale-95 transition-transform'
-            )}
+            className={cn('cursor-pointer rounded-full', !isMobile && 'gap-2')}
             title={isMobile ? t('moveWalls') : undefined}
             aria-label={t('moveWalls')}
             aria-pressed={mode === 'move'}
@@ -58,12 +60,9 @@ export function FloorplannerControls({
           </Button>
           <Button
             size={isMobile ? 'icon' : 'sm'}
-            variant={mode === 'draw' ? 'default' : 'secondary'}
+            variant={mode === 'draw' ? 'default' : 'ghost'}
             onClick={() => onModeChange('draw')}
-            className={cn(
-              !isMobile && 'flex items-center gap-2',
-              isMobile && 'h-11 w-11 shadow-lg active:scale-95 transition-transform'
-            )}
+            className={cn('cursor-pointer rounded-full', !isMobile && 'gap-2')}
             title={isMobile ? t('drawWalls') : undefined}
             aria-label={t('drawWalls')}
             aria-pressed={mode === 'draw'}
@@ -73,12 +72,9 @@ export function FloorplannerControls({
           </Button>
           <Button
             size={isMobile ? 'icon' : 'sm'}
-            variant={mode === 'delete' ? 'default' : 'secondary'}
+            variant={mode === 'delete' ? 'default' : 'ghost'}
             onClick={() => onModeChange('delete')}
-            className={cn(
-              !isMobile && 'flex items-center gap-2',
-              isMobile && 'h-11 w-11 shadow-lg active:scale-95 transition-transform'
-            )}
+            className={cn('cursor-pointer rounded-full', !isMobile && 'gap-2')}
             title={isMobile ? t('deleteWalls') : undefined}
             aria-label={t('deleteWalls')}
             aria-pressed={mode === 'delete'}
@@ -87,10 +83,12 @@ export function FloorplannerControls({
             {!isMobile && t('deleteWalls')}
           </Button>
 
-          <label className={cn(
-            'pointer-events-auto flex items-center gap-2 rounded-md border bg-background/95 px-3 py-2 text-sm shadow-sm',
-            isMobile && 'min-h-[44px]'
-          )}>
+          <label
+            className={cn(
+              'flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm text-muted-foreground',
+              isMobile && 'min-h-[40px]'
+            )}
+          >
             <input
               type="checkbox"
               className="h-4 w-4 accent-primary"
@@ -103,10 +101,10 @@ export function FloorplannerControls({
 
           <Button
             size={isMobile ? 'icon' : 'sm'}
-            variant="secondary"
+            variant="ghost"
             onClick={onUndo}
             disabled={!canUndo}
-            className={cn(!isMobile && 'flex items-center gap-2')}
+            className="cursor-pointer rounded-full"
             aria-label="Undo"
           >
             <Undo2 className={cn(isMobile ? 'h-5 w-5' : 'h-4 w-4')} />
@@ -114,10 +112,10 @@ export function FloorplannerControls({
           </Button>
           <Button
             size={isMobile ? 'icon' : 'sm'}
-            variant="secondary"
+            variant="ghost"
             onClick={onRedo}
             disabled={!canRedo}
-            className={cn(!isMobile && 'flex items-center gap-2')}
+            className="cursor-pointer rounded-full"
             aria-label="Redo"
           >
             <Redo2 className={cn(isMobile ? 'h-5 w-5' : 'h-4 w-4')} />
@@ -125,12 +123,7 @@ export function FloorplannerControls({
           </Button>
         </div>
 
-        <div
-          className={cn(
-            'pointer-events-auto flex items-center gap-2 rounded-md border bg-background/95 px-3 py-2 text-sm shadow-sm',
-            isMobile && 'min-h-[44px]'
-          )}
-        >
+        <div className="planner-pill pointer-events-auto flex items-center gap-2 px-3 py-1.5 text-sm">
           <Label htmlFor="floorplan-wall-unit" className="text-muted-foreground whitespace-nowrap shrink-0">
             {t('wallLabelsUnit')}
           </Label>

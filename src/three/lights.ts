@@ -19,11 +19,11 @@ export class Lights {
   }
 
   private init(): void {
-    const light = new THREE.HemisphereLight(0xffffff, 0xe8e4df, 0.8)
+    const light = new THREE.HemisphereLight(0xffffff, 0xe8e4df, 0.85)
     light.position.set(0, this.height, 0)
     this.scene.add(light)
 
-    this.dirLight = new THREE.DirectionalLight(0xfff8f0, 1.8)
+    this.dirLight = new THREE.DirectionalLight(0xfff8f0, 1.85)
     this.dirLight.castShadow = true
 
     this.dirLight.shadow.mapSize.width = 2048

@@ -37,10 +37,10 @@ export function SharedViewNavBar({
           type="button"
           onClick={onEstimateClick}
           className={cn(
-            'shrink-0 rounded-md font-medium transition-colors',
+            'shrink-0 cursor-pointer rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             isMobile ? 'px-2 py-1.5 text-xs' : 'px-4 py-2 text-sm',
             estimateOpen
-              ? 'bg-primary text-primary-foreground'
+              ? 'bg-foreground text-background'
               : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
           )}
         >
@@ -49,12 +49,7 @@ export function SharedViewNavBar({
       </div>
 
       <div className="pointer-events-auto absolute top-1/2 left-1/2 z-100 -translate-x-1/2 -translate-y-1/2">
-        <div
-          className={cn(
-            'flex items-center rounded-full border border-border/50 bg-background/50 backdrop-blur-sm',
-            isMobile ? 'gap-2 px-3 py-1.5' : 'gap-3 px-4 py-2'
-          )}
-        >
+        <div className={cn('planner-pill flex items-center', isMobile ? 'gap-2 px-3 py-1.5' : 'gap-3 px-4 py-2')}>
           <span
             className={cn(
               'font-medium transition-colors',
@@ -87,7 +82,9 @@ export function SharedViewNavBar({
           isMobile ? 'right-2 h-12' : 'right-4 h-14'
         )}
       >
-        <span className="rounded-md bg-muted/60 px-2 py-1 text-xs text-muted-foreground">{t('viewOnlyBadge')}</span>
+        <span className="planner-pill px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          {t('viewOnlyBadge')}
+        </span>
       </div>
     </div>
   )

@@ -112,17 +112,33 @@ export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">{t('loading')}</div>
+      <div className="space-y-4" aria-busy="true" aria-label={t('loading')}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="h-10 w-[180px] animate-pulse rounded-md bg-muted" />
+          <div className="h-10 w-20 animate-pulse rounded-lg bg-muted" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="overflow-hidden rounded-xl border border-border bg-card">
+              <div className="aspect-[3/2] animate-pulse bg-muted" />
+              <div className="space-y-2 p-2">
+                <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
 
   if (floorplans.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
-        <FolderOpen className="h-16 w-16 text-muted mb-4" />
-        <h3 className="text-lg font-medium text-foreground mb-2">{t('noFloorplans')}</h3>
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 p-12 text-center">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+          <FolderOpen className="h-8 w-8 text-primary" />
+        </div>
+        <h3 className="mb-2 text-lg font-medium text-foreground">{t('noFloorplans')}</h3>
         <p className="text-sm text-muted-foreground">{t('saveFirst')}</p>
       </div>
     )
@@ -189,7 +205,7 @@ export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
           {filteredFloorplans.map((floorplan) => (
             <div
               key={floorplan.id}
-              className="group relative border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 bg-card cursor-pointer"
+              className="group relative cursor-pointer overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:border-primary/20 hover:shadow-md"
               onClick={() => handleLoad(floorplan.id, floorplan.name)}
             >
               <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -270,7 +286,7 @@ export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
           {filteredFloorplans.map((floorplan) => (
             <div
               key={floorplan.id}
-              className="group flex items-center gap-3 border border-border rounded-lg p-3 hover:shadow-md transition-all duration-200 bg-card cursor-pointer"
+              className="group flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all duration-200 hover:border-primary/20 hover:shadow-md"
               onClick={() => handleLoad(floorplan.id, floorplan.name)}
             >
               <div className="shrink-0">

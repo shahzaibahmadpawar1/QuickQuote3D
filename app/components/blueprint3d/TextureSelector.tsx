@@ -21,8 +21,8 @@ export function TextureSelector({ type, textures, onTextureSelect }: TextureSele
 
   return (
     <div className={cn(
-      'rounded-2xl border-0 bg-white/95 shadow-xl backdrop-blur-md',
-      isMobile ? 'p-4 max-w-[min(340px,calc(100vw-2rem))]' : 'p-3 max-w-[280px]'
+      'planner-panel',
+      isMobile ? 'max-w-[min(340px,calc(100vw-2rem))] p-4' : 'max-w-[280px] p-3'
     )}>
       <h3 className={cn('font-semibold', isMobile ? 'text-base mb-3' : 'text-sm mb-2')}>
         {type === 'floor' ? t('adjustFloor') : t('adjustWall')}

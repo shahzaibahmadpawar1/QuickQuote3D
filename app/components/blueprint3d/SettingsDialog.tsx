@@ -1,11 +1,12 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog'
 import { Settings } from './Settings'
 import type { CatalogListItem, UserCatalogItem } from '@/types/user-item'
 import type { UserCatalogTexture } from '@/types/user-texture'
@@ -51,13 +52,15 @@ export function SettingsDialog({
   onPricingChanged,
   onRoomTypesChanged
 }: SettingsDialogProps) {
+  const t = useTranslations('BluePrint.settings')
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-5xl! max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+      <DialogContent className="flex max-h-[85vh] w-[95vw] flex-col overflow-hidden rounded-2xl sm:max-w-5xl!">
+        <DialogHeader className="sticky top-0 z-10 shrink-0 border-b border-border bg-card pb-4">
+          <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
-        <div className="py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto py-4 [-webkit-overflow-scrolling:touch]">
           <Settings
             onUnitChange={onUnitChange}
             wallHeightCm={wallHeightCm}

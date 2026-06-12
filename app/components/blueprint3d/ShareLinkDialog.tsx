@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Copy, Link2, RefreshCw, Trash2 } from 'lucide-react'
+import { Copy, Check, Link2, RefreshCw, Trash2 } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import {
@@ -27,6 +27,7 @@ export function ShareLinkDialog({ open, onOpenChange, blueprintId, blueprintName
   const t = useTranslations('BluePrint.share')
   const locale = useLocale()
   const [loading, setLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [share, setShare] = useState<BlueprintShareLink | null>(null)
 
   const loadExisting = useCallback(async () => {
@@ -47,6 +48,7 @@ export function ShareLinkDialog({ open, onOpenChange, blueprintId, blueprintName
     }
     if (!open) {
       setShare(null)
+      setCopied(false)
     }
   }, [open, blueprintId, loadExisting])
 
@@ -102,7 +104,9 @@ export function ShareLinkDialog({ open, onOpenChange, blueprintId, blueprintName
     if (!share?.shareUrl) return
     try {
       await navigator.clipboard.writeText(share.shareUrl)
+      setCopied(true)
       toast.success(t('linkCopied'))
+      window.setTimeout(() => setCopied(false), 2000)
     } catch {
       toast.error(t('copyFailed'))
     }
@@ -127,14 +131,29 @@ export function ShareLinkDialog({ open, onOpenChange, blueprintId, blueprintName
         ) : (
           <div className="space-y-4">
             {share ? (
-              <div className="flex gap-2">
-                <Input readOnly value={share.shareUrl} className="font-mono text-xs" />
-                <Button type="button" variant="outline" size="icon" onClick={() => void copyLink()} aria-label={t('copyLink')}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
+              <>
+                <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+                  <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                  {t('linkActive')}
+                </div>
+                <div className="flex gap-2">
+                  <Input readOnly value={share.shareUrl} className="font-mono text-xs focus-visible:ring-2 focus-visible:ring-ring" />
+                  <Button
+                    type="button"
+                    variant={copied ? 'secondary' : 'outline'}
+                    size="icon"
+                    className="cursor-pointer shrink-0 focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={() => void copyLink()}
+                    aria-label={t('copyLink')}
+                  >
+                    {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </>
             ) : (
-              <p className="text-sm text-muted-foreground">{t('noLinkYet')}</p>
+              <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+                {t('noLinkYet')}
+              </div>
             )}
           </div>
         )}

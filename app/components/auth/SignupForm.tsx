@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,8 @@ import {
 import { isSupabaseConfigured } from '@/lib/supabase/env'
 import { createClient } from '@/lib/supabase/client'
 import { Link } from '@/i18n/routing'
+import { AuthLayout } from './AuthLayout'
+import { GoogleSignInButton } from './GoogleSignInButton'
 
 export function SignupForm() {
   const t = useTranslations('auth')
@@ -25,7 +28,8 @@ export function SignupForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loadingEmail, setLoadingEmail] = useState(false)
+  const [loadingGoogle, setLoadingGoogle] = useState(false)
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,7 +39,7 @@ export function SignupForm() {
       setError(t('supabaseNotConfigured'))
       return
     }
-    setLoading(true)
+    setLoadingEmail(true)
     try {
       const sb = createClient()
       const origin = typeof window !== 'undefined' ? window.location.origin : ''
@@ -57,7 +61,7 @@ export function SignupForm() {
         setInfo(t('checkEmail'))
       }
     } finally {
-      setLoading(false)
+      setLoadingEmail(false)
     }
   }
 
@@ -68,7 +72,7 @@ export function SignupForm() {
       setError(t('supabaseNotConfigured'))
       return
     }
-    setLoading(true)
+    setLoadingGoogle(true)
     try {
       const sb = createClient()
       const origin = window.location.origin
@@ -78,21 +82,31 @@ export function SignupForm() {
       })
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e))
-      setLoading(false)
+      setLoadingGoogle(false)
     }
   }
 
+  const busy = loadingEmail || loadingGoogle
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <AuthLayout>
+      <Card className="border-border/80 bg-card/95 shadow-lg">
         <CardHeader>
-          <CardTitle>{t('signupTitle')}</CardTitle>
+          <CardTitle className="type-display text-2xl">{t('signupTitle')}</CardTitle>
           <CardDescription>{t('signupDescription')}</CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
           <CardContent className="space-y-4">
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            {info ? <p className="text-sm text-muted-foreground">{info}</p> : null}
+            {error ? (
+              <p className="text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            ) : null}
+            {info ? (
+              <p className="text-sm text-muted-foreground" role="status">
+                {info}
+              </p>
+            ) : null}
             <div className="space-y-2">
               <Label htmlFor="email">{t('email')}</Label>
               <Input
@@ -102,6 +116,7 @@ export function SignupForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={busy}
               />
             </div>
             <div className="space-y-2">
@@ -114,25 +129,37 @@ export function SignupForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                disabled={busy}
               />
             </div>
-            <Button type="button" variant="outline" className="w-full" onClick={onGoogle} disabled={loading}>
-              {t('continueWithGoogle')}
-            </Button>
+            <GoogleSignInButton
+              label={t('continueWithGoogle')}
+              loadingLabel={t('loading')}
+              loading={loadingGoogle}
+              disabled={loadingEmail}
+              onClick={onGoogle}
+            />
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? t('loading') : t('createAccount')}
+            <Button type="submit" className="w-full cursor-pointer" disabled={busy}>
+              {loadingEmail ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                  {t('loading')}
+                </>
+              ) : (
+                t('createAccount')
+              )}
             </Button>
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-center text-sm text-muted-foreground">
               {t('haveAccount')}{' '}
-              <Link href="/login" className="text-primary underline">
+              <Link href="/login" className="cursor-pointer text-primary underline-offset-4 hover:underline">
                 {t('signIn')}
               </Link>
             </p>
           </CardFooter>
         </form>
       </Card>
-    </div>
+    </AuthLayout>
   )
 }

@@ -109,7 +109,7 @@ export class Main {
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-    this.renderer.toneMappingExposure = 1.0
+    this.renderer.toneMappingExposure = 1.05
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
     this.renderer.setClearColor(0xfaf8f5, 1)
 

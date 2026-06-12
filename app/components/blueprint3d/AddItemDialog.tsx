@@ -248,7 +248,7 @@ export function AddItemDialog({
         if (!value) resetForm()
       }}
     >
-      <DialogContent>
+      <DialogContent className="rounded-2xl sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{mode === 'edit' ? 'Edit custom item' : t('title')}</DialogTitle>
         </DialogHeader>

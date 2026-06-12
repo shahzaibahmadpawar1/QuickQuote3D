@@ -81,7 +81,7 @@ export function TopNavBar({
     { id: 'items' as const, label: t('addItems') }
   ]
 
-  const pillShell = 'rounded-full border-0 bg-white/90 shadow-md backdrop-blur-md'
+  const pillShell = 'planner-pill'
 
   return (
     <div className={cn('pointer-events-none relative bg-transparent', isMobile ? 'h-12' : 'h-14')}>

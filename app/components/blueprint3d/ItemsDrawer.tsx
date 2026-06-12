@@ -45,8 +45,8 @@ export function ItemsDrawer({
       {/* Drawer */}
       <div
         className={cn(
-          'fixed top-0 right-0 bottom-0 w-full md:w-1/3 bg-background border-l border-border z-50',
-          'transition-transform duration-300 ease-in-out',
+          'fixed top-0 right-0 bottom-0 z-50 w-full border-l border-border bg-background shadow-xl md:w-1/3 md:rounded-l-2xl',
+          'transition-transform duration-300 ease-in-out motion-reduce:transition-none',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
@@ -58,7 +58,7 @@ export function ItemsDrawer({
               onClick={onClose}
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-8 w-8 cursor-pointer focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Close"
             >
               <X className="h-5 w-5" />

@@ -684,38 +684,38 @@ export function EstimatePanel({
 
             <Separator />
 
-            <div className="space-y-2 text-sm">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 text-muted-foreground">
-                <span>{t('furnitureSubtotal')}</span>
-                <span className="text-right tabular-nums">
-                  {formatter(displayResult.furniture_subtotal, displayResult.currency)}
+            <div className="sticky bottom-0 z-10 -mx-4 space-y-2 border-t border-border bg-card/95 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6">
+              <div className="space-y-2 text-sm">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 text-muted-foreground">
+                  <span>{t('furnitureSubtotal')}</span>
+                  <span className="text-right tabular-nums">
+                    {formatter(displayResult.furniture_subtotal, displayResult.currency)}
+                  </span>
+                </div>
+                {displayResult.finishes_subtotal > 0 && (
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 text-muted-foreground">
+                    <span>{t('finishesSubtotal')}</span>
+                    <span className="text-right tabular-nums">
+                      {formatter(displayResult.finishes_subtotal, displayResult.currency)}
+                    </span>
+                  </div>
+                )}
+                {breakdown && (
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-t border-border/60 pt-2 text-muted-foreground">
+                    <span>{t('subtotalExTax')}</span>
+                    <span className="text-right tabular-nums">
+                      {formatter(breakdown.subtotalExTax, displayResult.currency)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-t border-border/60 pt-2 text-base font-semibold">
+                <span>{t('grandTotal')}</span>
+                <span className="estimate-total-accent text-right text-lg tabular-nums">
+                  {breakdown ? formatter(breakdown.grandTotal, displayResult.currency) : formatter(0, displayResult.currency)}
                 </span>
               </div>
-              {displayResult.finishes_subtotal > 0 && (
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 text-muted-foreground">
-                  <span>{t('finishesSubtotal')}</span>
-                  <span className="text-right tabular-nums">
-                    {formatter(displayResult.finishes_subtotal, displayResult.currency)}
-                  </span>
-                </div>
-              )}
-              {breakdown && (
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-t border-border/60 pt-2 text-muted-foreground">
-                  <span>{t('subtotalExTax')}</span>
-                  <span className="text-right tabular-nums">
-                    {formatter(breakdown.subtotalExTax, displayResult.currency)}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <Separator />
-
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 text-base font-semibold">
-              <span>{t('grandTotal')}</span>
-              <span className="text-right tabular-nums">
-                {breakdown ? formatter(breakdown.grandTotal, displayResult.currency) : formatter(0, displayResult.currency)}
-              </span>
             </div>
 
             {displayResult.warnings.length > 0 && (

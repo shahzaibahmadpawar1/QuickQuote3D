@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,8 @@ import {
 import { isSupabaseConfigured } from '@/lib/supabase/env'
 import { createClient } from '@/lib/supabase/client'
 import { Link } from '@/i18n/routing'
+import { AuthLayout } from './AuthLayout'
+import { GoogleSignInButton } from './GoogleSignInButton'
 
 interface LoginFormProps {
   initialError?: string
@@ -29,7 +32,8 @@ export function LoginForm({ initialError, nextPath = '/planner' }: LoginFormProp
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(initialError ?? '')
-  const [loading, setLoading] = useState(false)
+  const [loadingEmail, setLoadingEmail] = useState(false)
+  const [loadingGoogle, setLoadingGoogle] = useState(false)
 
   const onEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,7 +42,7 @@ export function LoginForm({ initialError, nextPath = '/planner' }: LoginFormProp
       setError(t('supabaseNotConfigured'))
       return
     }
-    setLoading(true)
+    setLoadingEmail(true)
     try {
       const sb = createClient()
       const { error: err } = await sb.auth.signInWithPassword({ email, password })
@@ -49,7 +53,7 @@ export function LoginForm({ initialError, nextPath = '/planner' }: LoginFormProp
       router.replace(nextPath)
       router.refresh()
     } finally {
-      setLoading(false)
+      setLoadingEmail(false)
     }
   }
 
@@ -59,7 +63,7 @@ export function LoginForm({ initialError, nextPath = '/planner' }: LoginFormProp
       setError(t('supabaseNotConfigured'))
       return
     }
-    setLoading(true)
+    setLoadingGoogle(true)
     try {
       const sb = createClient()
       const origin = window.location.origin
@@ -72,20 +76,26 @@ export function LoginForm({ initialError, nextPath = '/planner' }: LoginFormProp
       })
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e))
-      setLoading(false)
+      setLoadingGoogle(false)
     }
   }
 
+  const busy = loadingEmail || loadingGoogle
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <AuthLayout>
+      <Card className="border-border/80 bg-card/95 shadow-lg">
         <CardHeader>
-          <CardTitle>{t('loginTitle')}</CardTitle>
+          <CardTitle className="type-display text-2xl">{t('loginTitle')}</CardTitle>
           <CardDescription>{t('loginDescription')}</CardDescription>
         </CardHeader>
         <form onSubmit={onEmailLogin}>
           <CardContent className="space-y-4">
-            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            {error ? (
+              <p className="text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            ) : null}
             <div className="space-y-2">
               <Label htmlFor="email">{t('email')}</Label>
               <Input
@@ -95,6 +105,7 @@ export function LoginForm({ initialError, nextPath = '/planner' }: LoginFormProp
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={busy}
               />
             </div>
             <div className="space-y-2">
@@ -106,25 +117,37 @@ export function LoginForm({ initialError, nextPath = '/planner' }: LoginFormProp
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={busy}
               />
             </div>
-            <Button type="button" variant="outline" className="w-full" onClick={onGoogle} disabled={loading}>
-              {t('continueWithGoogle')}
-            </Button>
+            <GoogleSignInButton
+              label={t('continueWithGoogle')}
+              loadingLabel={t('loading')}
+              loading={loadingGoogle}
+              disabled={loadingEmail}
+              onClick={onGoogle}
+            />
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? t('loading') : t('signIn')}
+            <Button type="submit" className="w-full cursor-pointer" disabled={busy}>
+              {loadingEmail ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                  {t('loading')}
+                </>
+              ) : (
+                t('signIn')
+              )}
             </Button>
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-center text-sm text-muted-foreground">
               {t('noAccount')}{' '}
-              <Link href="/signup" className="text-primary underline">
+              <Link href="/signup" className="cursor-pointer text-primary underline-offset-4 hover:underline">
                 {t('signUp')}
               </Link>
             </p>
           </CardFooter>
         </form>
       </Card>
-    </div>
+    </AuthLayout>
   )
 }

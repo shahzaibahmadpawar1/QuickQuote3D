@@ -115,8 +115,8 @@ export function ItemPriceSummaryPanel({
       className={cn(
         'flex w-full flex-col overflow-hidden text-foreground',
         minimized
-          ? 'rounded-full border-0 bg-white/95 shadow-lg backdrop-blur-md'
-          : 'max-h-[min(78vh,640px)] rounded-2xl border-0 bg-white/95 shadow-xl backdrop-blur-md'
+          ? 'planner-pill rounded-full'
+          : 'planner-panel max-h-[min(78vh,640px)]'
       )}
     >
       <div
@@ -167,7 +167,7 @@ export function ItemPriceSummaryPanel({
           <div className="shrink-0 border-t border-border bg-background px-3 py-2 text-sm font-semibold">
             <div className="flex justify-between gap-2">
               <span>{t('grandTotal')}</span>
-              <span className="tabular-nums">{formatter.format(grandTotal)}</span>
+              <span className="tabular-nums estimate-total-accent">{formatter.format(grandTotal)}</span>
             </div>
           </div>
         </>
