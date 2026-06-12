@@ -1,47 +1,141 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import {
+  Box,
+  Calculator,
+  ChevronDown,
+  Cloud,
+  FileText,
+  Languages,
+  LayoutTemplate,
+  Link2,
+  Magnet,
+  Upload
+} from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import { PLANNER_SEGMENT } from '@/lib/routes'
+import { HeroMockup } from './HeroMockup'
+import { ScrollReveal, StaggerContainer, StaggerItem } from './ScrollReveal'
 
 interface LandingPageProps {
   isAuthenticated: boolean
   authRequiredForPlanner: boolean
 }
 
-const ROTATING_WORDS = ['Office', 'Room', 'Studio', 'Kitchen'] as const
+const ROTATING_WORDS = ['Bedroom', 'Office', 'Kitchen', 'Studio'] as const
+
+const FEATURES = [
+  {
+    icon: Box,
+    title: '2D walls & 3D walkthrough',
+    desc: 'Draw floor plans in 2D, switch to 3D, and explore furnished rooms before you buy.'
+  },
+  {
+    icon: Calculator,
+    title: 'Live cost estimate',
+    desc: 'Track furniture, wall and floor finishes, labor, delivery, and contingency as you design.'
+  },
+  {
+    icon: Link2,
+    title: 'Shareable project links',
+    desc: 'Send clients a read-only link to review the layout and estimate without editing access.'
+  },
+  {
+    icon: Upload,
+    title: 'Custom items & textures',
+    desc: 'Upload your own 3D models and priced surface textures to match your catalog.'
+  },
+  {
+    icon: FileText,
+    title: 'PDF estimate export',
+    desc: 'Export a professional, itemized quote with quantities, rates, and totals in one click.'
+  },
+  {
+    icon: Cloud,
+    title: 'Save & resume',
+    desc: 'Store projects in the cloud with your account and pick up exactly where you left off.'
+  },
+  {
+    icon: Magnet,
+    title: 'Smart item placement',
+    desc: 'Snap furniture to walls and surfaces, resize pieces, and mount items on top of others.'
+  },
+  {
+    icon: LayoutTemplate,
+    title: 'Room templates',
+    desc: 'Start fast from bedroom, kitchen, and other presets instead of drawing from scratch.'
+  },
+  {
+    icon: Languages,
+    title: 'Multi-language UI',
+    desc: 'Work in English, Simplified Chinese, or Traditional Chinese across the planner.'
+  }
+] as const
+
+const STEPS = [
+  {
+    num: '01',
+    title: 'Draw or choose a template',
+    desc: 'Sketch walls in the 2D floorplanner or open a ready-made room layout.'
+  },
+  {
+    num: '02',
+    title: 'Furnish & finish in 3D',
+    desc: 'Add catalog furniture, apply wall and floor textures, and watch costs update live.'
+  },
+  {
+    num: '03',
+    title: 'Share or export your quote',
+    desc: 'Send a share link to clients or download a PDF estimate for approvals.'
+  }
+] as const
+
+const STATS = [
+  { value: '2D + 3D', label: 'One workspace' },
+  { value: 'Live', label: 'Cost updates' },
+  { value: 'PDF', label: 'Quote export' },
+  { value: '3', label: 'Languages' }
+] as const
 
 const FAQS = [
   {
-    q: 'Do I need any 3D modeling experience?',
-    a: 'No. QuickQuote3D is made for professionals who understand spaces, not complex software. You can start with drag-and-drop in minutes.'
+    q: 'Do I need 3D modeling experience?',
+    a: 'No. QuickQuote3D is built for people who understand spaces, not complex CAD tools. Draw walls, drag furniture, and get a cost summary in minutes.'
   },
   {
-    q: 'Is my project data private and secure?',
-    a: 'Yes. Each project belongs to your account and is protected with strict access controls.'
+    q: 'What does the cost estimate include?',
+    a: 'Furniture line items, priced wall and floor finishes by area, plus configurable labor, delivery, and contingency in the estimate panel.'
   },
   {
-    q: 'Can I export a bill of materials?',
-    a: 'Yes. Export a clean PDF containing itemized quantities, unit prices, and total cost.'
+    q: 'Can I share a project with a client?',
+    a: 'Yes. Generate a shareable read-only link so clients can view the layout and estimate without signing in or editing your work.'
   },
   {
-    q: 'Is there a free plan?',
-    a: 'Yes. You can start free with essential planning features and upgrade when you need more.'
+    q: 'Can I use my own products and textures?',
+    a: 'Yes. Upload custom 3D items and priced textures in Settings so your catalog and finish rates match your business.'
+  },
+  {
+    q: 'Is there a free way to try it?',
+    a: 'You can explore the planner and build layouts. Saving to the cloud and advanced workflows require a free account when Supabase auth is enabled.'
   }
-]
+] as const
 
 export function LandingPage({ isAuthenticated, authRequiredForPlanner }: LandingPageProps) {
   const plannerHref = `/${PLANNER_SEGMENT}`
   const [wordIndex, setWordIndex] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(0)
+  const reduceMotion = useReducedMotion()
 
   useEffect(() => {
+    if (reduceMotion) return
     const timer = window.setInterval(() => {
       setWordIndex((prev) => (prev + 1) % ROTATING_WORDS.length)
-    }, 1800)
+    }, 2200)
     return () => window.clearInterval(timer)
-  }, [])
+  }, [reduceMotion])
 
   const primaryCta = useMemo(() => {
     if (isAuthenticated) {
@@ -51,10 +145,10 @@ export function LandingPage({ isAuthenticated, authRequiredForPlanner }: Landing
   }, [isAuthenticated, plannerHref])
 
   return (
-    <div className="min-h-screen bg-[#f7f8fc] text-slate-900">
+    <div className="min-h-screen scroll-smooth bg-[#f7f8fc] text-slate-900">
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-[68px] w-full max-w-[1180px] items-center justify-between px-5 sm:px-7">
-          <div className="flex items-center gap-2.5">
+          <Link href="/" className="flex cursor-pointer items-center gap-2.5 transition-opacity hover:opacity-90">
             <div className="grid h-7.5 w-7.5 grid-cols-2 gap-1 rounded-md bg-violet-100 p-1">
               <span className="rounded-sm bg-violet-400" />
               <span className="rounded-sm bg-cyan-400" />
@@ -62,198 +156,233 @@ export function LandingPage({ isAuthenticated, authRequiredForPlanner }: Landing
               <span className="rounded-sm bg-violet-300" />
             </div>
             <span className="text-[24px] font-semibold tracking-[-0.03em]">QuickQuote3D</span>
-          </div>
+          </Link>
 
           <nav className="hidden items-center gap-10 text-[14px] text-slate-500 md:flex">
-            <a href="#features" className="transition-colors hover:text-slate-900">
+            <a href="#features" className="cursor-pointer transition-colors duration-200 hover:text-slate-900">
               Features
             </a>
-            <a href="#how-it-works" className="transition-colors hover:text-slate-900">
+            <a href="#how-it-works" className="cursor-pointer transition-colors duration-200 hover:text-slate-900">
               How It Works
             </a>
-            <a href="#faq" className="transition-colors hover:text-slate-900">
+            <a href="#faq" className="cursor-pointer transition-colors duration-200 hover:text-slate-900">
               FAQ
             </a>
           </nav>
 
           <div className="flex items-center gap-2.5">
             {!isAuthenticated && (
-              <Button asChild variant="ghost" className="px-3 text-[14px] text-slate-700">
+              <Button asChild variant="ghost" className="cursor-pointer px-3 text-[14px] text-slate-700">
                 <Link href="/login">Sign In</Link>
               </Button>
             )}
-            <Button asChild className="h-10 rounded-full bg-violet-600 px-5 text-[14px] hover:bg-violet-700">
+            <Button
+              asChild
+              className="h-10 cursor-pointer rounded-full bg-violet-600 px-5 text-[14px] transition-colors duration-200 hover:bg-violet-700"
+            >
               <Link href={primaryCta.href}>{primaryCta.label}</Link>
             </Button>
           </div>
         </div>
       </header>
 
-      <main>
-        <section className="mx-auto grid w-full max-w-[1180px] items-center gap-14 px-5 pb-20 pt-24 sm:px-7 lg:grid-cols-2 lg:pt-28">
-          <div>
+      <main className="overflow-x-hidden">
+        <section className="relative mx-auto grid w-full max-w-[1180px] items-center gap-14 px-5 pb-20 pt-24 sm:px-7 lg:grid-cols-2 lg:pt-28">
+          {!reduceMotion && (
+            <>
+              <motion.div
+                className="pointer-events-none absolute left-0 top-20 h-64 w-64 rounded-full bg-violet-300/25 blur-3xl"
+                animate={{ x: [0, 24, 0], y: [0, -16, 0] }}
+                transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <motion.div
+                className="pointer-events-none absolute bottom-10 right-10 h-56 w-56 rounded-full bg-cyan-300/20 blur-3xl"
+                animate={{ x: [0, -20, 0], y: [0, 12, 0] }}
+                transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+              />
+            </>
+          )}
+
+          <ScrollReveal>
             <p className="mb-6 inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-violet-700">
-              Public beta
+              Interior planning & cost insight
             </p>
-            <h1 className="text-[52px] font-bold leading-[1.02] tracking-[-0.03em] text-slate-900 sm:text-[62px] lg:text-[72px]">
-              Design your {' '}
-              <span className="bg-linear-to-r from-violet-600 to-cyan-500 bg-clip-text text-transparent">
-                {ROTATING_WORDS[wordIndex]}
+            <h1 className="text-[48px] font-bold leading-[1.04] tracking-[-0.03em] text-slate-900 sm:text-[58px] lg:text-[68px]">
+              Design your{' '}
+              <span className="relative inline-block min-w-[6ch]">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={ROTATING_WORDS[wordIndex]}
+                    className="inline-block bg-linear-to-r from-violet-600 to-cyan-500 bg-clip-text text-transparent"
+                    initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -16 }}
+                    transition={{ duration: 0.35 }}
+                  >
+                    {ROTATING_WORDS[wordIndex]}
+                  </motion.span>
+                </AnimatePresence>
               </span>
             </h1>
-            <p className="mt-6 max-w-xl text-[22px] leading-[1.45] text-slate-500">
-              Design your space. Know your cost. Instantly.
+            <p className="mt-6 max-w-xl text-[20px] leading-[1.5] text-slate-600 sm:text-[22px]">
+              Draw floor plans in 2D, furnish in 3D, and see furniture, finishes, and fees update in a live estimate.
             </p>
             <div className="mt-10 flex flex-wrap gap-3.5">
-              <Button asChild size="lg" className="h-[50px] rounded-full bg-violet-600 px-8 text-[15px] hover:bg-violet-700">
+              <Button
+                asChild
+                size="lg"
+                className="h-[50px] cursor-pointer rounded-full bg-violet-600 px-8 text-[15px] transition-colors duration-200 hover:bg-violet-700"
+              >
                 <Link href={primaryCta.href}>{primaryCta.label}</Link>
               </Button>
               {!isAuthenticated && (
-                <Button asChild size="lg" variant="outline" className="h-[50px] rounded-full border-slate-300 px-8 text-[15px]">
-                  <Link href={`/login?next=${encodeURIComponent(plannerHref)}`}>Watch Demo</Link>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="h-[50px] cursor-pointer rounded-full border-slate-300 px-8 text-[15px] transition-colors duration-200 hover:border-violet-300 hover:bg-violet-50/50"
+                >
+                  <Link href={`/login?next=${encodeURIComponent(plannerHref)}`}>Sign in to plan</Link>
                 </Button>
               )}
               {!authRequiredForPlanner && !isAuthenticated && (
-                <Button asChild size="lg" variant="secondary">
-                  <Link href={plannerHref}>Try Without Account</Link>
+                <Button asChild size="lg" variant="secondary" className="cursor-pointer">
+                  <Link href={plannerHref}>Try without account</Link>
                 </Button>
               )}
             </div>
-            <p className="mt-8 text-[14px] text-slate-500">Trusted by 2,000+ architects and contractors</p>
-          </div>
+            <p className="mt-8 text-[14px] text-slate-500">
+              Built for students, designers, and homeowners planning real spaces
+            </p>
+          </ScrollReveal>
 
-          <div className="relative rounded-[18px] border border-violet-100 bg-white p-4 shadow-[0_35px_90px_-36px_rgba(30,41,59,0.36)]">
-            <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-violet-50/35 via-transparent to-cyan-50/40" />
-            <div className="mb-4 flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-              <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            </div>
-            <div className="grid min-h-[332px] grid-cols-[56px_1fr_190px] overflow-hidden rounded-[14px] border border-slate-200 bg-slate-50">
-              <div className="border-r border-slate-200 bg-white p-3">
-                <div className="mb-2 h-8 rounded-md bg-violet-100" />
-                <div className="mb-2 h-8 rounded-md bg-cyan-100" />
-                <div className="mb-2 h-8 rounded-md bg-slate-200" />
-              </div>
-              <div className="relative border-r border-slate-200 bg-[radial-gradient(circle_at_1px_1px,rgba(167,139,250,.25)_1px,transparent_0)] bg-size-[24px_24px]">
-                <div className="absolute left-8 top-8 h-40 w-52 rounded-md border-2 border-violet-300 bg-violet-100/40" />
-                <div className="absolute bottom-14 left-12 h-8 w-16 rounded bg-violet-300/60" />
-                <div className="absolute right-20 top-16 h-8 w-8 rounded bg-cyan-300/70" />
-                <div className="absolute left-14 top-12 h-3 w-20 rounded bg-violet-400/40" />
-              </div>
-              <div className="bg-white p-4">
-                <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-slate-500">Cost Breakdown</p>
-                {[
-                  ['Sofa set', '$2,400'],
-                  ['Coffee table', '$380'],
-                  ['Wall shelving', '$620'],
-                  ['Flooring', '$3,200'],
-                  ['Lighting', '$840']
-                ].map(([name, value]) => (
-                  <div key={name} className="flex items-center justify-between border-b border-slate-100 py-1.5 text-[11px]">
-                    <span className="text-slate-500">{name}</span>
-                    <span className="font-medium text-slate-800">{value}</span>
-                  </div>
-                ))}
-                <div className="mt-3 flex items-center justify-between text-[13px]">
-                  <span className="text-slate-500">Total</span>
-                  <span className="text-[15px] font-semibold text-cyan-700">$7,440</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ScrollReveal delay={0.15}>
+            <HeroMockup />
+          </ScrollReveal>
         </section>
 
-        <section id="features" className="border-y border-slate-200 bg-white py-20">
+        <section className="border-y border-slate-200 bg-white py-10">
+          <StaggerContainer className="mx-auto grid w-full max-w-[1180px] grid-cols-2 gap-6 px-5 sm:grid-cols-4 sm:px-7">
+            {STATS.map(({ value, label }) => (
+              <StaggerItem key={label}>
+                <div className="text-center">
+                  <p className="text-[28px] font-bold tracking-[-0.03em] text-violet-600 sm:text-[32px]">{value}</p>
+                  <p className="mt-1 text-[13px] text-slate-500">{label}</p>
+                </div>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+        </section>
+
+        <section id="features" className="border-b border-slate-200 bg-white py-20">
           <div className="mx-auto w-full max-w-[1180px] px-5 sm:px-7">
-            <h2 className="text-center text-[44px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[56px]">
-              Everything you need to plan smarter
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-center text-[25px] leading-[1.35] text-slate-500">
-              From plan to budget, all key tools are available in one place.
-            </p>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {[
-                ['3D Room Designer', 'Drag and drop walls and furniture in real-time 3D.'],
-                ['Live Cost Estimator', 'See accurate costs update instantly as you design.'],
-                ['Save & Resume', 'Continue your project anytime across your devices.'],
-                ['PDF Reports', 'Export professional estimates with one click.'],
-                ['Secure Accounts', 'Projects are private and protected by account access.'],
-                ['Multi-language', 'Designed for teams working in multiple languages.']
-              ].map(([title, desc]) => (
-                <article key={title} className="rounded-[16px] border border-slate-200 bg-white p-7 transition hover:shadow-sm">
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 text-sm text-violet-600">✦</div>
-                  <h3 className="text-[32px] font-semibold leading-[1.15] tracking-[-0.02em] text-slate-900">{title}</h3>
-                  <p className="mt-3 text-[17px] leading-normal text-slate-500">{desc}</p>
-                </article>
+            <ScrollReveal className="text-center">
+              <h2 className="text-[40px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
+                Everything in one planner
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl text-[18px] leading-[1.45] text-slate-600 sm:text-[20px]">
+                From wall drawing to shareable quotes — the features you use inside QuickQuote3D today.
+              </p>
+            </ScrollReveal>
+
+            <StaggerContainer className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {FEATURES.map(({ icon: Icon, title, desc }) => (
+                <StaggerItem key={title}>
+                  <article className="group h-full cursor-default rounded-[16px] border border-slate-200 bg-white p-6 transition-all duration-200 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_20px_40px_-24px_rgba(91,33,182,0.35)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-violet-600 transition-colors duration-200 group-hover:bg-violet-600 group-hover:text-white">
+                      <Icon className="h-5 w-5" aria-hidden />
+                    </div>
+                    <h3 className="text-[20px] font-semibold leading-[1.2] tracking-[-0.02em] text-slate-900">
+                      {title}
+                    </h3>
+                    <p className="mt-2 text-[15px] leading-normal text-slate-600">{desc}</p>
+                  </article>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           </div>
         </section>
 
         <section id="how-it-works" className="py-20">
           <div className="mx-auto w-full max-w-[1180px] px-5 sm:px-7">
-            <h2 className="text-center text-[44px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[56px]">From idea to estimate in 3 steps</h2>
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {[
-                ['01', 'Draw Your Room', 'Sketch walls and define dimensions in the floor planner.'],
-                ['02', 'Add Items', 'Drag furniture and materials into your scene.'],
-                ['03', 'Get Your Quote', 'Export a detailed, client-ready estimate PDF.']
-              ].map(([num, title, desc]) => (
-                <article key={num} className="rounded-[16px] border border-slate-200 bg-slate-50 p-8 text-center">
-                  <p className="text-[66px] font-bold tracking-[-0.04em] text-violet-200">{num}</p>
-                  <h3 className="mt-4 text-[34px] font-semibold tracking-[-0.02em]">{title}</h3>
-                  <p className="mt-2 text-[17px] leading-normal text-slate-500">{desc}</p>
-                </article>
+            <ScrollReveal className="text-center">
+              <h2 className="text-[40px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
+                From sketch to quote in 3 steps
+              </h2>
+            </ScrollReveal>
+            <StaggerContainer className="mt-12 grid gap-5 md:grid-cols-3">
+              {STEPS.map(({ num, title, desc }) => (
+                <StaggerItem key={num}>
+                  <article className="relative overflow-hidden rounded-[16px] border border-slate-200 bg-slate-50 p-8 text-center transition-colors duration-200 hover:border-violet-200 hover:bg-white">
+                    <p className="text-[56px] font-bold tracking-[-0.04em] text-violet-200">{num}</p>
+                    <h3 className="mt-3 text-[22px] font-semibold tracking-[-0.02em] text-slate-900">{title}</h3>
+                    <p className="mt-2 text-[15px] leading-normal text-slate-600">{desc}</p>
+                  </article>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           </div>
         </section>
 
-        <section id="testimonials" className="bg-white py-20">
-          <div className="mx-auto w-full max-w-[1180px] px-5 sm:px-7">
-            <h2 className="text-center text-[44px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[56px]">Loved by builders and designers</h2>
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {[
-                'The live cost estimator is a game-changer. I can tweak a design and see budget changes instantly.',
-                'PDF reports save us hours every week, and clients understand the quote clearly.',
-                'Finally a planning tool that feels intuitive for real project work.'
-              ].map((quote, idx) => (
-                <article key={quote} className="rounded-[16px] border border-slate-200 bg-slate-50 p-7">
-                  <p className="text-[15px] tracking-[2px] text-amber-500">★★★★★</p>
-                  <p className="mt-3 text-[22px] leading-[1.45] text-slate-700">&quot;{quote}&quot;</p>
-                  <div className="mt-5 text-[15px] font-medium text-slate-900">User {idx + 1}</div>
-                </article>
-              ))}
-            </div>
-            <div className="mt-6 flex items-center justify-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-              <span className="h-1.5 w-6 rounded-full bg-violet-500" />
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-            </div>
-          </div>
+        <section className="bg-violet-600 py-16 text-white">
+          <ScrollReveal className="mx-auto max-w-[720px] px-5 text-center sm:px-7">
+            <h2 className="text-[32px] font-bold tracking-[-0.03em] sm:text-[40px]">
+              Ready to plan your next room?
+            </h2>
+            <p className="mt-4 text-[17px] text-violet-100">
+              Open the planner, drop in furniture, and watch your estimate build itself.
+            </p>
+            <Button
+              asChild
+              size="lg"
+              className="mt-8 h-[50px] cursor-pointer rounded-full bg-white px-8 text-[15px] text-violet-700 transition-colors duration-200 hover:bg-violet-50"
+            >
+              <Link href={primaryCta.href}>{primaryCta.label}</Link>
+            </Button>
+          </ScrollReveal>
         </section>
 
         <section id="faq" className="py-20">
           <div className="mx-auto w-full max-w-[980px] px-5 sm:px-7">
-            <h2 className="text-center text-[44px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[56px]">Frequently asked questions</h2>
+            <ScrollReveal className="text-center">
+              <h2 className="text-[40px] font-bold leading-[1.08] tracking-[-0.03em] sm:text-[52px]">
+                Frequently asked questions
+              </h2>
+            </ScrollReveal>
             <div className="mt-10 space-y-3">
               {FAQS.map((item, idx) => {
                 const isOpen = openFaq === idx
                 return (
-                  <article key={item.q} className="overflow-hidden rounded-[12px] border border-slate-200 bg-white">
-                    <button
-                      type="button"
-                      className="flex w-full items-center justify-between px-6 py-5 text-left text-[16px] font-medium"
-                      onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    >
-                      <span>{item.q}</span>
-                      <span className={`text-slate-400 transition ${isOpen ? 'rotate-180' : ''}`}>⌄</span>
-                    </button>
-                    {isOpen && <p className="border-t border-slate-100 px-6 pb-5 pt-4 text-[15px] leading-[1.55] text-slate-600">{item.a}</p>}
-                  </article>
+                  <ScrollReveal key={item.q} delay={idx * 0.05}>
+                    <article className="overflow-hidden rounded-[12px] border border-slate-200 bg-white">
+                      <button
+                        type="button"
+                        className="flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-5 text-left text-[16px] font-medium transition-colors duration-200 hover:bg-slate-50/80"
+                        onClick={() => setOpenFaq(isOpen ? null : idx)}
+                        aria-expanded={isOpen}
+                      >
+                        <span>{item.q}</span>
+                        <ChevronDown
+                          className={`h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                          aria-hidden
+                        />
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            initial={reduceMotion ? false : { height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                          >
+                            <p className="border-t border-slate-100 px-6 pb-5 pt-4 text-[15px] leading-[1.55] text-slate-600">
+                              {item.a}
+                            </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </article>
+                  </ScrollReveal>
                 )
               })}
             </div>
@@ -262,7 +391,7 @@ export function LandingPage({ isAuthenticated, authRequiredForPlanner }: Landing
       </main>
 
       <footer className="border-t border-slate-200 bg-white py-8 text-center text-[13px] text-slate-500">
-        © 2025 QuickQuote3D. Design your space. Know your cost.
+        © {new Date().getFullYear()} QuickQuote3D. Design your space. Know your cost.
       </footer>
     </div>
   )
