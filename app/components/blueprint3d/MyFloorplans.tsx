@@ -120,7 +120,7 @@ export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
         <div className="grid grid-cols-2 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="overflow-hidden rounded-xl border border-border bg-card">
-              <div className="aspect-[3/2] animate-pulse bg-muted" />
+              <div className="aspect-3/2 animate-pulse bg-muted" />
               <div className="space-y-2 p-2">
                 <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
                 <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
@@ -247,7 +247,7 @@ export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
 
               {/* Thumbnail */}
               {floorplan.thumbnailUrl ? (
-                <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: '3/2' }}>
+                <div className="relative aspect-3/2 overflow-hidden bg-muted">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={floorplan.thumbnailUrl}
@@ -264,8 +264,7 @@ export function MyFloorplans({ onLoadFloorplan }: MyFloorplansProps) {
                 </div>
               ) : (
                 <div
-                  className="bg-muted flex items-center justify-center"
-                  style={{ aspectRatio: '3/2' }}
+                  className="flex aspect-3/2 items-center justify-center bg-muted"
                 >
                   <FolderOpen className="h-8 w-8 text-muted-foreground" />
                 </div>
