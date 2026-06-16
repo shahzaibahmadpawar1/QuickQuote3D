@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
+import { QuickQuoteLogo } from '@/components/marketing/QuickQuoteLogo'
 
 const COST_LINES = [
   ['Queen bed', '$1,240'],
@@ -30,7 +31,10 @@ export function HeroMockup() {
           <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-          <span className="ml-3 text-[11px] font-medium text-slate-400">QuickQuote3D — 3D Planner</span>
+          <span className="ml-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+            <QuickQuoteLogo size={14} />
+            QuickQuote3D — 3D Planner
+          </span>
         </div>
 
         <div className="grid min-h-[340px] grid-cols-[56px_1fr_190px] overflow-hidden rounded-[14px] border border-slate-200 bg-slate-50">

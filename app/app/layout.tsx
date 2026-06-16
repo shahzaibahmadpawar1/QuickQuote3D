@@ -11,7 +11,11 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: 'QuickQuote3D — 3D Floor Planner',
-  description: 'An open-source interactive 3D floor planner powered by Three.js'
+  description: 'An open-source interactive 3D floor planner powered by Three.js',
+  icons: {
+    icon: '/quickquote-logo.png',
+    apple: '/quickquote-logo.png'
+  }
 }
 
 export default function RootLayout({

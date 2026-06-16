@@ -4,6 +4,7 @@ import { Box, Calculator, Link2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import { HeroMockup } from '@/components/landing/HeroMockup'
+import { QuickQuoteBrand } from '@/components/marketing/QuickQuoteLogo'
 
 interface AuthLayoutProps {
   children: React.ReactNode
@@ -27,13 +28,11 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             href="/"
             className="mb-8 inline-flex cursor-pointer items-center gap-2.5 transition-opacity duration-200 hover:opacity-90"
           >
-            <div className="grid h-8 w-8 grid-cols-2 gap-1 rounded-md bg-primary/15 p-1">
-              <span className="rounded-sm bg-primary/70" />
-              <span className="rounded-sm bg-primary/50" />
-              <span className="rounded-sm bg-primary/40" />
-              <span className="rounded-sm bg-primary/60" />
-            </div>
-            <span className="type-display text-xl text-foreground">{t('brand')}</span>
+            <QuickQuoteBrand
+              name={t('brand')}
+              logoSize={32}
+              nameClassName="type-display text-xl text-foreground"
+            />
           </Link>
 
           <p className="mb-3 inline-flex w-fit items-center rounded-full border border-border bg-card px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">

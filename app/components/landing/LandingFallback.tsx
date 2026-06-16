@@ -22,6 +22,7 @@ import { MarketingHeader } from '@/components/marketing/MarketingHeader'
 import { HeroMockup } from './HeroMockup'
 import { ScrollReveal, StaggerContainer, StaggerItem } from './ScrollReveal'
 import { cn } from '@/lib/utils'
+import { QuickQuoteLogo } from '@/components/marketing/QuickQuoteLogo'
 
 interface LandingFallbackProps {
   isAuthenticated: boolean
@@ -239,7 +240,10 @@ export function LandingFallback({ isAuthenticated, authRequiredForPlanner }: Lan
       </main>
 
       <footer className="border-t border-border bg-card py-8 text-center text-[13px] text-muted-foreground">
-        © {new Date().getFullYear()} {t('brand')}. {t('footerTagline')}
+        <span className="inline-flex items-center justify-center gap-2">
+          <QuickQuoteLogo size={18} />
+          © {new Date().getFullYear()} {t('brand')}. {t('footerTagline')}
+        </span>
       </footer>
     </div>
   )

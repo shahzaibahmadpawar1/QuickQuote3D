@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import { PLANNER_SEGMENT } from '@/lib/routes'
 import { ThemeToggle } from '@/components/landing/ThemeToggle'
 import { LANDING_SCROLL_PAGES, scrollLandingToPage } from '@/components/landing/landing-scroll'
+import { QuickQuoteBrand } from '@/components/marketing/QuickQuoteLogo'
 
 interface MarketingHeaderProps {
   isAuthenticated?: boolean
@@ -33,13 +34,12 @@ export function MarketingHeader({
             href="/"
             className="flex shrink-0 cursor-pointer items-center gap-2 transition-opacity duration-200 hover:opacity-90"
           >
-            <div className="grid h-7 w-7 grid-cols-2 gap-1 rounded-md bg-primary/15 p-1">
-              <span className="rounded-sm bg-primary/70" />
-              <span className="rounded-sm bg-primary/50" />
-              <span className="rounded-sm bg-primary/40" />
-              <span className="rounded-sm bg-primary/60" />
-            </div>
-            <span className="type-display hidden text-lg text-foreground sm:inline">{t('brand')}</span>
+            <QuickQuoteBrand
+              name={t('brand')}
+              logoSize={26}
+              priority
+              nameClassName="type-display hidden text-lg text-foreground sm:inline"
+            />
           </Link>
 
           <nav className="hidden items-center gap-6 text-[13px] text-muted-foreground md:flex">
@@ -94,13 +94,12 @@ export function MarketingHeader({
           href="/"
           className="flex cursor-pointer items-center gap-2.5 transition-opacity duration-200 hover:opacity-90"
         >
-          <div className="grid h-7.5 w-7.5 grid-cols-2 gap-1 rounded-md bg-primary/15 p-1">
-            <span className="rounded-sm bg-primary/70" />
-            <span className="rounded-sm bg-primary/50" />
-            <span className="rounded-sm bg-primary/40" />
-            <span className="rounded-sm bg-primary/60" />
-          </div>
-          <span className="type-display text-xl text-foreground sm:text-2xl">{t('brand')}</span>
+          <QuickQuoteBrand
+            name={t('brand')}
+            logoSize={30}
+            priority
+            nameClassName="type-display text-xl text-foreground sm:text-2xl"
+          />
         </Link>
 
         <nav className="hidden items-center gap-10 text-sm text-muted-foreground md:flex">

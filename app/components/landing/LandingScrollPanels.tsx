@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { LandingGlassPanel } from './LandingGlassPanel'
+import { QuickQuoteLogo } from '@/components/marketing/QuickQuoteLogo'
 
 interface LandingScrollPanelsProps {
   isAuthenticated: boolean
@@ -293,8 +294,11 @@ export function LandingScrollPanels({
             </div>
           </LandingGlassPanel>
 
-          <footer className="mt-10 text-center text-[13px] text-muted-foreground">
-            © {new Date().getFullYear()} {t('brand')}. {t('footerTagline')}
+          <footer className="mt-10 flex flex-col items-center gap-2 text-center text-[13px] text-muted-foreground">
+            <span className="inline-flex items-center gap-2">
+              <QuickQuoteLogo size={18} />
+              © {new Date().getFullYear()} {t('brand')}. {t('footerTagline')}
+            </span>
           </footer>
         </>
       </ScrollSection>
