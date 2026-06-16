@@ -5,21 +5,82 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { PLANNER_SEGMENT } from '@/lib/routes'
+import { ThemeToggle } from '@/components/landing/ThemeToggle'
+import { LANDING_SCROLL_PAGES, scrollLandingToPage } from '@/components/landing/landing-scroll'
 
 interface MarketingHeaderProps {
   isAuthenticated?: boolean
   primaryHref: string
   primaryLabel: string
   className?: string
+  variant?: 'default' | 'floating'
 }
 
 export function MarketingHeader({
   isAuthenticated = false,
   primaryHref,
   primaryLabel,
-  className
+  className,
+  variant = 'default'
 }: MarketingHeaderProps) {
   const t = useTranslations('landing')
+
+  if (variant === 'floating') {
+    return (
+      <header className={cn('pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-5 sm:px-6', className)}>
+        <div className="landing-nav-pill pointer-events-auto mx-auto flex h-14 w-full max-w-[920px] items-center justify-between gap-3 px-4 sm:px-5">
+          <Link
+            href="/"
+            className="flex shrink-0 cursor-pointer items-center gap-2 transition-opacity duration-200 hover:opacity-90"
+          >
+            <div className="grid h-7 w-7 grid-cols-2 gap-1 rounded-md bg-primary/15 p-1">
+              <span className="rounded-sm bg-primary/70" />
+              <span className="rounded-sm bg-primary/50" />
+              <span className="rounded-sm bg-primary/40" />
+              <span className="rounded-sm bg-primary/60" />
+            </div>
+            <span className="type-display hidden text-lg text-foreground sm:inline">{t('brand')}</span>
+          </Link>
+
+          <nav className="hidden items-center gap-6 text-[13px] text-muted-foreground md:flex">
+            <button
+              type="button"
+              className="cursor-pointer transition-colors duration-200 hover:text-foreground"
+              onClick={() => scrollLandingToPage(LANDING_SCROLL_PAGES.features)}
+            >
+              {t('navFeatures')}
+            </button>
+            <button
+              type="button"
+              className="cursor-pointer transition-colors duration-200 hover:text-foreground"
+              onClick={() => scrollLandingToPage(LANDING_SCROLL_PAGES.howItWorks)}
+            >
+              {t('navHowItWorks')}
+            </button>
+            <button
+              type="button"
+              className="cursor-pointer transition-colors duration-200 hover:text-foreground"
+              onClick={() => scrollLandingToPage(LANDING_SCROLL_PAGES.faq)}
+            >
+              {t('navFaq')}
+            </button>
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <ThemeToggle />
+            {!isAuthenticated && (
+              <Button asChild variant="ghost" className="hidden cursor-pointer px-2 text-sm sm:inline-flex">
+                <Link href="/login">{t('ctaSignIn')}</Link>
+              </Button>
+            )}
+            <Button asChild className="h-9 cursor-pointer rounded-full px-4 text-sm sm:h-10 sm:px-5">
+              <Link href={primaryHref}>{primaryLabel}</Link>
+            </Button>
+          </div>
+        </div>
+      </header>
+    )
+  }
 
   return (
     <header
@@ -55,6 +116,7 @@ export function MarketingHeader({
         </nav>
 
         <div className="flex items-center gap-2.5">
+          <ThemeToggle />
           {!isAuthenticated && (
             <Button asChild variant="ghost" className="cursor-pointer px-3 text-sm text-foreground">
               <Link href="/login">{t('ctaSignIn')}</Link>
