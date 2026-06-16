@@ -348,7 +348,7 @@ export class Floorplan {
    * Translates the full wall-connected component for a wall by the same delta.
    * This keeps all segment lengths in that component unchanged while moving.
    */
-  public moveWallConnectedComponent(wall: Wall, dx: number, dy: number): void {
+  public moveWallConnectedComponent(wall: Wall, dx: number, dy: number): Set<string> {
     const queue: Corner[] = [wall.getStart(), wall.getEnd()]
     const visited = new Set<string>()
     const cornersToMove: Corner[] = []
@@ -371,6 +371,8 @@ export class Floorplan {
     cornersToMove.forEach((corner) => {
       corner.relativeMove(dx, dy)
     })
+
+    return visited
   }
 
   /**

@@ -208,6 +208,11 @@ export abstract class WallItem extends Item {
     }
   }
 
+  /** Returns the wall this item is attached to, if any. */
+  public getAttachedWall() {
+    return this.currentWallEdge?.wall ?? null
+  }
+
   /** Update wall edge reference after floorplan updates recreate HalfEdges */
   public updateWallEdgeReference(): void {
     if (this.currentWallEdge == null) {

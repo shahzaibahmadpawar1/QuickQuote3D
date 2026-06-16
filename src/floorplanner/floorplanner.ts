@@ -1,4 +1,5 @@
 import { Floorplan } from '../model/floorplan'
+import { Model } from '../model/model'
 import { Wall } from '../model/wall'
 import { Corner } from '../model/corner'
 import { FloorplannerView, floorplannerModes } from './floorplanner_view'
@@ -60,9 +61,6 @@ export class Floorplanner {
   /** Lock wall lengths while dragging walls in MOVE mode. */
   public lockWallLengths = false
 
-  /** Optional callback to keep scene items in sync with rigid wall movement. */
-  private layoutTranslateHandler: ((dx: number, dy: number) => void) | null = null
-
   /** Optional callback to commit one history step after a completed edit gesture. */
   private editGestureCompleteHandler: (() => void) | null = null
 
@@ -116,7 +114,8 @@ export class Floorplanner {
   /** */
   constructor(
     canvas: string,
-    private floorplan: Floorplan
+    private floorplan: Floorplan,
+    private model: Model
   ) {
     this.canvasElement = document.getElementById(canvas) as HTMLCanvasElement
 
@@ -307,17 +306,25 @@ export class Floorplanner {
     // dragging
     if (!this.viewOnly && this.mode == floorplannerModes.MOVE && this.mouseDown) {
       if (this.activeCorner) {
+        const prevX = this.activeCorner.x
+        const prevY = this.activeCorner.y
         this.activeCorner.move(this.mouseX, this.mouseY)
         this.activeCorner.snapToAxis(snapTolerance)
+        const dx = this.activeCorner.x - prevX
+        const dy = this.activeCorner.y - prevY
+        if (dx !== 0 || dy !== 0) {
+          this.model.scene.translateItemsForCorner(this.activeCorner, dx, dy)
+        }
       } else if (this.activeWall) {
         const dx = (this.rawMouseX - this.lastX) * this.cmPerPixel
         const dy = (this.rawMouseY - this.lastY) * this.cmPerPixel
         if (this.lockWallLengths) {
-          this.floorplan.moveWallConnectedComponent(this.activeWall, dx, dy)
-          this.layoutTranslateHandler?.(dx, dy)
+          const movedCorners = this.floorplan.moveWallConnectedComponent(this.activeWall, dx, dy)
+          this.model.scene.translateItemsForCorners(movedCorners, dx, dy)
         } else {
           this.activeWall.relativeMove(dx, dy)
           this.activeWall.snapToAxis(snapTolerance)
+          this.model.scene.translateItemsForWall(this.activeWall, dx, dy)
         }
         this.lastX = this.rawMouseX
         this.lastY = this.rawMouseY
@@ -387,11 +394,6 @@ export class Floorplanner {
   /** */
   public setWallLengthLock(locked: boolean): void {
     this.lockWallLengths = locked
-  }
-
-  /** */
-  public setLayoutTranslateHandler(handler: ((dx: number, dy: number) => void) | null): void {
-    this.layoutTranslateHandler = handler
   }
 
   /** */

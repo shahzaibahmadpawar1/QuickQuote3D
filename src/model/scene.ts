@@ -4,7 +4,11 @@ import { EventEmitter } from '../core/events'
 import { Factory } from '../items/factory'
 import type { Item } from '../items/item'
 import { OnItemItem } from '../items/on_item'
+import { WallItem } from '../items/wall_item'
 import type { Model } from './model'
+import type { Corner } from './corner'
+import type { Room } from './room'
+import type { Wall } from './wall'
 import { JSONLoader } from '../loaders/JSONLoader'
 import { GLBLoader } from '../loaders/GLBLoader'
 
@@ -169,6 +173,140 @@ export class Scene {
     if (parentKey && !item.getMountedHost()) {
       item.tryMountByParentKey(parentKey)
     }
+  }
+
+  /** Rebind wall items to recreated half-edges after floorplan.update(). */
+  public refreshWallItemReferences(): void {
+    for (const item of this.items) {
+      if (item instanceof WallItem) {
+        item.updateWallEdgeReference()
+      }
+    }
+  }
+
+  /** Translate items when a rigid wall-connected component moves (Lock mode). */
+  public translateItemsForCorners(movedCornerIds: Set<string>, dx: number, dy: number): void {
+    if (dx === 0 && dy === 0) return
+
+    const itemsToTranslate = new Set<Item>()
+
+    for (const item of this.items) {
+      if (item instanceof OnItemItem) continue
+
+      if (item instanceof WallItem) {
+        const wall = item.getAttachedWall()
+        if (
+          wall &&
+          movedCornerIds.has(wall.getStart().id) &&
+          movedCornerIds.has(wall.getEnd().id)
+        ) {
+          itemsToTranslate.add(item)
+        }
+      } else {
+        for (const room of this.model.floorplan.getRooms()) {
+          if (this.allRoomCornersInSet(room, movedCornerIds) && this.isItemCenterInRoom(item, room)) {
+            itemsToTranslate.add(item)
+            break
+          }
+        }
+      }
+    }
+
+    this.applyTranslation(itemsToTranslate, dx, dy)
+  }
+
+  /** Translate items when a single wall segment moves (unlocked wall drag). */
+  public translateItemsForWall(wall: Wall, dx: number, dy: number): void {
+    if (dx === 0 && dy === 0) return
+
+    const itemsToTranslate = new Set<Item>()
+
+    for (const item of [...wall.items, ...wall.onItems]) {
+      itemsToTranslate.add(item)
+    }
+
+    for (const room of this.model.floorplan.getRooms()) {
+      if (!this.roomHasWall(room, wall)) continue
+      for (const item of this.items) {
+        if (item instanceof WallItem || item instanceof OnItemItem) continue
+        if (this.isItemCenterInRoom(item, room)) {
+          itemsToTranslate.add(item)
+        }
+      }
+    }
+
+    this.applyTranslation(itemsToTranslate, dx, dy)
+  }
+
+  /** Translate items when a corner moves (corner drag). */
+  public translateItemsForCorner(corner: Corner, dx: number, dy: number): void {
+    if (dx === 0 && dy === 0) return
+
+    const itemsToTranslate = new Set<Item>()
+
+    for (const connectedWall of this.model.floorplan.getWalls()) {
+      if (
+        connectedWall.getStart().id !== corner.id &&
+        connectedWall.getEnd().id !== corner.id
+      ) {
+        continue
+      }
+      for (const item of [...connectedWall.items, ...connectedWall.onItems]) {
+        itemsToTranslate.add(item)
+      }
+    }
+
+    for (const room of this.model.floorplan.getRooms()) {
+      if (!this.roomContainsCorner(room, corner)) continue
+      for (const item of this.items) {
+        if (item instanceof WallItem || item instanceof OnItemItem) continue
+        if (this.isItemCenterInRoom(item, room)) {
+          itemsToTranslate.add(item)
+        }
+      }
+    }
+
+    this.applyTranslation(itemsToTranslate, dx, dy)
+  }
+
+  private applyTranslation(itemsToTranslate: Set<Item>, dx: number, dy: number): void {
+    for (const item of itemsToTranslate) {
+      if (item instanceof OnItemItem) {
+        const host = item.getMountedHost()
+        if (host && itemsToTranslate.has(host)) continue
+      }
+      item.position.x += dx
+      item.position.z += dy
+    }
+
+    for (const item of itemsToTranslate) {
+      if (this.mountChildren.has(item)) {
+        this.syncMountedChildren(item)
+      }
+    }
+
+    this.needsUpdate = true
+  }
+
+  private roomLiveCorners(room: Room): { x: number; y: number }[] {
+    return room.corners.map((corner) => ({ x: corner.x, y: corner.y }))
+  }
+
+  private isItemCenterInRoom(item: Item, room: Room): boolean {
+    return Utils.pointInPolygon(item.position.x, item.position.z, this.roomLiveCorners(room))
+  }
+
+  private allRoomCornersInSet(room: Room, cornerIds: Set<string>): boolean {
+    return room.corners.every((corner) => cornerIds.has(corner.id))
+  }
+
+  private roomContainsCorner(room: Room, corner: Corner): boolean {
+    return room.corners.some((c) => c.id === corner.id)
+  }
+
+  private roomHasWall(room: Room, wall: Wall): boolean {
+    const cornerIds = new Set(room.corners.map((c) => c.id))
+    return cornerIds.has(wall.getStart().id) && cornerIds.has(wall.getEnd().id)
   }
 
   /**

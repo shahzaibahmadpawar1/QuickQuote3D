@@ -453,13 +453,6 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         setWallLengthDialogOpen(true)
       }
       blueprint3d.floorplanner.setWallLengthLock(wallLengthLocked)
-      blueprint3d.floorplanner.setLayoutTranslateHandler((dx, dy) => {
-        blueprint3d.model.scene.getItems().forEach((sceneItem) => {
-          sceneItem.position.x += dx
-          sceneItem.position.z += dy
-        })
-        blueprint3d.model.scene.needsUpdate = true
-      })
       blueprint3d.floorplanner.setEditGestureCompleteHandler(() => {
         requestHistoryCommit()
       })
@@ -471,7 +464,6 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
     return () => {
       blueprint3d.floorplanner!.wallLengthEditHandler = null
-      blueprint3d.floorplanner!.setLayoutTranslateHandler(null)
       blueprint3d.floorplanner!.setEditGestureCompleteHandler(null)
       blueprint3d.three.getController().setEditGestureCompleteHandler(null)
     }
@@ -879,6 +871,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         setTimeout(() => {
           if (blueprint3dRef.current) {
             blueprint3dRef.current.model.floorplan.update()
+            blueprint3dRef.current.model.scene.refreshWallItemReferences()
             blueprint3dRef.current.three.updateWindowSize()
           }
         }, 50)
