@@ -345,13 +345,11 @@ export class Floorplan {
   }
 
   /**
-   * Translates the full wall-connected component for a wall by the same delta.
-   * This keeps all segment lengths in that component unchanged while moving.
+   * Returns all corner IDs in the wall-connected component reachable from seed corners.
    */
-  public moveWallConnectedComponent(wall: Wall, dx: number, dy: number): Set<string> {
-    const queue: Corner[] = [wall.getStart(), wall.getEnd()]
+  public getConnectedCornerIds(seedCorners: Corner[]): Set<string> {
+    const queue = [...seedCorners]
     const visited = new Set<string>()
-    const cornersToMove: Corner[] = []
 
     while (queue.length > 0) {
       const corner = queue.shift()!
@@ -359,7 +357,6 @@ export class Floorplan {
         continue
       }
       visited.add(corner.id)
-      cornersToMove.push(corner)
 
       corner.adjacentCorners().forEach((adjacentCorner) => {
         if (!visited.has(adjacentCorner.id)) {
@@ -368,8 +365,37 @@ export class Floorplan {
       })
     }
 
-    cornersToMove.forEach((corner) => {
-      corner.relativeMove(dx, dy)
+    return visited
+  }
+
+  /** Returns corner IDs for the structure containing the given wall. */
+  public getConnectedCornerIdsForWall(wall: Wall): Set<string> {
+    return this.getConnectedCornerIds([wall.getStart(), wall.getEnd()])
+  }
+
+  /** Returns rooms whose corners all belong to the given corner set. */
+  public getRoomsInCornerSet(cornerIds: Set<string>): Room[] {
+    return this.getRooms().filter((room) => room.corners.every((corner) => cornerIds.has(corner.id)))
+  }
+
+  /** Returns wall half-edges whose endpoints both belong to the given corner set. */
+  public getWallEdgesInCornerSet(cornerIds: Set<string>): HalfEdge[] {
+    return this.wallEdges().filter(
+      (edge) => cornerIds.has(edge.wall.getStart().id) && cornerIds.has(edge.wall.getEnd().id)
+    )
+  }
+
+  /**
+   * Translates the full wall-connected component for a wall by the same delta.
+   * This keeps all segment lengths in that component unchanged while moving.
+   */
+  public moveWallConnectedComponent(wall: Wall, dx: number, dy: number): Set<string> {
+    const visited = this.getConnectedCornerIdsForWall(wall)
+
+    this.corners.forEach((corner) => {
+      if (visited.has(corner.id)) {
+        corner.relativeMove(dx, dy)
+      }
     })
 
     return visited

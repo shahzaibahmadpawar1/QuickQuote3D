@@ -7,16 +7,17 @@ import { useIsMobile } from '@/hooks/use-media-query'
 import { cn } from '@/lib/utils'
 import { NO_TEXTURE_URL } from '@blueprint3d/constants'
 import { WALL_COLOR_PRESETS, normalizeWallColor } from '@/lib/wall-color-presets'
+import type { SurfaceApplyScope } from '@/lib/surface-apply-scope'
 import type { CatalogTextureEntry } from '@/types/user-texture'
+import { SurfaceScopeToggle } from './SurfaceScopeToggle'
 
 type WallSurfaceTab = 'texture' | 'color'
-export type WallApplyScope = 'selected' | 'all'
 
 interface WallSurfaceSelectorProps {
   textures: CatalogTextureEntry[]
   selectedColor: string | null
-  onTextureSelect: (textureUrl: string, stretch: boolean, scale: number, scope: WallApplyScope) => void
-  onColorSelect: (color: string | null, scope: WallApplyScope) => void
+  onTextureSelect: (textureUrl: string, stretch: boolean, scale: number, scope: SurfaceApplyScope) => void
+  onColorSelect: (color: string | null, scope: SurfaceApplyScope) => void
 }
 
 export function WallSurfaceSelector({
@@ -27,43 +28,9 @@ export function WallSurfaceSelector({
 }: WallSurfaceSelectorProps) {
   const t = useTranslations('BluePrint.textureSelector')
   const [tab, setTab] = useState<WallSurfaceTab>('texture')
-  const [applyScope, setApplyScope] = useState<WallApplyScope>('selected')
+  const [applyScope, setApplyScope] = useState<SurfaceApplyScope>('selected')
   const isMobile = useIsMobile()
   const normalizedSelected = selectedColor ? normalizeWallColor(selectedColor) : null
-
-  const scopeToggle = (
-    <div
-      className={cn(
-        'mb-3 flex rounded-md border border-border p-0.5',
-        isMobile ? 'text-sm' : 'text-xs'
-      )}
-    >
-      <button
-        type="button"
-        onClick={() => setApplyScope('selected')}
-        className={cn(
-          'flex-1 rounded-sm px-2 py-1.5 font-medium transition-colors',
-          applyScope === 'selected'
-            ? 'bg-muted text-foreground'
-            : 'text-muted-foreground hover:text-foreground'
-        )}
-      >
-        {t('wallApplySelected')}
-      </button>
-      <button
-        type="button"
-        onClick={() => setApplyScope('all')}
-        className={cn(
-          'flex-1 rounded-sm px-2 py-1.5 font-medium transition-colors',
-          applyScope === 'all'
-            ? 'bg-muted text-foreground'
-            : 'text-muted-foreground hover:text-foreground'
-        )}
-      >
-        {t('wallApplyAll')}
-      </button>
-    </div>
-  )
 
   return (
     <div
@@ -108,7 +75,15 @@ export function WallSurfaceSelector({
         </button>
       </div>
 
-      {scopeToggle}
+      <SurfaceScopeToggle
+        scope={applyScope}
+        onScopeChange={setApplyScope}
+        labels={{
+          selected: t('wallApplySelected'),
+          structure: t('wallApplyStructure'),
+          all: t('wallApplyAll')
+        }}
+      />
 
       {tab === 'texture' ? (
         <>

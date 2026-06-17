@@ -191,7 +191,11 @@
       "wallColorHint": "僅作裝飾，不計入成本估算。",
       "noWallColor": "預設",
       "wallApplySelected": "此牆",
+      "wallApplyStructure": "此結構",
       "wallApplyAll": "全部牆體",
+      "floorApplySelected": "此地板",
+      "floorApplyStructure": "此結構",
+      "floorApplyAll": "全部地板",
       "noTexture": "無",
       "noTextures": "此表面暫無可用紋理。"
     },

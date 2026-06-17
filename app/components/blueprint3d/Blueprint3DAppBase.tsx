@@ -11,7 +11,8 @@ import { ContextMenu } from './ContextMenu'
 import { BedSizeInput } from './BedSizeInput'
 import { FloorplannerControls } from './FloorplannerControls'
 import { TextureSelector } from './TextureSelector'
-import { WallSurfaceSelector, type WallApplyScope } from './WallSurfaceSelector'
+import { WallSurfaceSelector } from './WallSurfaceSelector'
+import { getFloorApplyTargets, getWallApplyTargets, type SurfaceApplyScope } from '@/lib/surface-apply-scope'
 import { SaveFloorplanDialog } from './SaveFloorplanDialog'
 import { EstimateDialog } from './EstimateDialog'
 import { WallLengthDialog } from './WallLengthDialog'
@@ -1228,33 +1229,34 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   )
 
   const handleTextureSelect = useCallback(
-    (textureUrl: string, stretch: boolean, scale: number) => {
-      if (!currentTarget) return
-      if (!textureUrl.trim()) {
-        currentTarget.clearTexture()
-      } else {
-        currentTarget.setTexture(textureUrl, stretch, scale)
-      }
+    (textureUrl: string, stretch: boolean, scale: number, scope: SurfaceApplyScope) => {
+      if (!currentTarget || 'getColor' in currentTarget) return
+      const floorplan = blueprint3dRef.current?.model.floorplan
+      if (!floorplan) return
+
+      const targets = getFloorApplyTargets(floorplan, currentTarget as Room, scope)
+      if (targets.length === 0) return
+
+      const clear = !textureUrl.trim() || textureUrl === NO_TEXTURE_URL
+      targets.forEach((room) => {
+        if (clear) room.clearTexture()
+        else room.setTexture(textureUrl, stretch, scale)
+      })
       setLayoutEpoch((e) => e + 1)
       requestHistoryCommit()
     },
     [currentTarget, requestHistoryCommit]
   )
 
-  const getWallApplyTargets = useCallback(
-    (scope: WallApplyScope): HalfEdge[] => {
-      if (!currentTarget || !('getColor' in currentTarget)) return []
-      const selected = currentTarget as HalfEdge
-      if (scope === 'selected') return [selected]
-      return blueprint3dRef.current?.model.floorplan.wallEdges() ?? []
-    },
-    [currentTarget]
-  )
-
   const handleWallTextureSelect = useCallback(
-    (textureUrl: string, stretch: boolean, scale: number, scope: WallApplyScope) => {
-      const targets = getWallApplyTargets(scope)
+    (textureUrl: string, stretch: boolean, scale: number, scope: SurfaceApplyScope) => {
+      if (!currentTarget || !('getColor' in currentTarget)) return
+      const floorplan = blueprint3dRef.current?.model.floorplan
+      if (!floorplan) return
+
+      const targets = getWallApplyTargets(floorplan, currentTarget as HalfEdge, scope)
       if (targets.length === 0) return
+
       const clear = !textureUrl.trim() || textureUrl === NO_TEXTURE_URL
       targets.forEach((edge) => {
         if (clear) edge.clearTexture()
@@ -1263,13 +1265,18 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       setLayoutEpoch((e) => e + 1)
       requestHistoryCommit()
     },
-    [getWallApplyTargets, requestHistoryCommit]
+    [currentTarget, requestHistoryCommit]
   )
 
   const handleWallColorSelect = useCallback(
-    (color: string | null, scope: WallApplyScope) => {
-      const targets = getWallApplyTargets(scope)
+    (color: string | null, scope: SurfaceApplyScope) => {
+      if (!currentTarget || !('getColor' in currentTarget)) return
+      const floorplan = blueprint3dRef.current?.model.floorplan
+      if (!floorplan) return
+
+      const targets = getWallApplyTargets(floorplan, currentTarget as HalfEdge, scope)
       if (targets.length === 0) return
+
       targets.forEach((edge) => {
         if (color) edge.setColor(color)
         else edge.clearColor()
@@ -1277,7 +1284,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       setLayoutEpoch((e) => e + 1)
       requestHistoryCommit()
     },
-    [getWallApplyTargets, requestHistoryCommit]
+    [currentTarget, requestHistoryCommit]
   )
 
   const selectedWallColor =

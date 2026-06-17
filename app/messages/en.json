@@ -191,7 +191,11 @@
       "wallColorHint": "Decorative only — not included in cost estimate.",
       "noWallColor": "Default",
       "wallApplySelected": "This wall",
+      "wallApplyStructure": "This structure",
       "wallApplyAll": "All walls",
+      "floorApplySelected": "This floor",
+      "floorApplyStructure": "This structure",
+      "floorApplyAll": "All floors",
       "noTexture": "None",
       "noTextures": "No textures available for this surface."
     },
