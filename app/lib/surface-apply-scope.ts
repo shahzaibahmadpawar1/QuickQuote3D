@@ -1,4 +1,6 @@
-import type { Floorplan, HalfEdge, Room } from '@blueprint3d'
+import type { Floorplan } from '@blueprint3d/model/floorplan'
+import type { HalfEdge } from '@blueprint3d/model/half_edge'
+import type { Room } from '@blueprint3d/model/room'
 
 export type SurfaceApplyScope = 'selected' | 'structure' | 'all'
 
