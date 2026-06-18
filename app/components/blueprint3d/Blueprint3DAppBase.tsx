@@ -55,6 +55,7 @@ import * as THREE from 'three'
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
 import { NO_TEXTURE_URL } from '@blueprint3d/constants'
 import { findMountHostFromHits, getMountHostMeshes } from '@blueprint3d/items/mount-utils'
+import { isFootprintInAnyRoom } from '@blueprint3d/items/placement-utils'
 import { floorplannerModes } from '@blueprint3d/floorplanner/floorplanner_view'
 import { Configuration, configDimUnit, configWallHeight } from '@blueprint3d/core/configuration'
 import type { Item } from '@blueprint3d/items/item'
@@ -68,6 +69,8 @@ import { loadRoomTypes } from '@/lib/room-types'
 import type { EstimateSnapshotV1 } from '@/lib/estimate-snapshot'
 import { snapshotToCostEstimate } from '@/lib/estimate-snapshot'
 import type { UserCatalogItem } from '@/types/user-item'
+
+const ROOM_FOOTPRINT_ITEM_TYPES = new Set([1, 8, 10, 11])
 
 export interface Blueprint3DAppConfig {
   enableWheelZoom?: boolean | (() => boolean)
@@ -370,6 +373,23 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           depth
         )
       }
+
+      const itemType = item.metadata?.itemType
+      if (
+        typeof itemType === 'number' &&
+        ROOM_FOOTPRINT_ITEM_TYPES.has(itemType) &&
+        !item.isValidPosition(item.position)
+      ) {
+        const loadingToasts = loadingToastsRef.current
+        const pendingToast = loadingToasts.length > 0 ? loadingToasts.shift()! : null
+        item.removeFromScene()
+        setItemsLoading((prev) => prev - 1)
+        if (pendingToast) {
+          toast.error(tItems('invalidPlacement'), { id: pendingToast.toastId })
+        }
+        return
+      }
+
       setItemsLoading((prev) => prev - 1)
       const loadingToasts = loadingToastsRef.current
       if (loadingToasts.length > 0) {
@@ -1317,9 +1337,10 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         : 50 * 2.54
 
     placementMountHostKeyRef.current = null
+    const previewMaterial = new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.35 })
     const preview = new THREE.Mesh(
       new THREE.BoxGeometry(widthCm, heightCm, depthCm),
-      new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.3 })
+      previewMaterial
     )
     preview.position.set(0, heightCm / 2, 0)
     blueprint3d.model.scene.add(preview)
@@ -1363,6 +1384,20 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         }
         preview.position.copy(hit)
         placementPositionRef.current = hit
+
+        if (ROOM_FOOTPRINT_ITEM_TYPES.has(itemType)) {
+          const valid = isFootprintInAnyRoom(
+            blueprint3d.model.floorplan,
+            hit.x,
+            hit.z,
+            widthCm / 2,
+            depthCm / 2,
+            0
+          )
+          previewMaterial.color.setHex(valid ? 0x22c55e : 0xef4444)
+        } else if (itemType === 3 || itemType === 7 || itemType === 9) {
+          previewMaterial.color.setHex(0x22c55e)
+        }
       }
     }
 
@@ -1380,6 +1415,20 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         return
       }
       const position = placementPositionRef.current?.clone() ?? preview.position.clone()
+      if (ROOM_FOOTPRINT_ITEM_TYPES.has(itemType)) {
+        const valid = isFootprintInAnyRoom(
+          blueprint3d.model.floorplan,
+          position.x,
+          position.z,
+          widthCm / 2,
+          depthCm / 2,
+          0
+        )
+        if (!valid) {
+          toast.error(tItems('invalidPlacement'))
+          return
+        }
+      }
       const translatedName = customItemLabelMap[pendingPlacementItem.key] ?? pendingPlacementItem.name
       const toastId = toast.loading(tItems('loadingItem', { name: translatedName }))
       loadingToastsRef.current.push({ toastId, itemName: translatedName })

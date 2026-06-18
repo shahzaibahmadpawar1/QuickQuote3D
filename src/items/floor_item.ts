@@ -47,8 +47,12 @@ export abstract class FloorItem extends Item {
 
   /** */
   public moveToPosition(vec3: THREE.Vector3, _intersection: THREE.Intersection | null): void {
+    vec3.y = this.position.y
+    if (!this.isValidPosition(vec3)) {
+      this.showError(vec3)
+      return
+    }
     this.hideError()
-    vec3.y = this.position.y // keep it on the floor
     this.position.copy(vec3)
     this.model.scene.syncMountedChildren(this)
   }
@@ -71,25 +75,21 @@ export abstract class FloorItem extends Item {
     return false
   }
 
-  /** Full validation: center in room AND corners don't clip walls. */
+  /** Full validation: center and entire footprint must stay inside one room. */
   public isValidPosition(vec3: THREE.Vector3): boolean {
     const corners = this.getCorners('x', 'z', vec3)
-
     const rooms = this.model.floorplan.getRooms()
-    let isInARoom = false
+
     for (let i = 0; i < rooms.length; i++) {
-      if (
-        Utils.pointInPolygon(vec3.x, vec3.z, rooms[i].interiorCorners) &&
-        !Utils.polygonPolygonIntersect(corners, rooms[i].interiorCorners)
-      ) {
-        isInARoom = true
+      const poly = rooms[i].interiorCorners
+      if (poly.length < 3) continue
+      if (!Utils.pointInPolygon(vec3.x, vec3.z, poly)) continue
+      if (corners.every((c) => Utils.pointInPolygon(c.x, c.y, poly))) {
+        return true
       }
     }
-    if (!isInARoom) {
-      return false
-    }
 
-    return true
+    return false
   }
 
   /** Find the closest wall edge and its distance from a given position.

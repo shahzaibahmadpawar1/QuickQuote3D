@@ -364,6 +364,7 @@
       "loadingItem": "Loading \"{name}\"...",
       "loadedSuccess": "\"{name}\" loaded successfully",
       "loadError": "Failed to load \"{name}\"",
+      "invalidPlacement": "Cannot place item here — it would overlap a wall. Move it fully inside the room.",
       "bedOne": "Modern Upholstered Twin Bed",
       "drawerOne": "Minimalist White Six-Drawer Dresser",
       "drawerTwo": "Modern Eight Drawer Wooden Dresser",

@@ -364,6 +364,7 @@
       "loadingItem": "正在加载\"{name}\"...",
       "loadedSuccess": "\"{name}\"加载成功",
       "loadError": "加载\"{name}\"失败",
+      "invalidPlacement": "无法放置在此位置——物品会与墙体重叠。请将其完全放在房间内。",
       "bedOne": "现代软包双人床",
       "drawerOne": "简约白色六抽屉斗柜",
       "drawerTwo": "现代木质八抽屉斗柜",

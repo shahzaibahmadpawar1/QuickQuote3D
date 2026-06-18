@@ -65,12 +65,13 @@ export class CeilingItem extends Item {
   }
 
   public isValidPosition(vec3: THREE.Vector3): boolean {
+    const corners = this.getCorners('x', 'z', vec3)
     const rooms = this.model.floorplan.getRooms()
     for (let i = 0; i < rooms.length; i++) {
-      // Ceiling fixtures should be movable anywhere inside a room based on
-      // their center point. A strict footprint-wall intersection check can
-      // prevent dragging for larger fixtures (e.g. user-uploaded models).
-      if (Utils.pointInPolygon(vec3.x, vec3.z, rooms[i].interiorCorners)) {
+      const poly = rooms[i].interiorCorners
+      if (poly.length < 3) continue
+      if (!Utils.pointInPolygon(vec3.x, vec3.z, poly)) continue
+      if (corners.every((c) => Utils.pointInPolygon(c.x, c.y, poly))) {
         return true
       }
     }
