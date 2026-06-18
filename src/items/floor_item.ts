@@ -31,13 +31,18 @@ export abstract class FloorItem extends Item {
       const center = this.model.floorplan.getCenter()
       this.position.x = center.x
       this.position.z = center.z
-      this.position.y = 0.5 * (this.geometry.boundingBox!.max.y - this.geometry.boundingBox!.min.y)
     }
+    this.snapToFloor()
+  }
+
+  /** Rest the item bottom on the floor plane (y = 0). */
+  protected snapToFloor(): void {
+    this.position.y = this.halfSize.y
   }
 
   /** Take action after a resize */
   public resized(): void {
-    this.position.y = this.halfSize.y
+    this.snapToFloor()
   }
 
   /** */

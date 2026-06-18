@@ -219,5 +219,6 @@ export class CornerItem extends FloorItem {
     // Position item offset from corner
     this.position.x = x + offsetX
     this.position.z = y + offsetY
+    this.snapToFloor()
   }
 }

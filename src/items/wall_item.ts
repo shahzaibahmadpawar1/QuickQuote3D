@@ -127,12 +127,15 @@ export abstract class WallItem extends Item {
   /** */
   public resized(): void {
     if (this.boundToFloor) {
-      this.position.y =
-        0.5 * (this.geometry.boundingBox!.max.y - this.geometry.boundingBox!.min.y) * this.scale.y +
-        0.01
+      this.position.y = this.halfSize.y + 0.01
     }
 
     this.updateSize()
+    if (this.currentWallEdge) {
+      const newPos = this.position.clone()
+      this.snapPositionOnWall(newPos)
+      this.position.copy(newPos)
+    }
     this.redrawWall()
   }
 
@@ -146,7 +149,12 @@ export abstract class WallItem extends Item {
       // position not set
       const center = closestWallEdge.interiorCenter()
       const newPos = new THREE.Vector3(center.x, closestWallEdge.wall.height / 2.0, center.y)
-      this.boundMove(newPos)
+      this.snapPositionOnWall(newPos)
+      this.position.copy(newPos)
+      this.redrawWall()
+    } else {
+      const newPos = this.position.clone()
+      this.snapPositionOnWall(newPos)
       this.position.copy(newPos)
       this.redrawWall()
     }
@@ -155,7 +163,7 @@ export abstract class WallItem extends Item {
   /** */
   public moveToPosition(vec3: THREE.Vector3, intersection: THREE.Intersection | null): void {
     this.changeWallEdge((intersection!.object as any).edge)
-    this.boundMove(vec3)
+    this.snapPositionOnWall(vec3)
     this.position.copy(vec3)
     this.redrawWall()
   }
@@ -233,8 +241,8 @@ export abstract class WallItem extends Item {
     return this.model.floorplan.wallEdgePlanes()
   }
 
-  /** takes the move vec3, and makes sure object stays bounded on plane */
-  private boundMove(vec3: THREE.Vector3): void {
+  /** Constrain position to the current wall surface. */
+  protected snapPositionOnWall(vec3: THREE.Vector3): void {
     const tolerance = 1
     const edge = this.currentWallEdge!
     vec3.applyMatrix4(edge.interiorTransform)
@@ -246,9 +254,7 @@ export abstract class WallItem extends Item {
     }
 
     if (this.boundToFloor) {
-      vec3.y =
-        0.5 * (this.geometry.boundingBox!.max.y - this.geometry.boundingBox!.min.y) * this.scale.y +
-        0.01
+      vec3.y = this.halfSize.y + 0.01
     } else {
       if (vec3.y < this.sizeY / 2.0 + tolerance) {
         vec3.y = this.sizeY / 2.0 + tolerance
