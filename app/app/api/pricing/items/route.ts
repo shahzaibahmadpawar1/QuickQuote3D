@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/env'
+import { assertAccountActive, EntitlementError, getUserEntitlements } from '@/lib/entitlements'
 
 type UpdateRow = { itemKey: string; unitPrice: number }
 
@@ -44,6 +45,19 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    await assertAccountActive(supabase, user.id)
+    const entitlements = await getUserEntitlements(supabase, user.id)
+    if (!entitlements.canOverridePricing) {
+      throw new EntitlementError('Price overrides are not enabled for your account.')
+    }
+  } catch (err) {
+    if (err instanceof EntitlementError) {
+      return NextResponse.json({ error: err.message }, { status: err.status })
+    }
+    throw err
   }
 
   const payload = updates.map((u) => ({

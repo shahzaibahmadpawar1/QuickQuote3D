@@ -69,6 +69,7 @@ import { loadRoomTypes } from '@/lib/room-types'
 import type { EstimateSnapshotV1 } from '@/lib/estimate-snapshot'
 import { snapshotToCostEstimate } from '@/lib/estimate-snapshot'
 import type { UserCatalogItem } from '@/types/user-item'
+import { useEntitlements } from '@/hooks/use-entitlements'
 
 const ROOM_FOOTPRINT_ITEM_TYPES = new Set([1, 8, 10, 11])
 
@@ -118,6 +119,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const tItems = useTranslations('BluePrint.items')
   const tFloorplanner = useTranslations('BluePrint.floorplanner')
   const tMyFloorplans = useTranslations('BluePrint.myFloorplans')
+  const { entitlements, refresh: refreshEntitlements } = useEntitlements()
   const tEstimate = useTranslations('BluePrint.estimate')
   const tConfirmDelete = useTranslations('BluePrint.confirmDelete')
   const tCustom = useTranslations('BluePrint.customItems')
@@ -1119,12 +1121,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           createEmptyPlan()
         }
         toast.success(t('saveSuccess'), { id: toastId })
+        void refreshEntitlements()
       } catch (error) {
         console.error('Failed to save floorplan:', error)
-        toast.error(t('saveError'), { id: toastId })
+        const message = error instanceof Error ? error.message : t('saveError')
+        toast.error(message || t('saveError'), { id: toastId })
       }
     },
-    [createEmptyPlan, generateTopDownThumbnail, t]
+    [createEmptyPlan, generateTopDownThumbnail, refreshEntitlements, t]
   )
 
   // Load from saved floorplan
@@ -1586,7 +1590,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
               onSettingsClick={() => setSettingsOpen(true)}
               onSave={handleSave}
               onNew={handleNew}
-              onShare={() => setShareDialogOpen(true)}
+              onShare={entitlements.canShareProjects ? () => setShareDialogOpen(true) : undefined}
               onUndo={handleUndo}
               onRedo={handleRedo}
               canUndo={canUndo}
@@ -1838,6 +1842,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         onUserItemsChanged={loadUserItems}
         onPricingChanged={loadPricing}
         onRoomTypesChanged={setRoomTypes}
+        entitlements={entitlements}
+        onEntitlementsRefresh={refreshEntitlements}
       />
 
       <ConfirmDeleteDialog

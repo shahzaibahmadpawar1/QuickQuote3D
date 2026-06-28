@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/env'
 import { buildShareEstimateSnapshot } from '@/lib/build-share-snapshot'
+import {
+  assertAccountActive,
+  assertWithinLimit,
+  EntitlementError,
+  getUserEntitlements
+} from '@/lib/entitlements'
 import { buildShareUrl, generateShareToken } from '@/lib/share-token'
 import type { EstimateSnapshotV1 } from '@/lib/estimate-snapshot'
 
@@ -20,6 +26,19 @@ export async function POST(request: Request, context: RouteContext) {
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    await assertAccountActive(supabase, user.id)
+    const entitlements = await getUserEntitlements(supabase, user.id)
+    if (!entitlements.canShareProjects) {
+      throw new EntitlementError('Project sharing is not enabled for your account.')
+    }
+  } catch (err) {
+    if (err instanceof EntitlementError) {
+      return NextResponse.json({ error: err.message }, { status: err.status })
+    }
+    throw err
   }
 
   const { data: blueprint, error: bpError } = await supabase
@@ -82,6 +101,20 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
   } else {
+    try {
+      const entitlements = await getUserEntitlements(supabase, user.id)
+      assertWithinLimit(
+        entitlements.usage.activeShares,
+        entitlements.maxActiveShares,
+        'Active share'
+      )
+    } catch (err) {
+      if (err instanceof EntitlementError) {
+        return NextResponse.json({ error: err.message }, { status: err.status })
+      }
+      throw err
+    }
+
     shareToken = generateShareToken()
     const { error: insertError } = await supabase.from('blueprint_shares').insert({
       user_id: user.id,

@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/env'
+import {
+  assertAccountActive,
+  assertWithinLimit,
+  EntitlementError,
+  getUserEntitlements
+} from '@/lib/entitlements'
 import { USER_ITEM_CATEGORIES, USER_ITEM_TYPES, type UserCatalogItem } from '@/types/user-item'
 
 const IMAGE_BUCKET = 'user-item-images'
@@ -84,6 +90,24 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    await assertAccountActive(supabase, user.id)
+    const entitlements = await getUserEntitlements(supabase, user.id)
+    if (!entitlements.canAddCustomItems) {
+      throw new EntitlementError('Adding custom items is not enabled for your account.')
+    }
+    assertWithinLimit(
+      entitlements.usage.customItems,
+      entitlements.maxCustomItems,
+      'Custom item'
+    )
+  } catch (err) {
+    if (err instanceof EntitlementError) {
+      return NextResponse.json({ error: err.message }, { status: err.status })
+    }
+    throw err
   }
 
   const formData = await request.formData()

@@ -24,6 +24,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CatalogFilterManager } from './CatalogFilterManager'
 import { Switch } from '@/components/ui/switch'
 import { saveShowOnlyCustomItems } from '@/lib/catalog-preferences'
+import { formatLimitMessage } from '@/lib/entitlements'
+import { Link } from '@/i18n/routing'
+import type { UserEntitlementsResponse } from '@/types/entitlements'
 
 type WallHeightDisplayUnit = 'cm' | 'mm' | 'm' | 'inch' | 'ft'
 
@@ -56,6 +59,8 @@ interface SettingsProps {
   onUserItemsChanged?: () => void
   onPricingChanged?: () => void
   onRoomTypesChanged?: (roomTypes: string[]) => void
+  entitlements?: UserEntitlementsResponse
+  onEntitlementsRefresh?: () => void
 }
 
 export function Settings({
@@ -75,7 +80,9 @@ export function Settings({
   onTexturesChanged,
   onUserItemsChanged,
   onPricingChanged,
-  onRoomTypesChanged
+  onRoomTypesChanged,
+  entitlements,
+  onEntitlementsRefresh
 }: SettingsProps) {
   const t = useTranslations('BluePrint.settings')
   const tItems = useTranslations('BluePrint.items')
@@ -101,6 +108,22 @@ export function Settings({
   const [editingRoomType, setEditingRoomType] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState('')
   const [editingCustomItem, setEditingCustomItem] = useState<UserCatalogItem | null>(null)
+  const canAddCustomItems = entitlements?.canAddCustomItems !== false
+  const canAddTextures = entitlements?.canAddTextures !== false
+  const canOverridePricing = entitlements?.canOverridePricing !== false
+  const customItemsAtLimit =
+    entitlements?.maxCustomItems != null &&
+    entitlements.usage.customItems >= entitlements.maxCustomItems
+  const wallTexturesAtLimit =
+    entitlements?.maxWallTextures != null &&
+    entitlements.usage.wallTextures >= entitlements.maxWallTextures
+  const floorTexturesAtLimit =
+    entitlements?.maxFloorTextures != null &&
+    entitlements.usage.floorTextures >= entitlements.maxFloorTextures
+
+  const refreshEntitlements = () => {
+    onEntitlementsRefresh?.()
+  }
   const [isAddItemOpen, setIsAddItemOpen] = useState(false)
   const [isAddTextureOpen, setIsAddTextureOpen] = useState(false)
   const [editingTexture, setEditingTexture] = useState<UserCatalogTexture | null>(null)
@@ -574,29 +597,52 @@ export function Settings({
             <p className="text-sm text-muted-foreground mb-3">
               {tAuth('signedInAs', { email: accountEmail })}
             </p>
-            <Button
-              variant="outline"
-              type="button"
-              onClick={async () => {
-                const { createClient } = await import('@/lib/supabase/client')
-                await createClient().auth.signOut()
-                window.location.href = '/'
-              }}
-            >
-              {tAuth('signOut')}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={async () => {
+                  const { createClient } = await import('@/lib/supabase/client')
+                  await createClient().auth.signOut()
+                  window.location.href = '/'
+                }}
+              >
+                {tAuth('signOut')}
+              </Button>
+              {entitlements?.role === 'admin' ? (
+                <Button asChild variant="secondary" type="button">
+                  <Link href="/admin">Admin portal</Link>
+                </Button>
+              ) : null}
+            </div>
           </div>
         ) : null}
 
         <div className="mt-8 border-t border-border pt-6">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-foreground">{tCustom('settingsTitle')}</h2>
-            <Button type="button" size="sm" onClick={() => setIsAddItemOpen(true)}>
+            <Button
+              type="button"
+              size="sm"
+              disabled={!canAddCustomItems || customItemsAtLimit}
+              onClick={() => setIsAddItemOpen(true)}
+            >
               <Plus className="h-4 w-4 mr-1" />
               {tCustom('addButton')}
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">{tCustom('settingsDescription')}</p>
+          <p className="text-sm text-muted-foreground mb-2">{tCustom('settingsDescription')}</p>
+          {entitlements ? (
+            <p className="text-xs text-muted-foreground mb-4">
+              {formatLimitMessage(
+                entitlements.usage.customItems,
+                entitlements.maxCustomItems,
+                'custom items'
+              )}
+              {!canAddCustomItems ? ' · Adding custom items is disabled for your account.' : ''}
+              {customItemsAtLimit ? ' · Limit reached.' : ''}
+            </p>
+          ) : null}
           {userItems.length === 0 ? (
             <p className="text-sm text-muted-foreground rounded-md border border-dashed p-4">
               {tCustom('emptyList')}
@@ -636,12 +682,35 @@ export function Settings({
         <div className="mt-8 border-t border-border pt-6">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-foreground">{tTextures('settingsTitle')}</h2>
-            <Button type="button" size="sm" onClick={() => setIsAddTextureOpen(true)}>
+            <Button
+              type="button"
+              size="sm"
+              disabled={!canAddTextures || (wallTexturesAtLimit && floorTexturesAtLimit)}
+              onClick={() => setIsAddTextureOpen(true)}
+            >
               <Plus className="h-4 w-4 mr-1" />
               {tTextures('addButton')}
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">{tTextures('settingsDescription')}</p>
+          <p className="text-sm text-muted-foreground mb-2">{tTextures('settingsDescription')}</p>
+          {entitlements ? (
+            <p className="text-xs text-muted-foreground mb-4">
+              Wall:{' '}
+              {formatLimitMessage(
+                entitlements.usage.wallTextures,
+                entitlements.maxWallTextures,
+                'textures'
+              )}
+              {' · '}
+              Floor:{' '}
+              {formatLimitMessage(
+                entitlements.usage.floorTextures,
+                entitlements.maxFloorTextures,
+                'textures'
+              )}
+              {!canAddTextures ? ' · Adding textures is disabled for your account.' : ''}
+            </p>
+          ) : null}
           {userTextures.length === 0 ? (
             <p className="text-sm text-muted-foreground rounded-md border border-dashed p-4">
               {tTextures('emptyList')}
@@ -691,6 +760,11 @@ export function Settings({
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mb-4">{t('itemPricing.description', { currency })}</p>
+          {!canOverridePricing ? (
+            <p className="mb-4 text-sm text-muted-foreground">
+              Price overrides are disabled for your account.
+            </p>
+          ) : null}
           <div className="mb-4 flex items-center justify-between gap-3 rounded-md border bg-card p-3">
             <div className="space-y-1">
               <Label htmlFor="show-only-custom-items" className="text-sm font-medium">
@@ -763,7 +837,7 @@ export function Settings({
                           <Button
                             type="button"
                             size="sm"
-                            disabled={!isValid || Boolean(savingKeys[item.key])}
+                            disabled={!canOverridePricing || !isValid || Boolean(savingKeys[item.key])}
                             onClick={() => persistPrice(item.key)}
                           >
                             {t('itemPricing.save')}
@@ -848,7 +922,7 @@ export function Settings({
                           <Button
                             type="button"
                             size="sm"
-                            disabled={!isValid || Boolean(savingKeys[item.key])}
+                            disabled={!canOverridePricing || !isValid || Boolean(savingKeys[item.key])}
                             onClick={() => persistPrice(item.key)}
                           >
                             {t('itemPricing.save')}
@@ -880,6 +954,7 @@ export function Settings({
           setIsAddItemOpen(false)
           onUserItemsChanged?.()
           onPricingChanged?.()
+          refreshEntitlements()
         }}
       />
       <AddItemDialog
@@ -899,8 +974,10 @@ export function Settings({
         open={isAddTextureOpen}
         onOpenChange={setIsAddTextureOpen}
         onCreated={() => {
+          setIsAddTextureOpen(false)
           onTexturesChanged?.()
           onPricingChanged?.()
+          refreshEntitlements()
         }}
       />
       <AddTextureDialog

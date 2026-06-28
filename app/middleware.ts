@@ -59,6 +59,17 @@ function isSharePath(pathname: string): boolean {
   )
 }
 
+function isAdminPath(pathname: string): boolean {
+  const p = stripPathQuery(pathname)
+  if (p === '/admin' || p.startsWith('/admin/')) return true
+  const seg = p.split('/').filter(Boolean)
+  return (
+    seg.length >= 2 &&
+    seg[1] === 'admin' &&
+    routing.locales.includes(seg[0] as SupportedLanguage)
+  )
+}
+
 export async function middleware(request: NextRequest) {
   // Auth callback lives outside `[locale]`. next-intl would rewrite `/auth/...`
   // to `/en/auth/...`, which has no route and becomes a 404.
@@ -132,6 +143,47 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = plannerPathForPath(pathname)
     url.search = ''
+    const redirectResponse = NextResponse.redirect(url)
+    response.cookies.getAll().forEach((c) => {
+      redirectResponse.cookies.set(c.name, c.value)
+    })
+    return redirectResponse
+  }
+
+  if (user && (isPlannerPath(pathname) || isAdminPath(pathname))) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role, status')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (profile?.status && profile.status !== 'active') {
+      const url = request.nextUrl.clone()
+      url.pathname = loginPathForPath(pathname)
+      url.search = `?error=${encodeURIComponent('Your account has been suspended.')}`
+      const redirectResponse = NextResponse.redirect(url)
+      response.cookies.getAll().forEach((c) => {
+        redirectResponse.cookies.set(c.name, c.value)
+      })
+      return redirectResponse
+    }
+
+    if (isAdminPath(pathname) && profile?.role !== 'admin') {
+      const url = request.nextUrl.clone()
+      url.pathname = plannerPathForPath(pathname)
+      url.search = ''
+      const redirectResponse = NextResponse.redirect(url)
+      response.cookies.getAll().forEach((c) => {
+        redirectResponse.cookies.set(c.name, c.value)
+      })
+      return redirectResponse
+    }
+  }
+
+  if (!user && isAdminPath(pathname)) {
+    const url = request.nextUrl.clone()
+    url.pathname = loginPathForPath(pathname)
+    url.searchParams.set('next', stripPathQuery(pathname) + request.nextUrl.search)
     const redirectResponse = NextResponse.redirect(url)
     response.cookies.getAll().forEach((c) => {
       redirectResponse.cookies.set(c.name, c.value)

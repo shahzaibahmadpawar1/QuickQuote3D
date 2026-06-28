@@ -83,6 +83,14 @@ export async function remoteGet(sb: SupabaseClient, userId: string, id: string):
   }
 }
 
+function formatRemoteError(error: { message?: string }): Error {
+  const msg = error.message ?? 'Request failed'
+  if (msg.includes('Project limit reached') || msg.includes('Account is not active')) {
+    return new Error(msg)
+  }
+  return new Error(msg)
+}
+
 export async function remoteCreate(
   sb: SupabaseClient,
   userId: string,
@@ -100,7 +108,7 @@ export async function remoteCreate(
     .select()
     .single()
 
-  if (error) throw error
+  if (error) throw formatRemoteError(error)
   return (await remoteGet(sb, userId, data.id))!
 }
 

@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isSupabaseConfigured } from '@/lib/supabase/env'
 import {
+  assertAccountActive,
+  assertWithinLimit,
+  EntitlementError,
+  getUserEntitlements
+} from '@/lib/entitlements'
+import {
   TEXTURE_PRICE_UNITS,
   TEXTURE_SURFACES,
   type UserCatalogTexture
@@ -90,6 +96,32 @@ export async function POST(request: Request) {
   const formData = await request.formData()
   const name = String(formData.get('name') ?? '').trim()
   const surface = String(formData.get('surface') ?? '').trim()
+
+  try {
+    await assertAccountActive(supabase, user.id)
+    const entitlements = await getUserEntitlements(supabase, user.id)
+    if (!entitlements.canAddTextures) {
+      throw new EntitlementError('Adding custom textures is not enabled for your account.')
+    }
+    if (surface === 'wall') {
+      assertWithinLimit(
+        entitlements.usage.wallTextures,
+        entitlements.maxWallTextures,
+        'Wall texture'
+      )
+    } else if (surface === 'floor') {
+      assertWithinLimit(
+        entitlements.usage.floorTextures,
+        entitlements.maxFloorTextures,
+        'Floor texture'
+      )
+    }
+  } catch (err) {
+    if (err instanceof EntitlementError) {
+      return NextResponse.json({ error: err.message }, { status: err.status })
+    }
+    throw err
+  }
   const pricePerUnit = Number(formData.get('pricePerUnit'))
   const priceUnit = String(formData.get('priceUnit') ?? 'sq_m').trim()
   const stretch = String(formData.get('stretch') ?? 'false') === 'true'

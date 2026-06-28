@@ -10,6 +10,7 @@ import {
 import { Settings } from './Settings'
 import type { CatalogListItem, UserCatalogItem } from '@/types/user-item'
 import type { UserCatalogTexture } from '@/types/user-texture'
+import type { UserEntitlementsResponse } from '@/types/entitlements'
 
 interface SettingsDialogProps {
   isOpen: boolean
@@ -30,6 +31,8 @@ interface SettingsDialogProps {
   onUserItemsChanged?: () => void
   onPricingChanged?: () => void
   onRoomTypesChanged?: (roomTypes: string[]) => void
+  entitlements?: UserEntitlementsResponse
+  onEntitlementsRefresh?: () => void
 }
 
 export function SettingsDialog({
@@ -50,7 +53,9 @@ export function SettingsDialog({
   onTexturesChanged,
   onUserItemsChanged,
   onPricingChanged,
-  onRoomTypesChanged
+  onRoomTypesChanged,
+  entitlements,
+  onEntitlementsRefresh
 }: SettingsDialogProps) {
   const t = useTranslations('BluePrint.settings')
 
@@ -78,6 +83,8 @@ export function SettingsDialog({
             onUserItemsChanged={onUserItemsChanged}
             onPricingChanged={onPricingChanged}
             onRoomTypesChanged={onRoomTypesChanged}
+            entitlements={entitlements}
+            onEntitlementsRefresh={onEntitlementsRefresh}
           />
         </div>
       </DialogContent>
