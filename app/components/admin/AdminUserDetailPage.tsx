@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Link } from '@/i18n/routing'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { UserDetailForm } from '@/components/admin/UserDetailForm'
 import { Button } from '@/components/ui/button'
-import { fetchAdminUser } from '@/services/admin'
-import type { AdminUserStatsRow } from '@/types/admin'
+import { fetchAdminUser, fetchAdminUserShares } from '@/services/admin'
+import type { AdminUserShare, AdminUserStatsRow } from '@/types/admin'
 
 interface AdminUserDetailPageProps {
   userId: string
@@ -15,7 +15,21 @@ interface AdminUserDetailPageProps {
 
 export function AdminUserDetailPage({ userId }: AdminUserDetailPageProps) {
   const [user, setUser] = useState<AdminUserStatsRow | null>(null)
+  const [shares, setShares] = useState<AdminUserShare[]>([])
   const [loading, setLoading] = useState(true)
+  const [sharesLoading, setSharesLoading] = useState(true)
+
+  const loadShares = useCallback(async () => {
+    setSharesLoading(true)
+    try {
+      const rows = await fetchAdminUserShares(userId)
+      setShares(rows)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load shares')
+    } finally {
+      setSharesLoading(false)
+    }
+  }, [userId])
 
   useEffect(() => {
     let cancelled = false
@@ -33,10 +47,11 @@ export function AdminUserDetailPage({ userId }: AdminUserDetailPageProps) {
       }
     }
     void load()
+    void loadShares()
     return () => {
       cancelled = true
     }
-  }, [userId])
+  }, [userId, loadShares])
 
   return (
     <AdminShell title={user?.email ?? 'User details'}>
@@ -48,7 +63,12 @@ export function AdminUserDetailPage({ userId }: AdminUserDetailPageProps) {
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading user…</p>
       ) : user ? (
-        <UserDetailForm initialUser={user} />
+        <UserDetailForm
+          initialUser={user}
+          shares={shares}
+          sharesLoading={sharesLoading}
+          onSharesRefresh={loadShares}
+        />
       ) : (
         <p className="text-sm text-destructive">User not found.</p>
       )}

@@ -10,10 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatDuration } from '@/lib/entitlements'
 import { revokeUserShares, updateAdminUser } from '@/services/admin'
-import type { AdminUpdateUserPayload, AdminUserStatsRow } from '@/types/admin'
+import { UserSharesList } from './UserSharesList'
+import type { AdminUpdateUserPayload, AdminUserShare, AdminUserStatsRow } from '@/types/admin'
 
 interface UserDetailFormProps {
   initialUser: AdminUserStatsRow
+  shares: AdminUserShare[]
+  sharesLoading?: boolean
+  onSharesRefresh?: () => void
 }
 
 function toLimitInput(value: number | null): string {
@@ -27,7 +31,12 @@ function parseLimitInput(value: string): number | null {
   return Number.isFinite(num) && num >= 0 ? num : null
 }
 
-export function UserDetailForm({ initialUser }: UserDetailFormProps) {
+export function UserDetailForm({
+  initialUser,
+  shares,
+  sharesLoading = false,
+  onSharesRefresh
+}: UserDetailFormProps) {
   const [user, setUser] = useState(initialUser)
   const [saving, setSaving] = useState(false)
   const [revoking, setRevoking] = useState(false)
@@ -83,6 +92,11 @@ export function UserDetailForm({ initialUser }: UserDetailFormProps) {
     setRevoking(true)
     try {
       await revokeUserShares(user.userId)
+      setUser((prev) => ({
+        ...prev,
+        activeSharesCount: 0
+      }))
+      onSharesRefresh?.()
       toast.success('All active shares revoked')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to revoke shares')
@@ -92,6 +106,7 @@ export function UserDetailForm({ initialUser }: UserDetailFormProps) {
   }
 
   return (
+    <div className="space-y-6">
     <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
       <Card>
         <CardHeader>
@@ -226,6 +241,9 @@ export function UserDetailForm({ initialUser }: UserDetailFormProps) {
           </Button>
         </CardContent>
       </Card>
+    </div>
+
+    <UserSharesList shares={shares} loading={sharesLoading} />
     </div>
   )
 }

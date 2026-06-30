@@ -141,6 +141,6 @@ vite.config.ts.timestamp-*
 # Project-specific (do not push to GitHub)
 docs/
 node_modules/
-supabase/
+/supabase/
 .cursor/
 

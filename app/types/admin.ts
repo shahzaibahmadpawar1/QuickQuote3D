@@ -33,6 +33,18 @@ export interface AdminUserDetail extends AdminUserStatsRow {
   entitlements: UserEntitlements
 }
 
+export interface AdminUserShare {
+  id: string
+  shareToken: string
+  shareUrl: string
+  title: string
+  roomType: string | null
+  blueprintId: string
+  createdAt: string
+  revokedAt: string | null
+  active: boolean
+}
+
 export interface AdminUpdateUserPayload {
   status?: 'active' | 'suspended' | 'disabled'
   role?: 'user' | 'admin'

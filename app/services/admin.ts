@@ -1,4 +1,4 @@
-import type { AdminUpdateUserPayload, AdminUserStatsRow } from '@/types/admin'
+import type { AdminUpdateUserPayload, AdminUserShare, AdminUserStatsRow } from '@/types/admin'
 
 async function readError(res: Response): Promise<string> {
   try {
@@ -32,6 +32,13 @@ export async function updateAdminUser(userId: string, payload: AdminUpdateUserPa
   if (!res.ok) throw new Error(await readError(res))
   const data = (await res.json()) as { user: AdminUserStatsRow }
   return data.user
+}
+
+export async function fetchAdminUserShares(userId: string): Promise<AdminUserShare[]> {
+  const res = await fetch(`/api/admin/users/${userId}/shares`)
+  if (!res.ok) throw new Error(await readError(res))
+  const data = (await res.json()) as { shares: AdminUserShare[] }
+  return data.shares
 }
 
 export async function revokeUserShares(userId: string) {
