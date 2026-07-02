@@ -49,6 +49,7 @@ export function FloorplannerControls({
           <Button
             size={isMobile ? 'icon' : 'sm'}
             variant={mode === 'move' ? 'default' : 'ghost'}
+            data-tour="move-walls"
             onClick={() => onModeChange('move')}
             className={cn('cursor-pointer rounded-full', !isMobile && 'gap-2')}
             title={isMobile ? t('moveWalls') : undefined}
@@ -61,6 +62,7 @@ export function FloorplannerControls({
           <Button
             size={isMobile ? 'icon' : 'sm'}
             variant={mode === 'draw' ? 'default' : 'ghost'}
+            data-tour="draw-walls"
             onClick={() => onModeChange('draw')}
             className={cn('cursor-pointer rounded-full', !isMobile && 'gap-2')}
             title={isMobile ? t('drawWalls') : undefined}
@@ -73,6 +75,7 @@ export function FloorplannerControls({
           <Button
             size={isMobile ? 'icon' : 'sm'}
             variant={mode === 'delete' ? 'default' : 'ghost'}
+            data-tour="delete-walls"
             onClick={() => onModeChange('delete')}
             className={cn('cursor-pointer rounded-full', !isMobile && 'gap-2')}
             title={isMobile ? t('deleteWalls') : undefined}

@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { WallVisibilityControl } from './WallVisibilityControl'
+import { TutorialButton } from './PlannerTutorial'
 import type { WallVisibilityPrefs } from '@/lib/wall-visibility-preferences'
 
 interface TopNavBarProps {
@@ -46,6 +47,7 @@ interface TopNavBarProps {
   onWallVisibilityChange: (prefs: WallVisibilityPrefs) => void
   lockAllItems: boolean
   onLockAllItemsChange: (locked: boolean) => void
+  onTutorialClick?: () => void
 }
 
 export function TopNavBar({
@@ -68,7 +70,8 @@ export function TopNavBar({
   wallVisibility,
   onWallVisibilityChange,
   lockAllItems,
-  onLockAllItemsChange
+  onLockAllItemsChange,
+  onTutorialClick
 }: TopNavBarProps) {
   const t = useTranslations('BluePrint.sidebar')
   const tMain = useTranslations('BluePrint.mainControls')
@@ -97,6 +100,7 @@ export function TopNavBar({
               <button
                 key={tab.id}
                 type="button"
+                data-tour={`tab-${tab.id}`}
                 onClick={() => onTabChange(tab.id)}
                 className={cn(
                   'rounded-full font-medium transition-colors',
@@ -111,6 +115,7 @@ export function TopNavBar({
             ))}
             <button
               type="button"
+              data-tour="tab-estimate"
               onClick={onEstimateClick}
               className={cn(
                 'rounded-full font-medium transition-colors',
@@ -129,6 +134,7 @@ export function TopNavBar({
       {activeTab === 'edit' && (
         <div className="pointer-events-auto absolute top-1/2 left-1/2 z-100 -translate-x-1/2 -translate-y-1/2">
           <div
+            data-tour="view-toggle"
             className={cn(
               'flex items-center gap-2 px-3 py-1.5',
               pillShell,
@@ -174,6 +180,7 @@ export function TopNavBar({
               onClick={onSave}
               variant="default"
               size="sm"
+              data-tour="save-plan"
               className={cn('rounded-full shadow-none', isMobile && 'h-8 px-3 text-xs')}
             >
               {tMain('savePlan')}
@@ -241,15 +248,31 @@ export function TopNavBar({
               isMobile={isMobile}
             />
 
+            {onTutorialClick && <TutorialButton onClick={onTutorialClick} />}
+
             <Button
               onClick={onSettingsClick}
               variant="ghost"
               size="icon"
+              data-tour="settings"
               className={cn('rounded-full', isMobile ? 'h-8 w-8' : 'h-9 w-9')}
               aria-label="Settings"
             >
               <Settings className={cn(isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
             </Button>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'edit' && viewMode === '2d' && onTutorialClick && (
+        <div
+          className={cn(
+            'pointer-events-auto absolute top-0 flex items-center',
+            isMobile ? 'right-2 h-12' : 'right-4 h-14'
+          )}
+        >
+          <div className={cn('flex items-center px-1 py-1', pillShell)}>
+            <TutorialButton onClick={onTutorialClick} />
           </div>
         </div>
       )}

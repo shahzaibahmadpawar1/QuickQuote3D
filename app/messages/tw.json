@@ -179,6 +179,71 @@
       "tip2d": "提示：完成後點擊「完成」切換到 3D 視圖",
       "tip3d": "提示：使用頂部切換按鈕在 2D 和 3D 視圖間切換"
     },
+    "tutorial": {
+      "button": "教學",
+      "stepCounter": "第 {current} 步，共 {total} 步",
+      "workflowHint": "先在 2D 中繪製平面圖，再切換到 3D 放置傢俱、套用飾面並查看成本估算。",
+      "back": "上一步",
+      "next": "下一步",
+      "finish": "完成",
+      "skip": "跳過教學",
+      "tryStep": "指出位置",
+      "startTour": "開始引導導覽",
+      "tourProgress": "{{current}} / {{total}}",
+      "tourNext": "下一步",
+      "tourPrev": "上一步",
+      "tourDone": "完成",
+      "steps": {
+        "welcome": {
+          "title": "歡迎使用 QuickQuote3D",
+          "description": "本規劃器可協助您繪製平面圖、在 3D 中佈置傢俱並產生成本估算。請依下列步驟了解完整工作流程。"
+        },
+        "projects": {
+          "title": "專案",
+          "description": "開啟「專案」可載入已儲存的方案或從房間預設開始。您的工作會儲存在此處，方便隨時返回。"
+        },
+        "draw2d": {
+          "title": "在 2D 中繪製牆體",
+          "description": "切換到 2D 檢視並使用「繪製牆體」。點擊放置牆角，完成後按 ESC。新建版面時，這始終是第一步。"
+        },
+        "refine2d": {
+          "title": "完善平面圖",
+          "description": "使用「移動牆體」調整角點和牆體位置。雙擊牆體可輸入精確長度。使用「刪除牆體」修正錯誤。"
+        },
+        "switch3d": {
+          "title": "切換到 3D",
+          "description": "2D 平面圖完成後，切換到 3D 檢視。牆體將變為可漫遊和佈置傢俱的 3D 房間。"
+        },
+        "navigate3d": {
+          "title": "在 3D 中導覽",
+          "description": "拖動旋轉相機，滾輪縮放，右鍵拖動平移。隨時點擊 ? 按鈕查看操作說明。"
+        },
+        "addItems": {
+          "title": "新增傢俱",
+          "description": "開啟「新增物品」瀏覽目錄。選擇一件傢俱後，在 3D 地板上點擊即可放置。"
+        },
+        "editFurniture": {
+          "title": "編輯已放置物品",
+          "description": "在 3D 中點擊任意傢俱即可選取。透過選單移動、旋轉、調整大小、鎖定或刪除。"
+        },
+        "finishes": {
+          "title": "牆面與地板飾面",
+          "description": "在 3D 中點擊牆面或地板開啟飾面選擇器。選擇紋理或顏色——計入價格的飾面會納入估算。"
+        },
+        "estimate": {
+          "title": "成本估算",
+          "description": "開啟「估算」查看傢俱與飾面費用明細。可調整加價、儲存版本並匯出。"
+        },
+        "saveShare": {
+          "title": "儲存與分享",
+          "description": "使用「儲存方案」儲存工作。「操作」選單中有新建、復原/重做和分享（若帳戶已啟用）。"
+        },
+        "settings": {
+          "title": "設定",
+          "description": "開啟「設定」可變更單位、牆高、自訂目錄物品、紋理定價和語言偏好。"
+        }
+      }
+    },
     "viewToggle": {
       "3d": "3D",
       "2d": "2D"

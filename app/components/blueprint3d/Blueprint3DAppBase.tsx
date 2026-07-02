@@ -23,6 +23,7 @@ import { SharedViewNavBar } from './SharedViewNavBar'
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
 import { TouchHelp } from './TouchHelp'
 import { ControlsHelp } from './ControlsHelp'
+import { PlannerTutorial, useTutorialAutoOpen } from './PlannerTutorial'
 import DefaultFloorplan from '@blueprint3d/templates/default.json'
 import {
   blueprintCreate,
@@ -185,6 +186,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [costEstimate, setCostEstimate] = useState<CostEstimateResult | null>(null)
   const [wallLengthDialogOpen, setWallLengthDialogOpen] = useState(false)
   const [wallLengthTarget, setWallLengthTarget] = useState<Wall | null>(null)
+  const { tutorialOpen, setTutorialOpen } = useTutorialAutoOpen(readOnly)
   const [userItems, setUserItems] = useState<UserCatalogItem[]>([])
   const [userTextures, setUserTextures] = useState<UserCatalogTexture[]>([])
   const [canUndo, setCanUndo] = useState(false)
@@ -1601,6 +1603,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
               onWallVisibilityChange={handleWallVisibilityChange}
               lockAllItems={lockAllItems}
               onLockAllItemsChange={handleLockAllItemsChange}
+              onTutorialClick={() => setTutorialOpen(true)}
             />
           )}
         </div>
@@ -1892,6 +1895,14 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         onOpenChange={setShareDialogOpen}
         blueprintId={currentBlueprint?.id ?? null}
         blueprintName={currentBlueprint?.name}
+      />
+
+      <PlannerTutorial
+        open={tutorialOpen}
+        onOpenChange={setTutorialOpen}
+        onTabChange={handleTabChange}
+        onViewModeChange={handleViewChange}
+        onFloorplannerModeChange={handleFloorplannerModeChange}
       />
         </>
       )}

@@ -179,6 +179,71 @@
       "tip2d": "Tip: Click \"Done\" when finished to switch to 3D view",
       "tip3d": "Tip: Switch between 2D and 3D views using the toggle at the top"
     },
+    "tutorial": {
+      "button": "Tutorial",
+      "stepCounter": "Step {current} of {total}",
+      "workflowHint": "Start in 2D to draw your floor plan, then switch to 3D to place furniture, apply finishes, and review your cost estimate.",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "skip": "Skip tutorial",
+      "tryStep": "Show me where",
+      "startTour": "Start guided tour",
+      "tourProgress": "{{current}} of {{total}}",
+      "tourNext": "Next",
+      "tourPrev": "Back",
+      "tourDone": "Done",
+      "steps": {
+        "welcome": {
+          "title": "Welcome to QuickQuote3D",
+          "description": "This planner helps you draw a floor plan, furnish it in 3D, and build a cost estimate. Follow these steps to learn the full workflow."
+        },
+        "projects": {
+          "title": "Projects",
+          "description": "Open Projects to load a saved plan or start from a room preset. Your work is saved here so you can return anytime."
+        },
+        "draw2d": {
+          "title": "Draw walls in 2D",
+          "description": "Switch to 2D view and use Draw Walls. Click to place wall corners and press ESC when finished. This is always the first step for a new layout."
+        },
+        "refine2d": {
+          "title": "Refine your floor plan",
+          "description": "Use Move Walls to adjust corners and wall positions. Double-click a wall to enter an exact length. Use Delete Walls to remove mistakes."
+        },
+        "switch3d": {
+          "title": "Switch to 3D",
+          "description": "When your 2D floor plan is ready, toggle to 3D view. Your walls become a 3D room you can walk around and furnish."
+        },
+        "navigate3d": {
+          "title": "Navigate in 3D",
+          "description": "Drag to rotate the camera, scroll to zoom, and right-click drag to pan. Tap the ? button anytime for a controls cheat sheet."
+        },
+        "addItems": {
+          "title": "Add furniture",
+          "description": "Open Add Items to browse the catalog. Select a piece, then click on the floor in 3D to place it inside your room."
+        },
+        "editFurniture": {
+          "title": "Edit placed items",
+          "description": "Click any furniture in 3D to select it. Use the menu to move, rotate, resize, lock, or delete the item."
+        },
+        "finishes": {
+          "title": "Wall & floor finishes",
+          "description": "Click a wall or floor surface in 3D to open the finish picker. Choose textures or colors — priced finishes are included in your estimate."
+        },
+        "estimate": {
+          "title": "Cost estimate",
+          "description": "Open Estimate to see a breakdown of furniture and finish costs. Adjust markups, save versions, and export when ready."
+        },
+        "saveShare": {
+          "title": "Save & share",
+          "description": "Use Save Plan to store your work. The Actions menu has New Plan, Undo/Redo, and Share (if enabled for your account)."
+        },
+        "settings": {
+          "title": "Settings",
+          "description": "Open Settings to change units, wall height, custom catalog items, texture pricing, and language preferences."
+        }
+      }
+    },
     "viewToggle": {
       "3d": "3D",
       "2d": "2D"

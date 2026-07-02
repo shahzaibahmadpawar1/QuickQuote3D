@@ -179,6 +179,71 @@
       "tip2d": "提示：完成后点击「完成」切换到 3D 视图",
       "tip3d": "提示：使用顶部切换按钮在 2D 和 3D 视图间切换"
     },
+    "tutorial": {
+      "button": "教程",
+      "stepCounter": "第 {current} 步，共 {total} 步",
+      "workflowHint": "先在 2D 中绘制平面图，再切换到 3D 放置家具、应用饰面并查看成本估算。",
+      "back": "上一步",
+      "next": "下一步",
+      "finish": "完成",
+      "skip": "跳过教程",
+      "tryStep": "指出位置",
+      "startTour": "开始引导游览",
+      "tourProgress": "{{current}} / {{total}}",
+      "tourNext": "下一步",
+      "tourPrev": "上一步",
+      "tourDone": "完成",
+      "steps": {
+        "welcome": {
+          "title": "欢迎使用 QuickQuote3D",
+          "description": "本规划器可帮助您绘制平面图、在 3D 中布置家具并生成成本估算。按以下步骤了解完整工作流程。"
+        },
+        "projects": {
+          "title": "项目",
+          "description": "打开「项目」可加载已保存的方案或从房间预设开始。您的工作会保存在此处，方便随时返回。"
+        },
+        "draw2d": {
+          "title": "在 2D 中绘制墙体",
+          "description": "切换到 2D 视图并使用「绘制墙体」。点击放置墙角，完成后按 ESC。新建布局时，这始终是第一步。"
+        },
+        "refine2d": {
+          "title": "完善平面图",
+          "description": "使用「移动墙体」调整角点和墙体位置。双击墙体可输入精确长度。使用「删除墙体」修正错误。"
+        },
+        "switch3d": {
+          "title": "切换到 3D",
+          "description": "2D 平面图完成后，切换到 3D 视图。墙体将变为可漫游和布置家具的 3D 房间。"
+        },
+        "navigate3d": {
+          "title": "在 3D 中导航",
+          "description": "拖动旋转相机，滚轮缩放，右键拖动平移。随时点击 ? 按钮查看操作说明。"
+        },
+        "addItems": {
+          "title": "添加家具",
+          "description": "打开「添加物品」浏览目录。选择一件家具后，在 3D 地板上点击即可放置。"
+        },
+        "editFurniture": {
+          "title": "编辑已放置物品",
+          "description": "在 3D 中点击任意家具即可选中。通过菜单移动、旋转、调整大小、锁定或删除。"
+        },
+        "finishes": {
+          "title": "墙面与地板饰面",
+          "description": "在 3D 中点击墙面或地板打开饰面选择器。选择纹理或颜色——计入价格的饰面会纳入估算。"
+        },
+        "estimate": {
+          "title": "成本估算",
+          "description": "打开「估算」查看家具与饰面费用明细。可调整加价、保存版本并导出。"
+        },
+        "saveShare": {
+          "title": "保存与分享",
+          "description": "使用「保存方案」存储工作。「操作」菜单中有新建、撤销/重做和分享（若账户已启用）。"
+        },
+        "settings": {
+          "title": "设置",
+          "description": "打开「设置」可更改单位、墙高、自定义目录物品、纹理定价和语言偏好。"
+        }
+      }
+    },
     "viewToggle": {
       "3d": "3D",
       "2d": "2D"

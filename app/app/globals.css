@@ -440,3 +440,46 @@
 #loading-modal .loading-dots span:nth-child(1) { animation-delay: 0s; }
 #loading-modal .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
 #loading-modal .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Planner tutorial spotlight (driver.js) */
+.planner-tutorial-popover {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.15) !important;
+  max-width: min(360px, calc(100vw - 2rem)) !important;
+}
+
+.planner-tutorial-popover .driver-popover-title {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+}
+
+.planner-tutorial-popover .driver-popover-description {
+  font-size: 0.875rem !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.planner-tutorial-popover .driver-popover-progress-text {
+  font-size: 0.75rem !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.planner-tutorial-popover button {
+  border-radius: 9999px !important;
+  font-size: 0.8125rem !important;
+  padding: 0.375rem 0.875rem !important;
+  text-shadow: none !important;
+}
+
+.planner-tutorial-popover .driver-popover-next-btn,
+.planner-tutorial-popover .driver-popover-done-btn {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.planner-tutorial-popover .driver-popover-prev-btn {
+  background: hsl(var(--secondary)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+}

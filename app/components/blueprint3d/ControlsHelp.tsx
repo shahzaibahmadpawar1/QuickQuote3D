@@ -48,6 +48,7 @@ export function ControlsHelp({ className, viewMode = '3d' }: ControlsHelpProps) 
     <>
       <Button
         onClick={toggleHelp}
+        data-tour="controls-help"
         className={cn(
           'planner-pill fixed bottom-5 right-5 z-80 cursor-pointer border-0 shadow-lg transition-transform duration-200 hover:scale-105 motion-reduce:transform-none motion-reduce:hover:scale-100',
           'focus-visible:ring-2 focus-visible:ring-ring',

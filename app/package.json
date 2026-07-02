@@ -33,6 +33,7 @@
     "animejs": "^4.3.6",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "driver.js": "^1.6.0",
     "framer-motion": "^11.0.0",
     "jspdf": "^3.0.1",
     "lucide-react": "^0.469.0",
