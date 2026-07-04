@@ -99,7 +99,15 @@
     "f9Title": "房間模板",
     "f9Desc": "從臥室、廚房等預設快速開始。",
     "f10Title": "多語言介面",
-    "f10Desc": "支援英語、簡體中文與繁體中文。"
+    "f10Desc": "支援英語、簡體中文與繁體中文。",
+    "scrollCue": "向下捲動探索",
+    "chapterNavLabel": "頁面章節",
+    "chapterIntro": "簡介",
+    "chapterPlan": "規劃",
+    "chapterEstimate": "估價",
+    "chapterHome": "全屋",
+    "chapterSteps": "步驟",
+    "chapterFaq": "常見問題"
   },
   "BluePrint": {
     "sidebar": {

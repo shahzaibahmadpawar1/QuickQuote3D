@@ -99,7 +99,15 @@
     "f9Title": "Room templates",
     "f9Desc": "Start fast from bedroom, kitchen, and other presets instead of drawing from scratch.",
     "f10Title": "Multi-language UI",
-    "f10Desc": "Work in English, Simplified Chinese, or Traditional Chinese across the planner."
+    "f10Desc": "Work in English, Simplified Chinese, or Traditional Chinese across the planner.",
+    "scrollCue": "Scroll to explore",
+    "chapterNavLabel": "Page chapters",
+    "chapterIntro": "Intro",
+    "chapterPlan": "Plan",
+    "chapterEstimate": "Estimate",
+    "chapterHome": "Whole home",
+    "chapterSteps": "Steps",
+    "chapterFaq": "FAQ"
   },
   "BluePrint": {
     "sidebar": {

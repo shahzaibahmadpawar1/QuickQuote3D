@@ -69,6 +69,11 @@
 
   --color-accent-gold: hsl(var(--accent-gold));
 
+  /* Immersive landing (scoped dark scroll experience) */
+  --color-immersive: #0a0a0f;
+  --color-accent-violet: #8b5cf6; /* violet-500 */
+  --color-accent-cyan: #22d3ee; /* cyan-400 */
+
   /* Sidebar */
   --color-sidebar: hsl(var(--sidebar-background));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
@@ -314,38 +319,12 @@
     @apply border-white/10 bg-neutral-900/80 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.55)];
   }
 
-  .landing-glass {
-    @apply border border-white/40 bg-white/55 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] backdrop-blur-2xl;
-  }
-
-  .dark .landing-glass {
-    @apply border-white/10 bg-black/40 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.65)];
-  }
-
-  .landing-canvas {
-    @apply h-full w-full bg-transparent;
-  }
-
-  .landing-3d-viewport {
-    @apply bg-background;
-  }
-
-  .landing-scroll-lane {
-    touch-action: pan-y;
-  }
-
   .landing-scroll-root {
     scroll-behavior: smooth;
   }
 
   .landing-scroll-section {
     max-width: 100%;
-  }
-
-  @media (max-width: 1023px) {
-    .landing-scroll-section .landing-glass {
-      @apply max-w-full rounded-3xl p-6;
-    }
   }
 }
 
@@ -482,4 +461,583 @@
 .planner-tutorial-popover .driver-popover-prev-btn {
   background: hsl(var(--secondary)) !important;
   color: hsl(var(--secondary-foreground)) !important;
+}
+
+/* ------------------------------------------------------------------
+   Immersive landing — theme-aware (light + dark)
+   All rules are gated behind `.immersive-root` so they never affect
+   the planner, admin, auth, or the existing marketing chrome. Colours
+   are driven by CSS variables that flip with the global `.dark` class,
+   so the whole experience (HTML overlays + 3D-anchored labels) tracks
+   the light/dark toggle.
+------------------------------------------------------------------ */
+.immersive-root {
+  /* Light (default) palette. */
+  --imm-bg: #eef1f6;
+  --imm-ink: #1b1c22;
+  --imm-ink-dim: #52535d;
+  --imm-ink-faint: #8a8b95;
+  --imm-hairline: rgba(20, 22, 40, 0.12);
+  --imm-surface: rgba(20, 22, 40, 0.05);
+  --imm-glass-top: rgba(255, 255, 255, 0.82);
+  --imm-glass-bottom: rgba(244, 246, 250, 0.78);
+  --imm-card-border: rgba(20, 22, 40, 0.1);
+  --imm-card-shadow: 0 30px 80px -34px rgba(30, 35, 80, 0.35), 0 0 0 1px rgba(139, 92, 246, 0.05);
+  --imm-label-bg: rgba(255, 255, 255, 0.78);
+  --imm-label-ink: #2a2d3a;
+  --imm-measure-ink: #0e7d92;
+  --imm-badge-ink: #5b21b6;
+  --imm-chip-bg: rgba(255, 255, 255, 0.86);
+  --imm-chip-ink: #273038;
+  --imm-chip-price: #0e7d92;
+  --imm-avatar-ring: #eef1f6;
+  --imm-veil: rgba(238, 241, 246, 0.66);
+  --imm-grid-line: rgba(20, 22, 50, 0.07);
+  --imm-loader-bg: #eef1f6;
+  --imm-loader-ink: #1b1c22;
+  --imm-poster-line: rgba(28, 30, 60, 0.55);
+  --imm-poster-hair: rgba(28, 30, 60, 0.18);
+  --imm-poster-fill: rgba(28, 30, 60, 0.05);
+  --imm-poster-grid: rgba(28, 30, 60, 0.07);
+  --imm-poster-tick: rgba(28, 30, 60, 0.3);
+
+  min-height: 100vh;
+  background-color: var(--imm-bg);
+  color: var(--imm-ink);
+  font-family: var(--font-inter, var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif);
+  overflow-x: clip;
+}
+
+.dark .immersive-root {
+  --imm-bg: #0a0a0f;
+  --imm-ink: #f4f4f5;
+  --imm-ink-dim: #a1a1aa;
+  --imm-ink-faint: #71717a;
+  --imm-hairline: rgba(255, 255, 255, 0.1);
+  --imm-surface: rgba(255, 255, 255, 0.06);
+  --imm-glass-top: rgba(24, 24, 34, 0.72);
+  --imm-glass-bottom: rgba(12, 12, 20, 0.72);
+  --imm-card-border: rgba(255, 255, 255, 0.1);
+  --imm-card-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(139, 92, 246, 0.06);
+  --imm-label-bg: rgba(10, 10, 15, 0.35);
+  --imm-label-ink: #f4f4f5;
+  --imm-measure-ink: rgba(103, 232, 249, 0.9);
+  --imm-badge-ink: #ede9fe;
+  --imm-chip-bg: rgba(10, 12, 20, 0.72);
+  --imm-chip-ink: #e7f8fb;
+  --imm-chip-price: #67e8f9;
+  --imm-avatar-ring: #0b0b12;
+  --imm-veil: rgba(10, 10, 15, 0.72);
+  --imm-grid-line: rgba(255, 255, 255, 0.045);
+  --imm-loader-bg: #0a0a0f;
+  --imm-loader-ink: #ffffff;
+  --imm-poster-line: rgba(238, 240, 246, 0.6);
+  --imm-poster-hair: rgba(255, 255, 255, 0.14);
+  --imm-poster-fill: rgba(255, 255, 255, 0.05);
+  --imm-poster-grid: rgba(255, 255, 255, 0.05);
+  --imm-poster-tick: rgba(255, 255, 255, 0.25);
+}
+
+/* Violet → cyan accent gradient helpers for reuse in landing content. */
+.immersive-root .bg-gradient-accent {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-accent-violet, #8b5cf6),
+    var(--color-accent-cyan, #22d3ee)
+  );
+}
+
+.immersive-root .text-gradient-accent {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-accent-violet, #8b5cf6),
+    var(--color-accent-cyan, #22d3ee)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Floorplan section — drei <Html> labels anchored to the 3D plan. */
+.immersive-root .fp-room-label,
+.fp-room-label {
+  white-space: nowrap;
+  border-radius: 0.375rem;
+  background: var(--imm-label-bg, rgba(10, 10, 15, 0.35));
+  padding: 0.15rem 0.5rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--imm-label-ink, #f4f4f5);
+  backdrop-filter: blur(4px);
+  will-change: opacity, transform;
+}
+
+.fp-measure {
+  white-space: nowrap;
+  border-radius: 0.25rem;
+  background: var(--imm-label-bg, rgba(10, 10, 15, 0.5));
+  padding: 0.1rem 0.4rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--imm-measure-ink, rgba(103, 232, 249, 0.9));
+  will-change: opacity, transform;
+}
+
+.fp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  border-radius: 9999px;
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  background: rgba(139, 92, 246, 0.16);
+  padding: 0.35rem 0.75rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--imm-badge-ink, #ede9fe);
+  box-shadow: 0 0 30px -6px rgba(139, 92, 246, 0.45);
+  backdrop-filter: blur(8px);
+  transform-origin: center;
+  will-change: opacity, transform;
+}
+
+/* Furniture section — floating price chips anchored above each placed item. */
+.fp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  border-radius: 9999px;
+  border: 1px solid rgba(103, 232, 249, 0.35);
+  background: var(--imm-chip-bg, rgba(10, 12, 20, 0.72));
+  padding: 0.3rem 0.7rem;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--imm-chip-ink, #e7f8fb);
+  box-shadow: 0 8px 24px -10px rgba(34, 211, 238, 0.4);
+  backdrop-filter: blur(8px);
+  will-change: opacity, transform;
+}
+.fp-chip-dot {
+  height: 6px;
+  width: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #8b5cf6, #22d3ee);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.9);
+}
+.fp-chip-price {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+  color: var(--imm-chip-price, #67e8f9);
+}
+
+/* Quote section — glass price card + CTA glow. */
+.quote-card {
+  border-radius: 1.15rem;
+  border: 1px solid var(--imm-card-border, rgba(255, 255, 255, 0.1));
+  background: linear-gradient(180deg, var(--imm-glass-top), var(--imm-glass-bottom));
+  padding: 1rem 1.25rem;
+  box-shadow: var(--imm-card-shadow);
+  backdrop-filter: blur(16px);
+  will-change: opacity, transform;
+}
+
+.quote-cta {
+  box-shadow: 0 10px 30px -12px rgba(34, 211, 238, 0.6);
+  transition: box-shadow 0.3s ease, transform 0.15s ease;
+}
+.quote-cta:hover {
+  transform: translateY(-1px);
+}
+.quote-cta.is-ready {
+  animation: quote-cta-pulse 1.1s ease-out 1;
+}
+@keyframes quote-cta-pulse {
+  0% {
+    box-shadow: 0 10px 30px -12px rgba(34, 211, 238, 0.6), 0 0 0 0 rgba(34, 211, 238, 0.55);
+  }
+  60% {
+    box-shadow: 0 10px 34px -10px rgba(34, 211, 238, 0.9), 0 0 0 14px rgba(34, 211, 238, 0);
+  }
+  100% {
+    box-shadow: 0 10px 30px -12px rgba(34, 211, 238, 0.6), 0 0 0 0 rgba(34, 211, 238, 0);
+  }
+}
+
+/* Save & Share section — project card, share sheet, avatars. */
+.share-card {
+  border-radius: 0.9rem;
+  border: 1px solid var(--imm-card-border, rgba(255, 255, 255, 0.1));
+  background: linear-gradient(180deg, var(--imm-glass-top), var(--imm-glass-bottom));
+  box-shadow: var(--imm-card-shadow);
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+.share-card-chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--imm-hairline, rgba(255, 255, 255, 0.07));
+  padding: 0.55rem 0.75rem;
+}
+.share-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 9999px;
+}
+.share-url {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+  margin-left: 0.35rem;
+  border-radius: 9999px;
+  background: var(--imm-surface, rgba(255, 255, 255, 0.05));
+  padding: 0.2rem 0.6rem;
+  font-size: 0.68rem;
+  color: var(--imm-ink-dim, #a1a1aa);
+}
+.share-card-preview {
+  position: relative;
+  height: 148px;
+  background:
+    radial-gradient(120% 90% at 50% 8%, rgba(124, 92, 255, 0.18), transparent 60%),
+    linear-gradient(180deg, #12121c, #0b0b12);
+  padding: 0.5rem;
+}
+.share-badge-3d {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 10, 15, 0.6);
+  padding: 0.15rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #e4e4e7;
+}
+.share-badge-total {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 0.6rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #8b5cf6, #22d3ee);
+  padding: 0.2rem 0.55rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0a0a0f;
+}
+.share-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.85rem;
+}
+.share-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.15rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #6ee7b7;
+}
+.share-live-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: #34d399;
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+  animation: share-live-pulse 2s ease-out infinite;
+}
+@keyframes share-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+.share-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 0.55rem;
+  background: linear-gradient(135deg, #8b5cf6, #22d3ee);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0a0a0f;
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+.share-copy:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.share-copy.is-copied {
+  background: linear-gradient(135deg, #10b981, #34d399);
+}
+.share-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 9999px;
+  border: 2px solid var(--imm-avatar-ring, #0b0b12);
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #fff;
+}
+.share-avatar-more {
+  background: var(--imm-surface, rgba(255, 255, 255, 0.12));
+  color: var(--imm-ink-dim, #d4d4d8);
+}
+.share-viewed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 9999px;
+  border: 1px solid var(--imm-card-border, rgba(255, 255, 255, 0.1));
+  background: var(--imm-surface, rgba(255, 255, 255, 0.04));
+  padding: 0.3rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--imm-ink-dim, #a1a1aa);
+  transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+.share-viewed.is-done {
+  color: #6ee7b7;
+  border-color: rgba(52, 211, 153, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+/* Closing CTA — slow-drifting aurora mesh + large primary button. */
+.cta-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cta-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.28;
+  will-change: transform;
+}
+.cta-blob-a {
+  left: -8vw;
+  top: -10vw;
+  width: 46vw;
+  height: 46vw;
+  background: radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.9), transparent 68%);
+  animation: cta-drift-a 28s ease-in-out infinite;
+}
+.cta-blob-b {
+  right: -10vw;
+  top: 6%;
+  width: 42vw;
+  height: 42vw;
+  background: radial-gradient(circle at 60% 40%, rgba(34, 211, 238, 0.8), transparent 68%);
+  animation: cta-drift-b 34s ease-in-out infinite;
+}
+.cta-blob-c {
+  left: 28%;
+  bottom: -16vw;
+  width: 40vw;
+  height: 40vw;
+  opacity: 0.2;
+  background: radial-gradient(circle at 50% 50%, rgba(217, 70, 239, 0.7), transparent 68%);
+  animation: cta-drift-c 31s ease-in-out infinite;
+}
+@keyframes cta-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(6vw, 4vh) scale(1.12);
+  }
+}
+@keyframes cta-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-5vw, 6vh) scale(1.08);
+  }
+}
+@keyframes cta-drift-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(3vw, -5vh) scale(1.16);
+  }
+}
+.cta-veil {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 85% at 50% 42%, transparent 42%, var(--imm-veil, rgba(10, 10, 15, 0.72)) 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-blob {
+    animation: none !important;
+  }
+}
+
+.cta-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 1rem 2.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0a0a0f;
+  background: linear-gradient(90deg, #8b5cf6, #22d3ee);
+  box-shadow: 0 12px 44px -12px rgba(124, 92, 255, 0.55);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+.cta-primary:hover {
+  transform: translateY(-2px) scale(1.04);
+  filter: brightness(1.05);
+  box-shadow:
+    0 20px 64px -12px rgba(34, 211, 238, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* ------------------------------------------------------------------
+   Polish pass — grain, loading screen, lite-mode posters
+------------------------------------------------------------------ */
+
+/* Film-grain / noise overlay — sits above everything (below the loader and the
+   top progress bar) at ~4% opacity to break up flat colour banding on the dark
+   background. Pointer-events off so it never intercepts scroll or clicks. */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+/* Preloader */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4rem;
+  background: var(--imm-loader-bg, #0a0a0f);
+  transition: opacity 0.45s ease;
+}
+.loading-screen.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+.loading-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.loading-logo {
+  display: inline-flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #8b5cf6, #22d3ee);
+  animation: loading-pulse 1.6s ease-in-out infinite;
+}
+.loading-logo-inner {
+  height: 0.7rem;
+  width: 0.7rem;
+  border-radius: 3px;
+  background: var(--imm-loader-bg, #0a0a0f);
+}
+.loading-word {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--imm-loader-ink, #fff);
+}
+.loading-bar {
+  width: 220px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--imm-surface, rgba(255, 255, 255, 0.1));
+}
+.loading-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #8b5cf6, #22d3ee);
+  transition: width 0.12s linear;
+}
+.loading-pct {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  color: #71717a;
+}
+@keyframes loading-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.88);
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-logo {
+    animation: none;
+  }
+}
+
+/* Static SVG poster shown instead of a WebGL scene in lite mode. */
+.poster-3d {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  aspect-ratio: 26 / 18;
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55));
+}
+
+/* Faint static graph-paper backdrop for the hero in lite mode (no 3D grid). */
+.lite-hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--imm-grid-line, rgba(255, 255, 255, 0.045)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--imm-grid-line, rgba(255, 255, 255, 0.045)) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(120% 80% at 50% 45%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(120% 80% at 50% 45%, #000 30%, transparent 78%);
 }
