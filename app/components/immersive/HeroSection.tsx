@@ -22,6 +22,7 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
 
   const sectionRef = useRef<HTMLElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
+  const scrollCueRef = useRef<HTMLButtonElement>(null)
 
   const [wordIndex, setWordIndex] = useState(0)
   const rotatingWords = useMemo(
@@ -37,10 +38,9 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
     return () => window.clearInterval(timer)
   }, [reduceMotion, rotatingWords.length])
 
-  // Full mode only: pin the hero for ~70% of the viewport height, then release.
-  // Keeping the pin short (and fading the text only in the last stretch) avoids
-  // a long empty "dead scroll" between the hero and the floorplan section.
-  // Lite mode (mobile / reduced motion) leaves it as a normal, unpinned section.
+  // Full mode: track scroll progress through the hero (no pin). Pinning added ~70%
+  // extra scroll height after the intro faded out, which felt like a blank gap
+  // before the floorplan section. Lite mode skips ScrollTrigger entirely.
   useEffect(() => {
     if (!mounted || lite) return
     const el = sectionRef.current
@@ -49,16 +49,17 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
     const trigger = ScrollTrigger.create({
       trigger: el,
       start: 'top top',
-      end: '+=70%',
-      pin: true,
-      pinSpacing: true,
+      end: 'bottom top',
       onUpdate: (self) => {
         store.setSection('hero', self.progress)
-        // Fade the overlay out only in the final stretch of the pin so the text
-        // stays visible almost until the floorplan takes over (no React re-render).
         if (overlayRef.current) {
-          const t = Math.min(1, Math.max(0, (self.progress - 0.85) / 0.15))
+          const t = Math.min(1, Math.max(0, (self.progress - 0.55) / 0.35))
           overlayRef.current.style.opacity = String(1 - t)
+        }
+        if (scrollCueRef.current) {
+          const hide = self.progress > 0.12 ? 1 : 0
+          scrollCueRef.current.style.opacity = String(1 - hide)
+          scrollCueRef.current.style.pointerEvents = hide ? 'none' : 'auto'
         }
       },
       onRefresh: (self) => store.setSection('hero', self.progress)
@@ -91,7 +92,7 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
     <section
       ref={sectionRef}
       data-section="hero"
-      className="relative z-10 flex min-h-screen w-full items-center justify-center px-6 py-28"
+      className="relative z-10 flex min-h-svh w-full items-center justify-center px-6 py-20"
     >
       {/* Lite mode has no 3D grid behind the hero — add a faint static one so it
           isn't a flat panel. */}
@@ -172,15 +173,16 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
         </motion.p>
       </motion.div>
 
-      {/* Scroll-down indicator */}
+      {/* Scroll-down indicator — hidden once the user starts leaving the hero. */}
       <motion.button
+        ref={scrollCueRef}
         type="button"
         onClick={scrollToStory}
         aria-label="Scroll to see how it works"
         initial={reduceMotion ? { opacity: 1 } : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.1, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 cursor-pointer flex-col items-center gap-2 text-muted-foreground transition-colors hover:text-foreground [@media(min-height:700px)]:flex"
+        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 cursor-pointer flex-col items-center gap-2 text-muted-foreground transition-opacity duration-300 hover:text-foreground [@media(min-height:700px)]:flex"
       >
         <span className="text-[11px] font-medium uppercase tracking-[0.3em]">Scroll</span>
         <motion.span

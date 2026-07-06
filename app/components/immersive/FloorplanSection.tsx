@@ -44,16 +44,15 @@ export function FloorplanSection() {
     <section
       ref={sectionRef}
       data-section="floorplan"
-      className="relative z-10 min-h-screen w-full"
+      className="relative z-10 min-h-svh w-full"
     >
       {/* Split layout: text on the LEFT (Step 01), 3D plan sits on the right
           (rendered in the shared canvas behind this transparent column). */}
-      <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 items-center gap-8 px-6 md:grid-cols-2">
+      <div className="mx-auto grid min-h-svh max-w-7xl grid-cols-1 items-center gap-8 px-6 md:grid-cols-2">
         <motion.div
           variants={container}
           initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.4 }}
+          animate="show"
           className="max-w-xl"
         >
           <motion.p

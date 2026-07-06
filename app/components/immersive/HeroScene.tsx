@@ -151,7 +151,10 @@ export function HeroScene({ store, palette }: { store: ScrollStoryStore; palette
     // Mount fade-in + scroll-driven fade-out ("only visible while active").
     const fadeIn = smoothstep(0, 0.8, elapsed)
     const progress = store.getSection('hero')
-    const fadeOut = 1 - smoothstep(0.82, 1, progress)
+    const floorplan = store.getSection('floorplan')
+    const heroFade = 1 - smoothstep(0.75, 1, progress)
+    const handoffFade = 1 - smoothstep(0, 0.06, floorplan)
+    const fadeOut = Math.min(heroFade, handoffFade)
     const visibility = fadeIn * fadeOut
 
     const group = groupRef.current
