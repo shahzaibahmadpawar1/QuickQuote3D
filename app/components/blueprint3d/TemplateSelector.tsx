@@ -116,7 +116,7 @@ export function TemplateSelector({
   }
 
   return (
-    <div className="h-full bg-gradient-to-br from-primary-50 via-background to-background">
+    <div className="h-full bg-linear-to-br from-primary-50 via-background to-background">
       <div
         ref={scrollContainerRef}
         className="h-full flex flex-col items-center justify-center overflow-y-auto"
@@ -136,7 +136,7 @@ export function TemplateSelector({
           {error && (
             <div className="mb-6 mx-auto max-w-md rounded-lg border border-destructive bg-destructive/10 p-4">
               <div className="flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+                <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             </div>
@@ -157,7 +157,7 @@ export function TemplateSelector({
                     value={roomType}
                     className="text-sm px-3 py-2.5 gap-2 flex items-center justify-center data-[state=active]:shadow-sm"
                   >
-                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <Icon className="h-4 w-4 shrink-0" />
                     <span className="hidden sm:inline">{t(`roomTypes.${roomType}`)}</span>
                   </TabsTrigger>
                 )

@@ -41,6 +41,16 @@ const WALL_HEIGHT_TO_CM: Record<WallHeightDisplayUnit, number> = {
 // Language display names map
 type LanguageMap = Record<string, string>
 
+// Stable empty defaults. Using shared module-level constants (instead of inline
+// `= {}` default parameters) guarantees these props keep the SAME reference
+// across renders when the parent passes `undefined`. Inline `= {}` defaults
+// allocate a brand-new object every render, which makes effects that depend on
+// them (e.g. the draft-prices effect below) re-run and setState endlessly —
+// the "Maximum update depth exceeded" crash that happened when the Settings
+// dialog was opened before `/api/pricing` had resolved.
+const EMPTY_NUMBER_MAP: Record<string, number> = {}
+const EMPTY_LANGUAGE_MAP: LanguageMap = {}
+
 interface SettingsProps {
   onUnitChange?: (unit: string) => void
   wallHeightCm?: number
@@ -67,10 +77,10 @@ export function Settings({
   onUnitChange,
   wallHeightCm = 250,
   onWallHeightChange,
-  languageMap = {},
+  languageMap = EMPTY_LANGUAGE_MAP,
   isLanguageOption,
-  itemPrices = {},
-  userItemOverrides = {},
+  itemPrices = EMPTY_NUMBER_MAP,
+  userItemOverrides = EMPTY_NUMBER_MAP,
   currency = 'USD',
   catalogItems = ITEMS,
   showOnlyCustomItems = false,
@@ -154,12 +164,19 @@ export function Settings({
   }, [])
 
   useEffect(() => {
-    const next: Record<string, string> = {}
-    for (const item of catalogItems) {
-      const value = itemPrices[item.key]
-      next[item.key] = Number.isFinite(value) ? String(value) : ''
-    }
-    setDraftPrices(next)
+    setDraftPrices((prev) => {
+      const next: Record<string, string> = {}
+      let changed = Object.keys(prev).length !== catalogItems.length
+      for (const item of catalogItems) {
+        const value = itemPrices[item.key]
+        const str = Number.isFinite(value) ? String(value) : ''
+        next[item.key] = str
+        if (prev[item.key] !== str) changed = true
+      }
+      // Bail out with the previous reference when nothing changed so this
+      // effect can never cause a render → effect → render feedback loop.
+      return changed ? next : prev
+    })
   }, [catalogItems, itemPrices])
 
   useEffect(() => {

@@ -37,7 +37,9 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
     return () => window.clearInterval(timer)
   }, [reduceMotion, rotatingWords.length])
 
-  // Full mode only: pin the hero for ~150% of the viewport height, then release.
+  // Full mode only: pin the hero for ~70% of the viewport height, then release.
+  // Keeping the pin short (and fading the text only in the last stretch) avoids
+  // a long empty "dead scroll" between the hero and the floorplan section.
   // Lite mode (mobile / reduced motion) leaves it as a normal, unpinned section.
   useEffect(() => {
     if (!mounted || lite) return
@@ -47,14 +49,15 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
     const trigger = ScrollTrigger.create({
       trigger: el,
       start: 'top top',
-      end: '+=150%',
+      end: '+=70%',
       pin: true,
       pinSpacing: true,
       onUpdate: (self) => {
         store.setSection('hero', self.progress)
-        // Fade the overlay out as the pin releases (no React re-render).
+        // Fade the overlay out only in the final stretch of the pin so the text
+        // stays visible almost until the floorplan takes over (no React re-render).
         if (overlayRef.current) {
-          const t = Math.min(1, Math.max(0, (self.progress - 0.65) / 0.35))
+          const t = Math.min(1, Math.max(0, (self.progress - 0.85) / 0.15))
           overlayRef.current.style.opacity = String(1 - t)
         }
       },
@@ -105,7 +108,7 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
           variants={item}
           className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-sm"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-violet-500 to-cyan-400" />
+          <span className="h-1.5 w-1.5 rounded-full bg-linear-to-r from-violet-500 to-cyan-400" />
           {t('badge')}
         </motion.p>
 
@@ -119,7 +122,7 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
             <AnimatePresence mode="wait">
               <motion.span
                 key={rotatingWords[wordIndex]}
-                className="inline-block bg-gradient-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent"
+                className="inline-block bg-linear-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent"
                 initial={reduceMotion ? false : { opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={reduceMotion ? undefined : { opacity: 0, y: -18 }}
@@ -147,9 +150,9 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
           >
             <span
               aria-hidden
-              className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-80"
+              className="absolute inset-0 rounded-full bg-linear-to-r from-violet-500 to-cyan-400 opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-80"
             />
-            <span className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-transform duration-300 group-hover:scale-[1.03]" />
+            <span className="absolute inset-0 rounded-full bg-linear-to-r from-violet-500 to-cyan-400 transition-transform duration-300 group-hover:scale-[1.03]" />
             <span className="relative">{cta.label}</span>
           </Link>
 

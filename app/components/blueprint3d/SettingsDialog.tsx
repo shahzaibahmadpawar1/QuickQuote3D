@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Settings } from './Settings'
 import type { CatalogListItem, UserCatalogItem } from '@/types/user-item'
@@ -64,6 +65,7 @@ export function SettingsDialog({
       <DialogContent className="flex max-h-[85vh] w-[95vw] flex-col overflow-hidden rounded-2xl sm:max-w-5xl!">
         <DialogHeader className="sticky top-0 z-10 shrink-0 border-b border-border bg-card pb-4">
           <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription className="sr-only">{t('description')}</DialogDescription>
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto py-4 [-webkit-overflow-scrolling:touch]">
           <Settings

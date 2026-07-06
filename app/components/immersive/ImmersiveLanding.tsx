@@ -6,6 +6,7 @@ import { ScrollStoryProvider, useGlobalProgress } from './scroll-story'
 import { LandingModeProvider, useLandingMode } from './landing-mode'
 import { LoadingScreen } from './LoadingScreen'
 import { ImmersiveNav } from './ImmersiveNav'
+import { SectionRail } from './SectionRail'
 import { useLandingCta } from './use-landing-cta'
 import { Scene3D } from './Scene3D'
 import { HeroSection } from './HeroSection'
@@ -21,7 +22,7 @@ function ScrollProgressBar() {
   return (
     <div className="fixed inset-x-0 top-0 z-50 h-1 w-full bg-foreground/5">
       <div
-        className="h-full origin-left bg-gradient-to-r from-violet-500 to-cyan-400"
+        className="h-full origin-left bg-linear-to-r from-violet-500 to-cyan-400"
         style={{ transform: `scaleX(${progress})` }}
       />
     </div>
@@ -46,6 +47,7 @@ function LandingContent({
       {canvas3D && <Scene3D onReady={() => setCanvasReady(true)} />}
       <ScrollProgressBar />
       <ImmersiveNav isAuthenticated={isAuthenticated} primaryHref={cta.href} primaryLabel={cta.label} />
+      <SectionRail />
 
       {/* Film-grain / noise overlay to break up flat colour banding. */}
       <div aria-hidden className="grain-overlay" />

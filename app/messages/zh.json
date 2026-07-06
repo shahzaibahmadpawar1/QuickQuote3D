@@ -334,6 +334,7 @@
     },
     "settings": {
       "title": "设置",
+      "description": "更改单位、墙高、自定义目录物品、纹理定价和语言偏好。",
       "dimensionUnit": "尺寸单位",
       "language": "语言",
       "languageDescription": "选择您的首选语言",

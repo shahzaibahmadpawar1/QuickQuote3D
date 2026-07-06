@@ -193,7 +193,7 @@ export function BedSizeInput({
 
   return (
     <div className="mx-5 mb-4">
-      <div className="bg-gradient-to-r from-primary/10 to-primary/5 border-2 border-primary/20 rounded-lg shadow-sm">
+      <div className="bg-linear-to-r from-primary/10 to-primary/5 border-2 border-primary/20 rounded-lg shadow-sm">
         <div className="bg-primary/90 px-4 py-3 border-b border-primary/30 rounded-t-lg">
           <h3 className="font-semibold text-primary-foreground flex items-center gap-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

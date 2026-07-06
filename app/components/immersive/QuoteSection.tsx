@@ -131,7 +131,7 @@ function QuotePanel() {
 
       <button
         type="button"
-        className={`quote-cta mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-[#0a0a0f] ${
+        className={`quote-cta mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-violet-500 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-immersive ${
           ready ? 'is-ready' : ''
         }`}
         style={{ opacity: clamp01((p - 0.86) / 0.08) }}
@@ -195,7 +195,7 @@ export function QuoteSection() {
             variants={item}
             className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.28em] text-cyan-400"
           >
-            <span className="h-px w-8 bg-gradient-to-r from-violet-500 to-cyan-400" />
+            <span className="h-px w-8 bg-linear-to-r from-violet-500 to-cyan-400" />
             Step 04
           </motion.p>
 

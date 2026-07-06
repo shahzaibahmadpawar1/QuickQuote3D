@@ -334,6 +334,7 @@
     },
     "settings": {
       "title": "Settings",
+      "description": "Change units, wall height, custom catalog items, texture pricing, and language preferences.",
       "dimensionUnit": "Dimension Unit",
       "language": "Language",
       "languageDescription": "Select your preferred language",

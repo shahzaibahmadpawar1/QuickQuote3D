@@ -340,6 +340,25 @@
   }
 }
 
+/* Lenis smooth-scroll reset. While Lenis is active it drives scrolling itself
+   by setting scrollTop every frame; the native `scroll-behavior: smooth` above
+   would re-animate each of those programmatic sets, fighting Lenis and making
+   the wheel feel laggy (a ~1s crawl) even though the scrollbar — pure user
+   input — stays responsive. Lenis tags <html> with `.lenis`/`.lenis-smooth`,
+   so this only disables native smooth-scroll on pages that actually use Lenis
+   (the immersive landing), leaving the rest of the app untouched. */
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
 /* ------------------------------------------------------------------
    Scrollbar utilities
 ------------------------------------------------------------------ */

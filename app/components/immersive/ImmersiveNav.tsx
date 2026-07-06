@@ -78,7 +78,7 @@ export function ImmersiveNav({ isAuthenticated = false, primaryHref, primaryLabe
           )}
           <Link
             href={primaryHref}
-            className="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 px-4 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(124,92,255,0.7)] transition-transform duration-200 hover:scale-[1.03] sm:h-10 sm:px-5"
+            className="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-linear-to-r from-violet-500 to-cyan-400 px-4 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(124,92,255,0.7)] transition-transform duration-200 hover:scale-[1.03] sm:h-10 sm:px-5"
           >
             {primaryLabel}
           </Link>

@@ -33,9 +33,14 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       return
     }
 
+    // Snappy, frame-rate-independent smoothing. Lenis' `lerp` uses exponential
+    // damping (1 - e^(-60·lerp·dt)), so a higher value settles the wheel almost
+    // immediately (~0.2s) instead of the floaty ~1s tail a large `duration`
+    // gave. `wheelMultiplier` moves a bit more per notch so long pinned sections
+    // don't feel like they take forever to scroll through.
     const instance = new Lenis({
-      duration: 1.1,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.2,
+      wheelMultiplier: 1.15,
       smoothWheel: true
     })
     setLenis(instance)
