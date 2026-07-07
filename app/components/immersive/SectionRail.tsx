@@ -99,7 +99,7 @@ export function SectionRail() {
               <span
                 className={
                   active
-                    ? 'h-3 w-3 rounded-full bg-linear-to-br from-violet-500 to-cyan-400 shadow-[0_0_10px_2px_rgba(124,92,255,0.55)]'
+                    ? 'h-3 w-3 rounded-full bg-gradient-accent-br shadow-[0_0_10px_2px_rgba(124,134,84,0.5)]'
                     : done
                       ? 'h-1.5 w-1.5 rounded-full bg-foreground/45 transition-all duration-200'
                       : 'h-1.5 w-1.5 rounded-full bg-foreground/25 transition-all duration-200 group-hover:scale-125 group-hover:bg-foreground/60'
@@ -118,7 +118,7 @@ export function SectionRail() {
                 <span
                   className={
                     active
-                      ? 'bg-linear-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent'
+                      ? 'text-gradient-accent'
                       : 'text-foreground/75'
                   }
                 >

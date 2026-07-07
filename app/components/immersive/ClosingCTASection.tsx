@@ -54,7 +54,7 @@ export function ClosingCTASection() {
             variants={item}
             className="text-4xl font-semibold leading-[1.03] tracking-tight sm:text-6xl md:text-7xl"
           >
-            <span className="bg-linear-to-r from-violet-300 via-fuchsia-300 to-cyan-200 bg-clip-text text-transparent">
+            <span className="text-gradient-accent">
               Give every client a reason to say yes.
             </span>
           </motion.h2>
@@ -87,7 +87,7 @@ export function ClosingCTASection() {
       >
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 sm:flex-row sm:justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-violet-500 to-cyan-400">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-accent-br">
               <span className="h-3 w-3 rounded-[3px] bg-immersive" />
             </span>
             <span className="text-sm font-semibold tracking-tight text-foreground">QuickQuote3D</span>

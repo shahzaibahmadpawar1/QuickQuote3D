@@ -27,9 +27,9 @@ const roomColor = '#f9f9f9'
 const wallWidth = 5
 const wallWidthHover = 7
 const wallColor = '#dddddd'
-const wallColorHover = '#008cba'
+const wallColorHover = '#7C8654'
 const edgeColor = '#888888'
-const edgeColorHover = '#008cba'
+const edgeColorHover = '#7C8654'
 const edgeWidth = 1
 const doorColor = '#5b5b5b'
 const doorLeafColor = '#2f2f2f'
@@ -41,7 +41,7 @@ const deleteColor = '#ff0000'
 const cornerRadius = 0
 const cornerRadiusHover = 7
 const cornerColor = '#cccccc'
-const cornerColorHover = '#008cba'
+const cornerColorHover = '#7C8654'
 
 /**
  * The View to be used by a Floorplanner to render in/interact with.

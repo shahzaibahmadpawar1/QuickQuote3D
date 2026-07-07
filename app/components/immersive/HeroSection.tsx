@@ -109,7 +109,7 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
           variants={item}
           className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-sm"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-linear-to-r from-violet-500 to-cyan-400" />
+          <span className="h-1.5 w-1.5 rounded-full bg-gradient-accent" />
           {t('badge')}
         </motion.p>
 
@@ -123,7 +123,7 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
             <AnimatePresence mode="wait">
               <motion.span
                 key={rotatingWords[wordIndex]}
-                className="inline-block bg-linear-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent"
+                className="inline-block text-gradient-accent"
                 initial={reduceMotion ? false : { opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={reduceMotion ? undefined : { opacity: 0, y: -18 }}
@@ -147,13 +147,13 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
         <motion.div variants={item} className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
           <Link
             href={cta.href}
-            className="group relative inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-white"
+            className="group relative inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-primary-foreground"
           >
             <span
               aria-hidden
-              className="absolute inset-0 rounded-full bg-linear-to-r from-violet-500 to-cyan-400 opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-80"
+              className="absolute inset-0 rounded-full bg-gradient-accent opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-80"
             />
-            <span className="absolute inset-0 rounded-full bg-linear-to-r from-violet-500 to-cyan-400 transition-transform duration-300 group-hover:scale-[1.03]" />
+            <span className="absolute inset-0 rounded-full bg-gradient-accent transition-transform duration-300 group-hover:scale-[1.03]" />
             <span className="relative">{cta.label}</span>
           </Link>
 

@@ -89,9 +89,9 @@ export function HeroScene({ store, palette }: { store: ScrollStoryStore; palette
     const ctx = canvas.getContext('2d')
     if (!ctx) return null
     const gradient = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2)
-    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.55)')
-    gradient.addColorStop(0.45, 'rgba(88, 70, 175, 0.2)')
-    gradient.addColorStop(1, 'rgba(10, 10, 15, 0)')
+    gradient.addColorStop(0, 'rgba(184, 147, 95, 0.55)')
+    gradient.addColorStop(0.45, 'rgba(124, 134, 84, 0.22)')
+    gradient.addColorStop(1, 'rgba(217, 208, 190, 0)')
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, s, s)
     const texture = new THREE.CanvasTexture(canvas)
@@ -230,7 +230,7 @@ export function HeroScene({ store, palette }: { store: ScrollStoryStore; palette
       <Line
         ref={lineRef}
         points={sketch.points}
-        color="#b794ff"
+        color="#B8935F"
         lineWidth={2.4}
         dashed
         dashScale={1}
@@ -245,7 +245,7 @@ export function HeroScene({ store, palette }: { store: ScrollStoryStore; palette
       {/* Pen tip. */}
       <mesh ref={tipRef}>
         <sphereGeometry args={[0.055, 16, 16]} />
-        <meshBasicMaterial color="#e9d5ff" transparent opacity={0} toneMapped={false} />
+        <meshBasicMaterial color="#DCD6C9" transparent opacity={0} toneMapped={false} />
       </mesh>
 
       {/* Dust motes. */}
@@ -255,7 +255,7 @@ export function HeroScene({ store, palette }: { store: ScrollStoryStore; palette
         </bufferGeometry>
         <pointsMaterial
           size={0.04}
-          color="#c4b5fd"
+          color="#A67C52"
           transparent
           opacity={0}
           depthWrite={false}

@@ -22,79 +22,79 @@ export function HeroMockup() {
   const reduceMotion = useReducedMotion()
 
   return (
-    <div className="relative rounded-[18px] border border-violet-100 bg-white p-4 shadow-[0_35px_90px_-36px_rgba(30,41,59,0.36)]">
-      <div className="pointer-events-none absolute -left-8 -top-8 h-32 w-32 rounded-full bg-violet-200/40 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-6 -right-6 h-28 w-28 rounded-full bg-cyan-200/50 blur-3xl" />
+    <div className="relative rounded-[18px] border border-[#C4BAA6] bg-card p-4 shadow-[0_35px_90px_-36px_rgba(107,74,52,0.22)]">
+      <div className="pointer-events-none absolute -left-8 -top-8 h-32 w-32 rounded-full bg-[#C4BAA6]/50 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-6 -right-6 h-28 w-28 rounded-full bg-[#D9D0BE]/70 blur-3xl" />
 
       <div className="relative">
         <div className="mb-4 flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-          <span className="ml-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+          <span className="ml-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
             <QuickQuoteLogo size={14} />
             QuickQuote3D — 3D Planner
           </span>
         </div>
 
-        <div className="grid min-h-[340px] grid-cols-[56px_1fr_190px] overflow-hidden rounded-[14px] border border-slate-200 bg-slate-50">
-          <div className="border-r border-slate-200 bg-white p-3">
+        <div className="grid min-h-[340px] grid-cols-[56px_1fr_190px] overflow-hidden rounded-[14px] border border-border bg-muted">
+          <div className="border-r border-border bg-card p-3">
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className={`mb-2 h-8 rounded-md ${i === 0 ? 'bg-violet-100' : i === 1 ? 'bg-cyan-100' : 'bg-slate-200'}`}
+                className={`mb-2 h-8 rounded-md ${i === 0 ? 'bg-primary/15' : i === 1 ? 'bg-accent/30' : 'bg-muted'}`}
                 {...(!reduceMotion ? floatProps(i * 0.3, 4) : {})}
               />
             ))}
           </div>
 
-          <div className="relative overflow-hidden border-r border-slate-200 bg-[radial-gradient(circle_at_1px_1px,rgba(167,139,250,.22)_1px,transparent_0)] bg-size-[24px_24px]">
+          <div className="relative overflow-hidden border-r border-border bg-[radial-gradient(circle_at_1px_1px,rgba(124,134,84,.18)_1px,transparent_0)] bg-size-[24px_24px]">
             {!reduceMotion && (
               <motion.div
-                className="absolute inset-0 bg-linear-to-br from-violet-100/20 via-transparent to-cyan-100/20"
+                className="absolute inset-0 bg-linear-to-br from-[#C4BAA6]/25 via-transparent to-[#D9D0BE]/30"
                 animate={{ opacity: [0.35, 0.65, 0.35] }}
                 transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
               />
             )}
 
             <motion.div
-              className="absolute left-8 top-8 h-40 w-52 rounded-md border-2 border-violet-300 bg-violet-100/40"
+              className="absolute left-8 top-8 h-40 w-52 rounded-md border-2 border-[#A88968] bg-[#C4BAA6]/35"
               {...(!reduceMotion ? floatProps(0, 6) : {})}
             />
             <motion.div
-              className="absolute bottom-14 left-12 h-8 w-16 rounded bg-violet-400/50 shadow-sm"
+              className="absolute bottom-14 left-12 h-8 w-16 rounded bg-[#B8935F]/50 shadow-sm"
               {...(!reduceMotion ? floatProps(0.5, 5) : {})}
             />
             <motion.div
-              className="absolute right-16 top-20 h-10 w-10 rounded bg-cyan-400/60 shadow-sm"
+              className="absolute right-16 top-20 h-10 w-10 rounded bg-[#7C8654]/55 shadow-sm"
               {...(!reduceMotion ? floatProps(0.8, 7) : {})}
             />
             <motion.div
-              className="absolute left-14 top-12 h-3 w-20 rounded bg-violet-500/35"
+              className="absolute left-14 top-12 h-3 w-20 rounded bg-[#8C6B4A]/35"
               {...(!reduceMotion ? floatProps(1.1, 4) : {})}
             />
 
-            <div className="absolute bottom-3 left-3 flex gap-1.5 rounded-full border border-slate-200 bg-white/90 px-2.5 py-1 text-[10px] font-medium text-slate-600 shadow-sm">
-              <span className="rounded-full bg-violet-600 px-2 py-0.5 text-white">3D</span>
+            <div className="absolute bottom-3 left-3 flex gap-1.5 rounded-full border border-border bg-card/90 px-2.5 py-1 text-[10px] font-medium text-muted-foreground shadow-sm">
+              <span className="rounded-full bg-primary px-2 py-0.5 text-primary-foreground">3D</span>
               <span className="py-0.5">Live estimate</span>
             </div>
           </div>
 
-          <div className="bg-white p-4">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-slate-500">
+          <div className="bg-card p-4">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground">
               Cost breakdown
             </p>
             <div className="space-y-0">
               {COST_LINES.map(([name, value], index) => (
                 <motion.div
                   key={name}
-                  className="flex items-center justify-between border-b border-slate-100 py-1.5 text-[11px]"
+                  className="flex items-center justify-between border-b border-border py-1.5 text-[11px]"
                   initial={reduceMotion ? false : { opacity: 0, x: 12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 + index * 0.12, duration: 0.4 }}
                 >
-                  <span className="text-slate-500">{name}</span>
-                  <span className="font-medium text-slate-800">{value}</span>
+                  <span className="text-muted-foreground">{name}</span>
+                  <span className="font-medium text-foreground">{value}</span>
                 </motion.div>
               ))}
             </div>
@@ -104,9 +104,9 @@ export function HeroMockup() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 1.1, duration: 0.45 }}
             >
-              <span className="text-slate-500">Total</span>
+              <span className="text-muted-foreground">Total</span>
               <motion.span
-                className="text-[15px] font-semibold text-cyan-700"
+                className="text-[15px] font-semibold text-accent-gold"
                 {...(!reduceMotion
                   ? {
                       animate: { scale: [1, 1.04, 1] },

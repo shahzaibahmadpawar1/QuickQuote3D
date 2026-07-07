@@ -78,9 +78,9 @@ export function FurnitureSection() {
         >
           <motion.p
             variants={item}
-            className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.28em] text-cyan-400"
+            className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.28em] text-accent-warm"
           >
-            <span className="h-px w-8 bg-linear-to-r from-violet-500 to-cyan-400" />
+            <span className="h-px w-8 bg-gradient-accent" />
             Step 03
           </motion.p>
 

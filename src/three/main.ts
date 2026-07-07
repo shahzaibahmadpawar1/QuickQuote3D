@@ -111,7 +111,7 @@ export class Main {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 1.05
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
-    this.renderer.setClearColor(0xfaf8f5, 1)
+    this.renderer.setClearColor(0xd9d0be, 1)
 
     const envMap = createRoomEnvironment(this.renderer)
     this.scene.getScene().environment = envMap
@@ -171,8 +171,8 @@ export class Main {
   private getSkyboxColors(): { topColor: number; bottomColor: number } {
     // Default colors (fallback if CSS variables are not available)
     // Using subtle sky gradient for better wall contrast
-    const defaultTopColor = 0xf2f0ed
-    const defaultBottomColor = 0xfaf8f5
+    const defaultTopColor = 0xdcd6c9
+    const defaultBottomColor = 0xd9d0be
 
     // Try to read from CSS variables (browser environment only)
     if (typeof window === 'undefined' || typeof document === 'undefined') {

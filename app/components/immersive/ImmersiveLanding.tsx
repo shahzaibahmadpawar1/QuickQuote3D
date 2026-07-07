@@ -22,7 +22,7 @@ function ScrollProgressBar() {
   return (
     <div className="fixed inset-x-0 top-0 z-50 h-1 w-full bg-foreground/5">
       <div
-        className="h-full origin-left bg-linear-to-r from-violet-500 to-cyan-400"
+        className="h-full origin-left bg-gradient-accent"
         style={{ transform: `scaleX(${progress})` }}
       />
     </div>

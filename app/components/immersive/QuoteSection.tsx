@@ -70,7 +70,7 @@ function QuotePanel() {
     >
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent-warm">
             Project quote
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">Maple Street — 42 m²</p>
@@ -131,7 +131,7 @@ function QuotePanel() {
 
       <button
         type="button"
-        className={`quote-cta mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-violet-500 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-immersive ${
+        className={`quote-cta mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-accent px-5 py-2.5 text-sm font-semibold text-primary-foreground ${
           ready ? 'is-ready' : ''
         }`}
         style={{ opacity: clamp01((p - 0.86) / 0.08) }}
@@ -193,9 +193,9 @@ export function QuoteSection() {
         >
           <motion.p
             variants={item}
-            className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.28em] text-cyan-400"
+            className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.28em] text-accent-warm"
           >
-            <span className="h-px w-8 bg-linear-to-r from-violet-500 to-cyan-400" />
+            <span className="h-px w-8 bg-gradient-accent" />
             Step 04
           </motion.p>
 

@@ -1,3 +1,5 @@
+import { BRAND } from '@/lib/brand-palette'
+
 /**
  * Colour palette for the 3D scenes, keyed off the active (light/dark) theme.
  *
@@ -5,10 +7,6 @@
  * reads the resolved next-themes value in the DOM tree and threads the matching
  * palette into every scene as a prop. Toggling the theme rebuilds the palette
  * and the scenes update their materials in place.
- *
- * Only theme-dependent colours live here. Accent hues (violet / cyan / emerald)
- * and natural furniture/material colours read well on both backgrounds and stay
- * hard-coded in the scenes.
  */
 export interface ImmersivePalette {
   isDark: boolean
@@ -23,7 +21,7 @@ export interface ImmersivePalette {
   wallStrong: string
   /** Interior partition lines. */
   wallSoft: string
-  /** Cyan dimension lines. */
+  /** Dimension lines. */
   dimLine: string
   /** Extruded 3D wall material colour (Lift section). */
   liftWall: string
@@ -33,29 +31,29 @@ export interface ImmersivePalette {
 
 const DARK: ImmersivePalette = {
   isDark: true,
-  fog: '#0a0a0f',
+  fog: '#3d2a1e',
   ambient: 0.5,
   dirIntensity: 0.35,
-  gridMinor: '#2a2e48',
-  gridMajor: '#5b4b9e',
-  wallStrong: '#eef0f6',
-  wallSoft: '#c9cbe0',
-  dimLine: '#67e8f9',
-  liftWall: '#dcdde8',
+  gridMinor: '#4a3426',
+  gridMajor: '#6B7548',
+  wallStrong: BRAND.cream,
+  wallSoft: BRAND.sand,
+  dimLine: BRAND.gold,
+  liftWall: BRAND.sand,
   vignette: 0.62
 }
 
 const LIGHT: ImmersivePalette = {
   isDark: false,
-  fog: '#eef1f6',
+  fog: BRAND.beige,
   ambient: 0.9,
   dirIntensity: 0.55,
-  gridMinor: '#cdd0dd',
-  gridMajor: '#b3aad6',
-  wallStrong: '#3a3f57',
-  wallSoft: '#6b7089',
-  dimLine: '#0e9ab4',
-  liftWall: '#c4c7d4',
+  gridMinor: BRAND.sand,
+  gridMajor: BRAND.taupe,
+  wallStrong: BRAND.brownDark,
+  wallSoft: BRAND.brown,
+  dimLine: BRAND.oliveDark,
+  liftWall: BRAND.sand,
   vignette: 0.3
 }
 

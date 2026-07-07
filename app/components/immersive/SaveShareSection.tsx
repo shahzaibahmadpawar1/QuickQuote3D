@@ -11,9 +11,9 @@ import { makeReveal } from './reveal'
 const PROJECT_URL = 'quickquote3d.app/p/maple-street'
 
 const COLLABORATORS = [
-  { initials: 'AK', tint: 'linear-gradient(135deg,#8b5cf6,#d946ef)' },
-  { initials: 'RM', tint: 'linear-gradient(135deg,#22d3ee,#3b82f6)' },
-  { initials: 'JD', tint: 'linear-gradient(135deg,#f59e0b,#ef4444)' }
+  { initials: 'AK', tint: 'linear-gradient(135deg,#B8935F,#A67C52)' },
+  { initials: 'RM', tint: 'linear-gradient(135deg,#7C8654,#6B7548)' },
+  { initials: 'JD', tint: 'linear-gradient(135deg,#8C6B4A,#6B4A34)' }
 ]
 
 function clamp01(x: number) {
@@ -272,9 +272,9 @@ export function SaveShareSection() {
         >
           <motion.p
             variants={item}
-            className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.28em] text-cyan-400"
+            className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.28em] text-accent-warm"
           >
-            <span className="h-px w-8 bg-linear-to-r from-violet-500 to-cyan-400" />
+            <span className="h-px w-8 bg-gradient-accent" />
             Step 05
           </motion.p>
 

@@ -389,7 +389,7 @@ export function FurnitureScene({ store }: { store: ScrollStoryStore }) {
           >
             <ringGeometry args={[item.ringR * 0.88, item.ringR, 56]} />
             <meshBasicMaterial
-              color="#22d3ee"
+              color="#B8935F"
               transparent
               opacity={0}
               blending={THREE.AdditiveBlending}
