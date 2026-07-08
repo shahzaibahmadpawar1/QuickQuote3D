@@ -10,6 +10,7 @@ import { SectionRail } from './SectionRail'
 import { useLandingCta } from './use-landing-cta'
 import { Scene3D } from './Scene3D'
 import { HeroSection } from './HeroSection'
+import { HoverRevealSection } from './HoverRevealSection'
 import { FloorplanSection } from './FloorplanSection'
 import { LiftSection } from './LiftSection'
 import { FurnitureSection } from './FurnitureSection'
@@ -54,6 +55,7 @@ function LandingContent({
 
       <main className="relative z-10">
         <HeroSection isAuthenticated={isAuthenticated} />
+        <HoverRevealSection />
         <FloorplanSection />
         <LiftSection />
         <FurnitureSection />

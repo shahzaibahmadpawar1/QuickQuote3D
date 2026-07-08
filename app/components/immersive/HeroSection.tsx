@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Link } from '@/i18n/routing'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
@@ -11,6 +11,8 @@ import { useLenis } from './SmoothScrollProvider'
 import { useLandingMode } from './landing-mode'
 import { useLandingCta } from './use-landing-cta'
 import { makeReveal } from './reveal'
+import { heroRotationState, useHeroRotationIndex } from './hero-rotation-state'
+import { HeroModelViewer } from './HeroModelViewer'
 
 export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const store = useScrollStore()
@@ -24,19 +26,15 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
   const overlayRef = useRef<HTMLDivElement>(null)
   const scrollCueRef = useRef<HTMLButtonElement>(null)
 
-  const [wordIndex, setWordIndex] = useState(0)
+  const wordIndex = useHeroRotationIndex()
   const rotatingWords = useMemo(
     () => [t('heroWord1'), t('heroWord2'), t('heroWord3'), t('heroWord4')],
     [t]
   )
 
   useEffect(() => {
-    if (reduceMotion) return
-    const timer = window.setInterval(() => {
-      setWordIndex((prev) => (prev + 1) % rotatingWords.length)
-    }, 2200)
-    return () => window.clearInterval(timer)
-  }, [reduceMotion, rotatingWords.length])
+    heroRotationState.setIndex(0)
+  }, [])
 
   // Full mode: track scroll progress through the hero (no pin). Pinning added ~70%
   // extra scroll height after the intro faded out, which felt like a blank gap
@@ -72,7 +70,7 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
   }, [store, mounted, lite])
 
   const scrollToStory = () => {
-    const target = document.querySelector<HTMLElement>('[data-section="floorplan"]')
+    const target = document.querySelector<HTMLElement>('[data-section="reveal"]')
     if (!target) return
     if (lenis) {
       lenis.scrollTo(target, { offset: 0, duration: 1.4 })
@@ -92,7 +90,7 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
     <section
       ref={sectionRef}
       data-section="hero"
-      className="relative z-10 flex min-h-svh w-full items-center justify-center px-6 py-20"
+      className="relative z-10 flex min-h-svh w-full items-center justify-center overflow-visible px-6 py-20"
     >
       {/* Lite mode has no 3D grid behind the hero — add a faint static one so it
           isn't a flat panel. */}
@@ -102,75 +100,84 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
         variants={container}
         initial="hidden"
         animate="show"
-        className="flex max-w-3xl flex-col items-center text-center"
+        className="relative mx-auto grid w-full max-w-7xl items-center gap-6 overflow-visible lg:grid-cols-[1fr_1.15fr]"
       >
-        {/* Eyebrow */}
-        <motion.p
-          variants={item}
-          className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-sm"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-gradient-accent" />
-          {t('badge')}
-        </motion.p>
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+          {/* Eyebrow */}
+          <motion.p
+            variants={item}
+            className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-sm"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-gradient-accent" />
+            {t('badge')}
+          </motion.p>
 
         {/* Headline — "Design your <rotating room>" */}
-        <motion.h1
-          variants={item}
-          className="mt-6 text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl"
-        >
-          {t('heroTitleLead')}{' '}
-          <span className="relative inline-block min-w-[6ch] align-baseline">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={rotatingWords[wordIndex]}
-                className="inline-block text-gradient-accent"
-                initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduceMotion ? undefined : { opacity: 0, y: -18 }}
-                transition={{ duration: 0.35 }}
-              >
-                {rotatingWords[wordIndex]}
-              </motion.span>
-            </AnimatePresence>
-          </span>
-        </motion.h1>
+          <motion.h1
+            variants={item}
+            className="mt-6 text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl"
+          >
+            {t('heroTitleLead')}{' '}
+            <span className="relative inline-block min-w-[6ch] align-baseline">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={rotatingWords[wordIndex]}
+                  className="inline-block text-gradient-accent"
+                  initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -18 }}
+                  transition={{ duration: 0.58, ease: 'easeInOut' }}
+                >
+                  {rotatingWords[wordIndex]}
+                </motion.span>
+              </AnimatePresence>
+            </span>
+          </motion.h1>
 
         {/* Subheading */}
-        <motion.p
-          variants={item}
-          className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
-        >
-          {t('heroSubtitleLong')}
-        </motion.p>
+          <motion.p
+            variants={item}
+            className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+          >
+            {t('heroSubtitleLong')}
+          </motion.p>
 
         {/* CTAs */}
-        <motion.div variants={item} className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
-          <Link
-            href={cta.href}
-            className="group relative inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-primary-foreground"
-          >
-            <span
-              aria-hidden
-              className="absolute inset-0 rounded-full bg-gradient-accent opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-80"
-            />
-            <span className="absolute inset-0 rounded-full bg-gradient-accent transition-transform duration-300 group-hover:scale-[1.03]" />
-            <span className="relative">{cta.label}</span>
-          </Link>
-
-          {!isAuthenticated && (
+          <motion.div variants={item} className="mt-10 flex flex-col items-center gap-4 sm:flex-row lg:items-start">
             <Link
-              href="/login?next=%2Fplanner"
-              className="inline-flex items-center justify-center rounded-full border border-foreground/20 px-7 py-3 text-sm font-medium text-foreground/80 transition-colors duration-200 hover:border-foreground/40 hover:bg-foreground/5 hover:text-foreground"
+              href={cta.href}
+              className="group relative inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-primary-foreground"
             >
-              {t('ctaSignInToPlan')}
+              <span
+                aria-hidden
+                className="absolute inset-0 rounded-full bg-gradient-accent opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-80"
+              />
+              <span className="absolute inset-0 rounded-full bg-gradient-accent transition-transform duration-300 group-hover:scale-[1.03]" />
+              <span className="relative">{cta.label}</span>
             </Link>
-          )}
-        </motion.div>
+
+            {!isAuthenticated && (
+              <Link
+                href="/login?next=%2Fplanner"
+                className="inline-flex items-center justify-center rounded-full border border-foreground/20 px-7 py-3 text-sm font-medium text-foreground/80 transition-colors duration-200 hover:border-foreground/40 hover:bg-foreground/5 hover:text-foreground"
+              >
+                {t('ctaSignInToPlan')}
+              </Link>
+            )}
+          </motion.div>
 
         {/* Trust line */}
-        <motion.p variants={item} className="mt-8 text-sm text-muted-foreground">
-          {t('trustedBy')}
-        </motion.p>
+          <motion.p variants={item} className="mt-8 text-sm text-muted-foreground">
+            {t('trustedBy')}
+          </motion.p>
+        </div>
+
+        <motion.div
+          variants={item}
+          className="relative min-h-[min(72vh,640px)] w-full lg:min-h-[min(88vh,760px)]"
+        >
+          <HeroModelViewer />
+        </motion.div>
       </motion.div>
 
       {/* Scroll-down indicator — hidden once the user starts leaving the hero. */}
