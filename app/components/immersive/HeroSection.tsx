@@ -174,7 +174,7 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
 
         <motion.div
           variants={item}
-          className="relative min-h-[min(72vh,640px)] w-full lg:min-h-[min(88vh,760px)]"
+          className="relative z-20 min-h-[min(72vh,680px)] w-full overflow-visible lg:min-h-[min(90vh,820px)]"
         >
           <HeroModelViewer />
         </motion.div>
