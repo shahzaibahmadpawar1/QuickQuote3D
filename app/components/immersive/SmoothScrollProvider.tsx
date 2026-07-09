@@ -41,7 +41,8 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     const instance = new Lenis({
       lerp: 0.2,
       wheelMultiplier: 1.15,
-      smoothWheel: true
+      smoothWheel: true,
+      syncTouch: true
     })
     setLenis(instance)
 
