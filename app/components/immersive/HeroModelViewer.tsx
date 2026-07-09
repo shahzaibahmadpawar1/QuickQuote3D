@@ -5,6 +5,7 @@ import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 const MODEL_PATH = '/hero-models/1.glb'
 // Asymmetric limits from the default view: wide arc to the left + overhead,
@@ -17,7 +18,11 @@ const MIN_POLAR = 0.32
 const IDLE_AZIMUTH_SPEED = 0.22
 
 function HeroModel() {
-  const gltf = useLoader(GLTFLoader, MODEL_PATH) as GLTF
+  const gltf = useLoader(GLTFLoader, MODEL_PATH, (loader) => {
+    const dracoLoader = new DRACOLoader()
+    dracoLoader.setDecoderPath(`https://unpkg.com/three@0.${THREE.REVISION}.0/examples/jsm/libs/draco/`)
+    loader.setDRACOLoader(dracoLoader)
+  }) as GLTF
 
   const model = useMemo(() => {
     const scene = gltf.scene.clone(true)
