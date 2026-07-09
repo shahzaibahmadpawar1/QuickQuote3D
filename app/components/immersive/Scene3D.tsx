@@ -23,8 +23,10 @@ function smoothstep(edge0: number, edge1: number, x: number) {
  * only this wrapper re-renders on scroll — never the Canvas subtree.
  */
 function CanvasFade({ children }: { children: ReactNode }) {
+  const shareTransition = useSectionProgress('shareTransition')
   const share = useSectionProgress('share')
-  const opacity = 1 - smoothstep(0, 0.42, share)
+  const transitionProgress = Math.min(1, Math.max(0, shareTransition / 0.28))
+  const opacity = 1 - Math.max(transitionProgress, smoothstep(0, 0.42, share))
   return (
     <div className="h-full w-full" style={{ opacity }}>
       {children}

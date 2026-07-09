@@ -37,11 +37,11 @@ export function CameraRig({ store }: { store: ScrollStoryStore }) {
       heroLook: new THREE.Vector3(0, -0.35, 0),
       topPos: new THREE.Vector3(-3.6, 22, 1),
       topLook: new THREE.Vector3(-3.6, 0, 0),
-      perspPos: new THREE.Vector3(7.6, 7.4, 9.8),
-      perspLook: new THREE.Vector3(-2.5, 0.5, 0),
+      perspPos: new THREE.Vector3(5.4, 6.6, 9.8),
+      perspLook: new THREE.Vector3(-4.7, -0.3, 0),
       // Quote framing: aim to the right of the room so it sits in the left ~55%.
-      quotePos: new THREE.Vector3(9.6, 7.2, 10.4),
-      quoteLook: new THREE.Vector3(2.1, 0.5, 0),
+      quotePos: new THREE.Vector3(11.6, 7.2, 10.4),
+      quoteLook: new THREE.Vector3(4.1, 0.5, 0),
       // Save & Share: recenter + dolly back so the room shrinks toward the
       // middle as the canvas cross-fades into the DOM project card.
       sharePos: new THREE.Vector3(1.5, 8.6, 13.6),
@@ -80,14 +80,20 @@ export function CameraRig({ store }: { store: ScrollStoryStore }) {
 
     // Quote section: reframe the room into the left ~55% so the price panel
     // has the right 45%. Overrides the orbit as it settles.
-    const quoteFrame = smoothstep(0, 0.4, store.getSection('quote'))
+    // Transition starts as the Quote section enters the screen (completed over first 28% of scroll-in).
+    const quoteTransition = Math.min(1, Math.max(0, store.getSection('quoteTransition') / 0.28))
+    const quoteActive = store.getSection('quote')
+    const quoteFrame = Math.max(quoteTransition, smoothstep(0, 0.4, quoteActive))
     if (quoteFrame > 0.0001) {
       rig.pos.lerp(rig.quotePos, quoteFrame)
       rig.look.lerp(rig.quoteLook, quoteFrame)
     }
 
     // Save & Share: glide the room to centre + back as it fades into the card.
-    const shareFrame = smoothstep(0, 0.45, store.getSection('share'))
+    // Transition starts as the Save & Share section enters the screen (completed over first 28% of scroll-in).
+    const shareTransition = Math.min(1, Math.max(0, store.getSection('shareTransition') / 0.28))
+    const shareActive = store.getSection('share')
+    const shareFrame = Math.max(shareTransition, smoothstep(0, 0.45, shareActive))
     if (shareFrame > 0.0001) {
       rig.pos.lerp(rig.sharePos, shareFrame)
       rig.look.lerp(rig.shareLook, shareFrame)

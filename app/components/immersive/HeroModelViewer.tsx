@@ -25,11 +25,11 @@ function HeroModel() {
     const center = box.getCenter(new THREE.Vector3())
     const size = box.getSize(new THREE.Vector3())
     const maxDim = Math.max(size.x, size.y, size.z, 0.001)
-    const scale = 1.34 / maxDim
+    const scale = 1.206 / maxDim
     scene.position.sub(center)
     scene.scale.setScalar(scale)
     // Bias slightly down so floor corners remain inside the taller canvas.
-    scene.position.y -= size.y * scale * 0.2
+    scene.position.y -= size.y * scale * 0.1
     return scene
   }, [gltf])
 
@@ -100,7 +100,7 @@ export function HeroModelViewer() {
     // save edges. Bleed the canvas past the layout cell so orbiting geometry
     // stays drawable on the left/bottom especially.
     <div
-      className="pointer-events-none absolute -inset-x-[14%] -top-[8%] -bottom-[18%] touch-none lg:-left-[22%] lg:-right-[6%]"
+      className="pointer-events-none absolute -inset-x-[14%] -top-[18%] -bottom-[8%] touch-none lg:-left-[22%] lg:-right-[6%]"
       aria-label="Interactive room preview"
     >
       <div className="pointer-events-auto h-full w-full">

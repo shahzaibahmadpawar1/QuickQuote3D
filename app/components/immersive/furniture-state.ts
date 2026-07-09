@@ -6,7 +6,7 @@
  * them every frame. Same module-singleton bridge as the lift section.
  */
 
-export const FURNITURE_COUNT = 5
+export const FURNITURE_COUNT = 3
 
 export interface FurnitureState {
   /** Slow camera orbit around the room (0 → 1 → a few degrees). */

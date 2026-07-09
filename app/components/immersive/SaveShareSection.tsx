@@ -248,9 +248,19 @@ export function SaveShareSection() {
       onRefresh: (self) => store.setSection('share', self.progress)
     })
 
+    const transitionTrigger = ScrollTrigger.create({
+      trigger: el,
+      start: 'top bottom',
+      end: 'top top',
+      onUpdate: (self) => store.setSection('shareTransition', self.progress),
+      onRefresh: (self) => store.setSection('shareTransition', self.progress)
+    })
+
     return () => {
       trigger.kill()
+      transitionTrigger.kill()
       store.setSection('share', 0)
+      store.setSection('shareTransition', 0)
     }
   }, [store, mounted, lite])
 

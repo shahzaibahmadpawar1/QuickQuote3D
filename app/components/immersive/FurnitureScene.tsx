@@ -33,16 +33,6 @@ interface FurnitureItem {
 // pile up on screen once everything is placed.
 const ITEMS: FurnitureItem[] = [
   {
-    type: 'rug',
-    pos: [-0.7, 0.2],
-    rotationY: 0,
-    ringR: 1.15,
-    shadow: [2.6, 1.9],
-    chipOffset: [0.4, 0.5, 1.25],
-    label: 'Wool rug',
-    price: '$320'
-  },
-  {
     type: 'sofa',
     pos: [-1.75, -0.95],
     rotationY: 0,
@@ -51,16 +41,6 @@ const ITEMS: FurnitureItem[] = [
     chipOffset: [0.15, 1.3, 0.1],
     label: 'Sofa',
     price: '$1,240'
-  },
-  {
-    type: 'dining',
-    pos: [-0.35, 1.35],
-    rotationY: 0,
-    ringR: 1.05,
-    shadow: [1.9, 1.4],
-    chipOffset: [0.1, 1.85, 0.1],
-    label: 'Dining set',
-    price: '$890'
   },
   {
     type: 'bed',

@@ -10,17 +10,15 @@ import { StaticScenePoster } from './StaticScenePoster'
 import { makeReveal } from './reveal'
 
 const LINE_ITEMS = [
-  { label: 'Wool rug', detail: '2.4 × 1.7 m', price: 320 },
   { label: 'Sofa', detail: '3-seater, fabric', price: 1240 },
-  { label: 'Dining set', detail: 'Table + 4 chairs', price: 890 },
   { label: 'Queen bed', detail: 'Frame + mattress', price: 1560 },
   { label: 'Cabinet', detail: 'Oak, 2-door', price: 740 }
 ] as const
 
-const SUBTOTAL = LINE_ITEMS.reduce((sum, item) => sum + item.price, 0) // 4750
+const SUBTOTAL = LINE_ITEMS.reduce((sum, item) => sum + item.price, 0) // 3540
 const TAX_RATE = 0.08
-const TAX = Math.round(SUBTOTAL * TAX_RATE) // 380
-const TOTAL = SUBTOTAL + TAX // 5130
+const TAX = Math.round(SUBTOTAL * TAX_RATE) // 283
+const TOTAL = SUBTOTAL + TAX // 3823
 
 function clamp01(x: number) {
   return Math.min(1, Math.max(0, x))
@@ -166,9 +164,19 @@ export function QuoteSection() {
       onRefresh: (self) => store.setSection('quote', self.progress)
     })
 
+    const transitionTrigger = ScrollTrigger.create({
+      trigger: el,
+      start: 'top bottom',
+      end: 'top top',
+      onUpdate: (self) => store.setSection('quoteTransition', self.progress),
+      onRefresh: (self) => store.setSection('quoteTransition', self.progress)
+    })
+
     return () => {
       trigger.kill()
+      transitionTrigger.kill()
       store.setSection('quote', 0)
+      store.setSection('quoteTransition', 0)
     }
   }, [store, mounted, lite])
 
