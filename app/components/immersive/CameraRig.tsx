@@ -38,14 +38,14 @@ export function CameraRig({ store }: { store: ScrollStoryStore }) {
       topPos: new THREE.Vector3(-3.6, 22, 1),
       topLook: new THREE.Vector3(-3.6, 0, 0),
       perspPos: new THREE.Vector3(5.4, 6.6, 9.8),
-      perspLook: new THREE.Vector3(-4.7, -0.3, 0),
+      perspLook: new THREE.Vector3(-4.7, -1.3, 0),
       // Quote framing: aim to the right of the room so it sits in the left ~55%.
       quotePos: new THREE.Vector3(11.6, 7.2, 10.4),
-      quoteLook: new THREE.Vector3(4.1, 0.5, 0),
+      quoteLook: new THREE.Vector3(4.1, -0.5, 0),
       // Save & Share: recenter + dolly back so the room shrinks toward the
       // middle as the canvas cross-fades into the DOM project card.
       sharePos: new THREE.Vector3(1.5, 8.6, 13.6),
-      shareLook: new THREE.Vector3(0.3, 0.5, 0),
+      shareLook: new THREE.Vector3(0.3, -0.5, 0),
       basePos: new THREE.Vector3(),
       baseLook: new THREE.Vector3(),
       pos: new THREE.Vector3(),

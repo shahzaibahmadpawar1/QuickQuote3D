@@ -27,13 +27,26 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
   const scrollCueRef = useRef<HTMLButtonElement>(null)
 
   const wordIndex = useHeroRotationIndex()
-  const rotatingWords = useMemo(
-    () => [t('heroWord1'), t('heroWord2'), t('heroWord3'), t('heroWord4')],
-    [t]
+  const PAIRS = useMemo(
+    () => [
+      { room: 'room', item: 'sofa' },
+      { room: 'kitchen', item: 'cabinet' },
+      { room: 'dining', item: 'table' },
+      { room: 'office', item: 'desk' },
+      { room: 'room', item: 'bed' },
+      { room: 'boutique', item: 'rack' },
+      { room: 'library', item: 'reading chair' }
+    ] as const,
+    []
   )
 
   useEffect(() => {
     heroRotationState.setIndex(0)
+    const interval = setInterval(() => {
+      const nextIndex = (heroRotationState.getIndex() + 1) % 7
+      heroRotationState.setIndex(nextIndex)
+    }, 7000)
+    return () => clearInterval(interval)
   }, [])
 
   // Full mode: track scroll progress through the hero (no pin). Pinning added ~70%
@@ -109,38 +122,47 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
             className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-sm"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-gradient-accent" />
-            {t('badge')}
+            share furnished space online with customers
           </motion.p>
 
-        {/* Headline — "Design your <rotating room>" */}
+        {/* Headline — "Sell the [room], not just the [item]" */}
           <motion.h1
             variants={item}
             className="mt-6 text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl"
           >
-            {t('heroTitleLead')}{' '}
-            <span className="relative inline-block min-w-[6ch] align-baseline">
+            Sell the{' '}
+            <span className="relative inline-block min-w-[8ch] align-baseline">
               <AnimatePresence mode="wait">
                 <motion.span
-                  key={rotatingWords[wordIndex]}
-                  className="inline-block text-gradient-accent"
+                  key={`room-${wordIndex}`}
+                  className="inline-block text-gradient-accent text-left"
                   initial={reduceMotion ? false : { opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, y: -18 }}
                   transition={{ duration: 0.58, ease: 'easeInOut' }}
                 >
-                  {rotatingWords[wordIndex]}
+                  {PAIRS[wordIndex].room}
+                </motion.span>
+              </AnimatePresence>
+            </span>
+            <br />
+            not just the{' '}
+            <span className="relative inline-block min-w-[13ch] align-baseline">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={`item-${wordIndex}`}
+                  className="inline-block text-gradient-accent text-left"
+                  initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -18 }}
+                  transition={{ duration: 0.58, ease: 'easeInOut' }}
+                >
+                  {PAIRS[wordIndex].item}
                 </motion.span>
               </AnimatePresence>
             </span>
           </motion.h1>
 
-        {/* Subheading */}
-          <motion.p
-            variants={item}
-            className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
-          >
-            {t('heroSubtitleLong')}
-          </motion.p>
 
         {/* CTAs */}
           <motion.div variants={item} className="mt-10 flex flex-col items-center gap-4 sm:flex-row lg:items-start">
@@ -166,10 +188,6 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
             )}
           </motion.div>
 
-        {/* Trust line */}
-          <motion.p variants={item} className="mt-8 text-sm text-muted-foreground">
-            {t('trustedBy')}
-          </motion.p>
         </div>
 
         <motion.div

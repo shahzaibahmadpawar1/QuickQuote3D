@@ -3,7 +3,7 @@ import { useSyncExternalStore } from 'react'
 let index = 0
 const listeners = new Set<() => void>()
 
-export const HERO_ROTATION_COUNT = 4
+export const HERO_ROTATION_COUNT = 7
 
 export const heroRotationState = {
   getIndex() {

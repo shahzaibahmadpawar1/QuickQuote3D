@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, type ComponentRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html, Line } from '@react-three/drei'
 import * as THREE from 'three'
-import { Sparkles } from 'lucide-react'
 import type { ScrollStoryStore } from './scroll-story'
 import type { ImmersivePalette } from './immersive-theme'
 
@@ -48,7 +47,6 @@ export function FloorplanScene({ store, palette }: { store: ScrollStoryStore; pa
   const bedroomRef = useRef<HTMLDivElement>(null)
   const measureWidthRef = useRef<HTMLDivElement>(null)
   const measureDepthRef = useRef<HTMLDivElement>(null)
-  const badgeRef = useRef<HTMLDivElement>(null)
 
   // ----- Grid (fades out as the plan draws in) -----
   const { minorGeometry, majorGeometry } = useMemo(() => {
@@ -169,7 +167,6 @@ export function FloorplanScene({ store, palette }: { store: ScrollStoryStore; pa
       setHtml(bedroomRef, 0)
       setHtml(measureWidthRef, 0)
       setHtml(measureDepthRef, 0)
-      setHtml(badgeRef, 0)
       return
     }
 
@@ -179,7 +176,6 @@ export function FloorplanScene({ store, palette }: { store: ScrollStoryStore; pa
     const interiorHDraw = smoothstep(0.46, 0.6, p)
     const labelsFade = smoothstep(0.34, 0.58, p)
     const dimsFade = smoothstep(0.62, 0.9, p)
-    const badgePop = smoothstep(0.66, 0.84, p)
 
     // Grid fades from graph-paper to a faint ghost as the plan resolves.
     const gridFactor = THREE.MathUtils.lerp(1, 0.16, outerDraw)
@@ -213,7 +209,6 @@ export function FloorplanScene({ store, palette }: { store: ScrollStoryStore; pa
     setHtml(bedroomRef, labelsFade * vis)
     setHtml(measureWidthRef, dimsFade * vis)
     setHtml(measureDepthRef, dimsFade * vis)
-    setHtml(badgeRef, badgePop * vis, 0.85 + 0.15 * badgePop)
   })
 
   return (
@@ -323,13 +318,6 @@ export function FloorplanScene({ store, palette }: { store: ScrollStoryStore; pa
         </div>
       </Html>
 
-      {/* AI badge. */}
-      <Html position={[0, LABEL_Y, -D - 1]} center style={{ pointerEvents: 'none' }}>
-        <div ref={badgeRef} className="fp-badge" style={{ opacity: 0 }}>
-          <Sparkles className="h-3.5 w-3.5" />
-          AI floor plan detected
-        </div>
-      </Html>
     </group>
   )
 }
