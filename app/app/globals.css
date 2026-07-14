@@ -3,6 +3,66 @@
 ------------------------------------------------------------------ */
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'Supreme';
+  src: url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Regular.woff2') format('woff2'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Regular.woff') format('woff'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Supreme';
+  src: url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Italic.woff2') format('woff2'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Italic.woff') format('woff'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Supreme';
+  src: url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Medium.woff2') format('woff2'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Medium.woff') format('woff'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Supreme';
+  src: url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-MediumItalic.woff2') format('woff2'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-MediumItalic.woff') format('woff'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-MediumItalic.ttf') format('truetype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Supreme';
+  src: url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Bold.woff2') format('woff2'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Bold.woff') format('woff'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Supreme';
+  src: url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-BoldItalic.woff2') format('woff2'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-BoldItalic.woff') format('woff'),
+       url('/hero-models/Supreme_Complete/Supreme_Complete/Fonts/WEB/fonts/Supreme-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 @source "../**/*.{js,ts,jsx,tsx}";
 
 /* @plugin "tailwindcss-animate"; */
@@ -16,7 +76,7 @@
 }
 
 @theme {
-  --font-global: var(--font-dm-sans);
+  --font-global: 'Supreme', var(--font-dm-sans), sans-serif;
 
   --color-primary: hsl(var(--primary));
   --color-primary-50: color-mix(in srgb, hsl(var(--primary)) 8%, white);
@@ -69,12 +129,12 @@
 
   --color-accent-gold: hsl(var(--accent-gold));
 
-  /* Brand accent gradient endpoints (warm tan → olive) */
-  --color-immersive: #6B4A34;
-  --color-accent-violet: #B8935F;
-  --color-accent-cyan: #7C8654;
-  --color-accent-warm: #B8935F;
-  --color-accent-olive: #7C8654;
+  /* Brand accent gradient endpoints (Onyx → Maroon) */
+  --color-immersive: #3B3C36;
+  --color-accent-violet: #3D0C02;
+  --color-accent-cyan: #3D0C02;
+  --color-accent-warm: #3D0C02;
+  --color-accent-olive: #3D0C02;
 
   /* Sidebar */
   --color-sidebar: hsl(var(--sidebar-background));
@@ -108,117 +168,117 @@
 ------------------------------------------------------------------ */
 @layer base {
   :root {
-    /* ===== Brand primary — olive green ===== */
-    --primary: 73 23% 43%;
-    --primary-foreground: 40 24% 96%;
+    /* ===== Brand primary — Maroon ===== */
+    --primary: 10 94% 12%;
+    --primary-foreground: 0 0% 100%;
 
-    /* ===== Warm earth-tone surfaces ===== */
-    --background: 38 28% 80%;
-    --foreground: 24 34% 31%;
+    /* ===== Solid White & Onyx text surfaces ===== */
+    --background: 0 0% 100%;
+    --foreground: 70 5% 22%;
 
-    --card: 40 24% 83%;
-    --card-foreground: 24 34% 31%;
+    --card: 60 56% 91%;
+    --card-foreground: 70 5% 22%;
 
-    --popover: 40 24% 83%;
-    --popover-foreground: 24 34% 31%;
+    --popover: 60 56% 91%;
+    --popover-foreground: 70 5% 22%;
 
     /* ===== Sidebar ===== */
-    --sidebar-background: 38 26% 78%;
+    --sidebar-background: 60 56% 91%;
     --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: 40 22% 71%;
+    --sidebar-accent: 0 0% 100%;
     --sidebar-accent-foreground: var(--foreground);
-    --sidebar-border: 40 22% 68%;
+    --sidebar-border: 70 5% 22%;
     --sidebar-ring: var(--ring);
 
     /* ===== Functional colors ===== */
-    --secondary: 40 22% 71%;
-    --secondary-foreground: 30 31% 42%;
+    --secondary: 60 56% 91%;
+    --secondary-foreground: 10 94% 12%;
 
-    --muted: 40 22% 71%;
-    --muted-foreground: 30 31% 42%;
+    --muted: 60 56% 91%;
+    --muted-foreground: 70 5% 22%;
 
-    --accent: 30 27% 53%;
-    --accent-foreground: 24 34% 20%;
+    --accent: 10 94% 12%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 10 94% 12%;
+    --destructive-foreground: 0 0% 100%;
 
-    --warning: 35 40% 55%;
-    --warning-foreground: 24 34% 15%;
+    --warning: 10 94% 12%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 40 22% 68%;
-    --input: 40 22% 68%;
-    --ring: 72 24% 37%;
-    --gradient: 35 40% 55%;
+    --border: 70 5% 22%;
+    --input: 70 5% 22%;
+    --ring: 10 94% 12%;
+    --gradient: 10 94% 12%;
 
-    /* ===== Charts (earth-tone palette) ===== */
-    --chart-1: 73 23% 43%;
-    --chart-2: 28 34% 49%;
-    --chart-3: 35 40% 55%;
-    --chart-4: 30 27% 53%;
-    --chart-5: 24 34% 31%;
+    /* ===== Charts ===== */
+    --chart-1: 10 94% 12%;
+    --chart-2: 70 5% 22%;
+    --chart-3: 60 56% 91%;
+    --chart-4: 10 94% 12%;
+    --chart-5: 70 5% 22%;
 
     --radius: 0.75rem;
 
-    --accent-gold: 35 40% 55%;
+    --accent-gold: 10 94% 12%;
   }
 
   .dark {
-    /* ===== Brand primary (brightened olive for dark bg) ===== */
-    --primary: 73 23% 52%;
-    --primary-foreground: 40 24% 96%;
+    /* ===== Brand primary — Maroon ===== */
+    --primary: 10 94% 12%;
+    --primary-foreground: 0 0% 100%;
 
-    /* ===== Dark earth-tone surfaces ===== */
-    --background: 24 34% 14%;
-    --foreground: 40 24% 90%;
+    /* ===== Onyx & White surfaces ===== */
+    --background: 70 5% 22%;
+    --foreground: 0 0% 100%;
 
-    --card: 24 30% 18%;
-    --card-foreground: 40 24% 90%;
+    --card: 10 94% 12%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 24 30% 18%;
-    --popover-foreground: 40 24% 90%;
+    --popover: 10 94% 12%;
+    --popover-foreground: 0 0% 100%;
 
     /* ===== Sidebar ===== */
-    --sidebar-background: 24 32% 12%;
+    --sidebar-background: 10 94% 12%;
     --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: 24 28% 22%;
+    --sidebar-accent: 70 5% 22%;
     --sidebar-accent-foreground: var(--foreground);
-    --sidebar-border: 24 22% 26%;
+    --sidebar-border: 0 0% 100%;
     --sidebar-ring: var(--ring);
 
     /* ===== Functional colors ===== */
-    --secondary: 24 28% 22%;
-    --secondary-foreground: 40 24% 90%;
+    --secondary: 70 5% 22%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 24 28% 22%;
-    --muted-foreground: 30 20% 62%;
+    --muted: 10 94% 12%;
+    --muted-foreground: 60 56% 91%;
 
-    --accent: 30 27% 40%;
-    --accent-foreground: 40 24% 92%;
+    --accent: 10 94% 12%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 10 94% 12%;
+    --destructive-foreground: 0 0% 100%;
 
-    --warning: 35 40% 58%;
-    --warning-foreground: 24 34% 12%;
+    --warning: 10 94% 12%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 24 22% 26%;
-    --input: 24 22% 26%;
-    --ring: 73 23% 52%;
-    --gradient: 35 40% 42%;
+    --border: 0 0% 100%;
+    --input: 0 0% 100%;
+    --ring: 10 94% 12%;
+    --gradient: 10 94% 12%;
 
-    /* ===== Charts (adjusted for dark) ===== */
-    --chart-1: 73 23% 52%;
-    --chart-2: 28 34% 55%;
-    --chart-3: 35 40% 58%;
-    --chart-4: 30 27% 48%;
-    --chart-5: 40 24% 75%;
+    /* ===== Charts ===== */
+    --chart-1: 10 94% 12%;
+    --chart-2: 60 56% 91%;
+    --chart-3: 70 5% 22%;
+    --chart-4: 0 0% 100%;
+    --chart-5: 0 0% 100%;
 
-    --accent-gold: 35 40% 58%;
+    --accent-gold: 10 94% 12%;
   }
 
   /* Tailwind v3→v4 border color compat */
@@ -494,98 +554,83 @@
    the light/dark toggle.
 ------------------------------------------------------------------ */
 .immersive-root {
-  /* Light palette — warm beige / earth tones. */
-  --imm-bg: #D9D0BE;
-  --imm-ink: #6B4A34;
-  --imm-ink-dim: #8C6B4A;
-  --imm-ink-faint: #A88968;
-  --imm-hairline: rgba(107, 74, 52, 0.14);
-  --imm-surface: rgba(107, 74, 52, 0.06);
-  --imm-glass-top: rgba(220, 214, 201, 0.88);
-  --imm-glass-bottom: rgba(196, 186, 166, 0.82);
-  --imm-card-border: rgba(107, 74, 52, 0.12);
-  --imm-card-shadow: 0 30px 80px -34px rgba(107, 74, 52, 0.28), 0 0 0 1px rgba(124, 134, 84, 0.08);
-  --imm-label-bg: rgba(220, 214, 201, 0.82);
-  --imm-label-ink: #6B4A34;
-  --imm-measure-ink: #6B7548;
-  --imm-badge-ink: #6B4A34;
-  --imm-chip-bg: rgba(220, 214, 201, 0.9);
-  --imm-chip-ink: #6B4A34;
-  --imm-chip-price: #7C8654;
-  --imm-avatar-ring: #D9D0BE;
-  --imm-veil: rgba(217, 208, 190, 0.72);
-  --imm-grid-line: rgba(107, 74, 52, 0.08);
-  --imm-loader-bg: #D9D0BE;
-  --imm-loader-ink: #6B4A34;
-  --imm-poster-line: rgba(107, 74, 52, 0.55);
-  --imm-poster-hair: rgba(107, 74, 52, 0.18);
-  --imm-poster-fill: rgba(107, 74, 52, 0.05);
-  --imm-poster-grid: rgba(107, 74, 52, 0.07);
-  --imm-poster-tick: rgba(107, 74, 52, 0.3);
+  /* Light palette — Solid White, Beige, Onyx, Maroon. */
+  --imm-bg: #FFFFFF;
+  --imm-ink: #3B3C36;
+  --imm-ink-dim: #3B3C36;
+  --imm-ink-faint: #3D0C02;
+  --imm-hairline: rgba(59, 60, 54, 0.2);
+  --imm-surface: rgba(245, 245, 220, 0.9);
+  --imm-glass-top: rgba(255, 255, 255, 0.9);
+  --imm-glass-bottom: rgba(245, 245, 220, 0.85);
+  --imm-card-border: rgba(59, 60, 54, 0.2);
+  --imm-card-shadow: 0 30px 80px -34px rgba(59, 60, 54, 0.25), 0 0 0 1px rgba(59, 60, 54, 0.1);
+  --imm-label-bg: rgba(245, 245, 220, 0.9);
+  --imm-label-ink: #3B3C36;
+  --imm-measure-ink: #3D0C02;
+  --imm-badge-ink: #3D0C02;
+  --imm-chip-bg: rgba(245, 245, 220, 0.9);
+  --imm-chip-ink: #3B3C36;
+  --imm-chip-price: #3D0C02;
+  --imm-avatar-ring: #3B3C36;
+  --imm-veil: rgba(255, 255, 255, 0.75);
+  --imm-grid-line: rgba(59, 60, 54, 0.1);
+  --imm-loader-bg: #F5F5DC;
+  --imm-loader-ink: #3D0C02;
+  --imm-poster-line: rgba(59, 60, 54, 0.5);
+  --imm-poster-hair: rgba(59, 60, 54, 0.15);
+  --imm-poster-fill: rgba(245, 245, 220, 0.5);
+  --imm-poster-grid: rgba(59, 60, 54, 0.05);
+  --imm-poster-tick: rgba(61, 12, 2, 0.4);
 
   min-height: 100vh;
   background-color: var(--imm-bg);
   color: var(--imm-ink);
-  font-family: var(--font-inter, var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif);
+  font-family: 'Supreme', var(--font-global), sans-serif;
   overflow-x: clip;
 }
 
 .dark .immersive-root {
-  --imm-bg: #3d2a1e;
-  --imm-ink: #DCD6C9;
-  --imm-ink-dim: #C4BAA6;
-  --imm-ink-faint: #A88968;
-  --imm-hairline: rgba(220, 214, 201, 0.1);
-  --imm-surface: rgba(220, 214, 201, 0.06);
-  --imm-glass-top: rgba(61, 42, 30, 0.78);
-  --imm-glass-bottom: rgba(45, 32, 22, 0.82);
-  --imm-card-border: rgba(220, 214, 201, 0.1);
-  --imm-card-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(184, 147, 95, 0.08);
-  --imm-label-bg: rgba(61, 42, 30, 0.55);
-  --imm-label-ink: #DCD6C9;
-  --imm-measure-ink: #B8935F;
-  --imm-badge-ink: #DCD6C9;
-  --imm-chip-bg: rgba(45, 32, 22, 0.82);
-  --imm-chip-ink: #DCD6C9;
-  --imm-chip-price: #B8935F;
-  --imm-avatar-ring: #3d2a1e;
-  --imm-veil: rgba(61, 42, 30, 0.78);
-  --imm-grid-line: rgba(220, 214, 201, 0.05);
-  --imm-loader-bg: #3d2a1e;
-  --imm-loader-ink: #DCD6C9;
-  --imm-poster-line: rgba(220, 214, 201, 0.55);
-  --imm-poster-hair: rgba(220, 214, 201, 0.14);
-  --imm-poster-fill: rgba(220, 214, 201, 0.05);
-  --imm-poster-grid: rgba(220, 214, 201, 0.05);
-  --imm-poster-tick: rgba(220, 214, 201, 0.25);
+  --imm-bg: #3B3C36;
+  --imm-ink: #FFFFFF;
+  --imm-ink-dim: #F5F5DC;
+  --imm-ink-faint: #3D0C02;
+  --imm-hairline: rgba(255, 255, 255, 0.15);
+  --imm-surface: rgba(61, 12, 2, 0.15);
+  --imm-glass-top: rgba(59, 60, 54, 0.8);
+  --imm-glass-bottom: rgba(61, 12, 2, 0.8);
+  --imm-card-border: rgba(255, 255, 255, 0.15);
+  --imm-card-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --imm-label-bg: rgba(61, 12, 2, 0.6);
+  --imm-label-ink: #FFFFFF;
+  --imm-measure-ink: #FFFFFF;
+  --imm-badge-ink: #FFFFFF;
+  --imm-chip-bg: rgba(61, 12, 2, 0.8);
+  --imm-chip-ink: #FFFFFF;
+  --imm-chip-price: #F5F5DC;
+  --imm-avatar-ring: #3B3C36;
+  --imm-veil: rgba(59, 60, 54, 0.8);
+  --imm-grid-line: rgba(255, 255, 255, 0.1);
+  --imm-loader-bg: #3B3C36;
+  --imm-loader-ink: #FFFFFF;
+  --imm-poster-line: rgba(255, 255, 255, 0.5);
+  --imm-poster-hair: rgba(255, 255, 255, 0.15);
+  --imm-poster-fill: rgba(61, 12, 2, 0.1);
+  --imm-poster-grid: rgba(255, 255, 255, 0.05);
+  --imm-poster-tick: rgba(255, 255, 255, 0.25);
 }
 
-/* Warm tan → olive accent gradient helpers for reuse in landing content. */
+/* Solid accent helpers for reuse in landing content. */
 .immersive-root .bg-gradient-accent {
-  background-image: linear-gradient(
-    90deg,
-    var(--color-accent-violet, #B8935F),
-    var(--color-accent-cyan, #7C8654)
-  );
+  background-color: var(--color-accent-violet, #3D0C02);
 }
 
 .immersive-root .bg-gradient-accent-br {
-  background-image: linear-gradient(
-    135deg,
-    var(--color-accent-violet, #B8935F),
-    var(--color-accent-cyan, #7C8654)
-  );
+  background-color: var(--color-accent-violet, #3D0C02);
 }
 
 .immersive-root .text-gradient-accent {
-  background-image: linear-gradient(
-    90deg,
-    var(--color-accent-violet, #B8935F),
-    var(--color-accent-cyan, #7C8654)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-accent-violet, #3D0C02);
 }
 
 /* Floorplan section — drei <Html> labels anchored to the 3D plan. */

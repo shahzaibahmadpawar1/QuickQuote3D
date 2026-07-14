@@ -12,7 +12,6 @@ import { useLandingMode } from './landing-mode'
 import { useLandingCta } from './use-landing-cta'
 import { makeReveal } from './reveal'
 import { heroRotationState, useHeroRotationIndex } from './hero-rotation-state'
-import { HeroModelViewer } from './HeroModelViewer'
 
 export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const store = useScrollStore()
@@ -99,47 +98,60 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
     duration: 0.7
   })
 
+  const IMAGES = useMemo(
+    () => [
+      '/hero-models/1.png',
+      '/hero-models/2.png',
+      '/hero-models/3.png',
+      '/hero-models/1.png',
+      '/hero-models/2.png',
+      '/hero-models/3.png',
+      '/hero-models/1.png'
+    ] as const,
+    []
+  )
+
   return (
     <section
       ref={sectionRef}
       data-section="hero"
       className="relative z-10 flex min-h-svh w-full items-center justify-center overflow-visible px-6 py-20"
     >
-      {/* Lite mode has no 3D grid behind the hero — add a faint static one so it
-          isn't a flat panel. */}
       {lite && <div aria-hidden className="lite-hero-grid" />}
       <motion.div
         ref={overlayRef}
         variants={container}
         initial="hidden"
         animate="show"
-        className="relative mx-auto grid w-full max-w-7xl items-center gap-6 overflow-visible lg:grid-cols-[1fr_1.15fr]"
+        className="relative mx-auto grid w-full max-w-7xl items-center gap-12 overflow-visible lg:grid-cols-[1.1fr_0.9fr]"
       >
+        {/* Left column: Branding, Headline, CTAs */}
         <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-          {/* Eyebrow */}
-          <motion.p
-            variants={item}
-            className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-sm"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-gradient-accent" />
-            share furnished space online with customers
-          </motion.p>
+          {/* Centered Brand / Logo */}
+          <motion.div variants={item} className="mb-4">
+            <span className="font-global text-3xl font-bold tracking-[0.3em] uppercase text-foreground">
+              QuickQuote3D
+            </span>
+            <span className="block mt-1.5 text-[9px] uppercase tracking-[0.45em] text-muted-foreground/80">
+              Design Furnished Space Online
+            </span>
+          </motion.div>
 
-        {/* Headline — "Sell the [room], not just the [item]" */}
+          {/* Headline — "Sell the [room], not just the [item]" */}
           <motion.h1
             variants={item}
-            className="mt-6 text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl"
+            className="mt-6 font-global text-4xl font-light leading-[1.15] tracking-tight text-foreground sm:text-5xl lg:text-6xl"
           >
             Sell the{' '}
-            <span className="relative inline-block min-w-[8ch] align-baseline">
+            <span className="relative inline-block min-w-[7ch] align-baseline">
               <AnimatePresence mode="wait">
                 <motion.span
                   key={`room-${wordIndex}`}
-                  className="inline-block text-gradient-accent text-left"
-                  initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+                  className="inline-block text-gradient-accent text-left italic font-normal"
+                  initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -18 }}
-                  transition={{ duration: 0.58, ease: 'easeInOut' }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -14 }}
+                  transition={{ duration: 0.52, ease: 'easeInOut' }}
                 >
                   {PAIRS[wordIndex].room}
                 </motion.span>
@@ -147,15 +159,15 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
             </span>
             <br />
             not just the{' '}
-            <span className="relative inline-block min-w-[13ch] align-baseline">
+            <span className="relative inline-block min-w-[12ch] align-baseline">
               <AnimatePresence mode="wait">
                 <motion.span
                   key={`item-${wordIndex}`}
-                  className="inline-block text-gradient-accent text-left"
-                  initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+                  className="inline-block text-gradient-accent text-left italic font-normal"
+                  initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -18 }}
-                  transition={{ duration: 0.58, ease: 'easeInOut' }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -14 }}
+                  transition={{ duration: 0.52, ease: 'easeInOut' }}
                 >
                   {PAIRS[wordIndex].item}
                 </motion.span>
@@ -163,9 +175,8 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
             </span>
           </motion.h1>
 
-
-        {/* CTAs */}
-          <motion.div variants={item} className="mt-10 flex flex-col items-center gap-4 sm:flex-row lg:items-start">
+          {/* CTAs */}
+          <motion.div variants={item} className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row lg:justify-start">
             <Link
               href={cta.href}
               className="group relative inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-primary-foreground"
@@ -188,13 +199,32 @@ export function HeroSection({ isAuthenticated = false }: { isAuthenticated?: boo
             )}
           </motion.div>
 
+          {/* Footer credit link */}
+          <motion.p
+            variants={item}
+            className="mt-14 text-[9px] uppercase tracking-[0.35em] text-muted-foreground/60"
+          >
+            quickquote3d.app
+          </motion.p>
         </div>
 
+        {/* Right column: Dynamic Isometric Room rendering */}
         <motion.div
           variants={item}
-          className="relative z-20 min-h-[min(72vh,680px)] w-full overflow-visible lg:min-h-[min(90vh,820px)]"
+          className="relative w-full aspect-[4/3] flex items-center justify-center overflow-hidden p-2"
         >
-          <HeroModelViewer />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={wordIndex}
+              src={IMAGES[wordIndex]}
+              alt="Isometric room render"
+              className="max-h-full max-w-full object-contain"
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.94 }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
+            />
+          </AnimatePresence>
         </motion.div>
       </motion.div>
 

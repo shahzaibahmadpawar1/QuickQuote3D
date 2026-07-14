@@ -31,29 +31,29 @@ export interface ImmersivePalette {
 
 const DARK: ImmersivePalette = {
   isDark: true,
-  fog: '#3d2a1e',
-  ambient: 0.5,
-  dirIntensity: 0.35,
-  gridMinor: '#4a3426',
-  gridMajor: '#6B7548',
+  fog: BRAND.darkNavy,
+  ambient: 0.55,
+  dirIntensity: 0.4,
+  gridMinor: BRAND.indigo,
+  gridMajor: BRAND.slate,
   wallStrong: BRAND.cream,
-  wallSoft: BRAND.sand,
-  dimLine: BRAND.gold,
-  liftWall: BRAND.sand,
+  wallSoft: BRAND.tan,
+  dimLine: BRAND.brassDark,
+  liftWall: BRAND.tan,
   vignette: 0.62
 }
 
 const LIGHT: ImmersivePalette = {
   isDark: false,
-  fog: BRAND.beige,
+  fog: BRAND.cream,
   ambient: 0.9,
-  dirIntensity: 0.55,
-  gridMinor: BRAND.sand,
-  gridMajor: BRAND.taupe,
-  wallStrong: BRAND.brownDark,
-  wallSoft: BRAND.brown,
-  dimLine: BRAND.oliveDark,
-  liftWall: BRAND.sand,
+  dirIntensity: 0.6,
+  gridMinor: BRAND.tan,
+  gridMajor: BRAND.slate,
+  wallStrong: BRAND.navy,
+  wallSoft: BRAND.slate,
+  dimLine: BRAND.cognac,
+  liftWall: BRAND.tan,
   vignette: 0.3
 }
 

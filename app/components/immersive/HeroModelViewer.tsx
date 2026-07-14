@@ -35,6 +35,100 @@ function HeroModel() {
     scene.scale.setScalar(scale)
     // Bias slightly down so floor corners remain inside the taller canvas.
     scene.position.y -= size.y * scale * 0.1
+
+    // Programmatically skin the loaded GLB model to use ONLY the 4 allowed solid colors!
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh
+        const mat = mesh.material as THREE.MeshStandardMaterial
+        if (mat) {
+          // Remove texture maps to get solid colors
+          if (mat.map) mat.map = null
+          if (mat.roughnessMap) mat.roughnessMap = null
+          if (mat.metalnessMap) mat.metalnessMap = null
+          if (mat.normalMap) mat.normalMap = null
+          if (mat.aoMap) mat.aoMap = null
+
+          const name = mesh.name.toLowerCase()
+          const matName = mat.name.toLowerCase()
+
+          // Default mapping based on original color distance to the 4 allowed colors
+          const origColor = mat.color ? mat.color.clone() : new THREE.Color('#FFFFFF')
+          const allowedHexes = ['#FFFFFF', '#F5F5DC', '#3B3C36', '#3D0C02']
+          let closestHex = '#FFFFFF'
+          let minDistance = Infinity
+
+          allowedHexes.forEach((hex) => {
+            const allowedColor = new THREE.Color(hex)
+            const dist = Math.sqrt(
+              Math.pow(origColor.r - allowedColor.r, 2) +
+              Math.pow(origColor.g - allowedColor.g, 2) +
+              Math.pow(origColor.b - allowedColor.b, 2)
+            )
+            if (dist < minDistance) {
+              minDistance = dist
+              closestHex = hex
+            }
+          })
+
+          // Custom contextual overrides to ensure the model looks premium:
+          // 1. Plant leaves/foliage (which were green) -> Maroon (#3D0C02) or Onyx (#3B3C36)
+          if (
+            name.includes('leaf') ||
+            name.includes('plant') ||
+            name.includes('flora') ||
+            name.includes('flower') ||
+            matName.includes('leaf') ||
+            matName.includes('plant') ||
+            matName.includes('flora')
+          ) {
+            closestHex = '#3D0C02' // Elegant maroon leaves
+          }
+          // 2. Floor plan boundary lines / markers / frame -> Maroon (#3D0C02)
+          else if (name.includes('outline') || name.includes('frame') || matName.includes('frame')) {
+            closestHex = '#3D0C02'
+          }
+          // 3. Walls -> White (#FFFFFF)
+          else if (name.includes('wall') || matName.includes('wall')) {
+            closestHex = '#FFFFFF'
+          }
+          // 4. Floor -> Beige (#F5F5DC)
+          else if (
+            name.includes('floor') ||
+            name.includes('ground') ||
+            matName.includes('floor') ||
+            matName.includes('ground')
+          ) {
+            closestHex = '#F5F5DC'
+          }
+          // 5. Cushion/sofa body -> White (#FFFFFF)
+          else if (
+            name.includes('sofa') ||
+            name.includes('cushion') ||
+            matName.includes('sofa') ||
+            matName.includes('cushion')
+          ) {
+            closestHex = '#FFFFFF'
+          }
+          // 6. Metal/stands/feet -> Onyx (#3B3C36)
+          else if (
+            name.includes('metal') ||
+            name.includes('stand') ||
+            name.includes('feet') ||
+            name.includes('base') ||
+            matName.includes('metal') ||
+            matName.includes('stand') ||
+            matName.includes('feet')
+          ) {
+            closestHex = '#3B3C36'
+          }
+
+          mat.color.set(closestHex)
+          mat.needsUpdate = true
+        }
+      }
+    })
+
     return scene
   }, [gltf])
 

@@ -87,8 +87,8 @@ export function LiftScene({ store, palette }: { store: ScrollStoryStore; palette
   const glassMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: '#9ad8ff',
-        emissive: '#3f8fd6',
+        color: '#FFFFFF',
+        emissive: '#3B3C36',
         emissiveIntensity: 1.05,
         roughness: 0.06,
         metalness: 0.5,
@@ -138,7 +138,7 @@ export function LiftScene({ store, palette }: { store: ScrollStoryStore; palette
   const floorMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: '#b79a72',
+        color: '#F5F5DC',
         roughness: 0.68,
         metalness: 0.04,
         transparent: true,
@@ -209,7 +209,7 @@ export function LiftScene({ store, palette }: { store: ScrollStoryStore; palette
         ref={keyLightRef}
         position={[5, 9, 6]}
         intensity={0}
-        color="#fff4e6"
+        color="#FFFFFF"
       />
       <ContactShadows
         ref={contactRef}
@@ -218,7 +218,7 @@ export function LiftScene({ store, palette }: { store: ScrollStoryStore; palette
         blur={2.6}
         far={4}
         resolution={512}
-        color="#05040a"
+        color="#3B3C36"
         opacity={0}
       />
 

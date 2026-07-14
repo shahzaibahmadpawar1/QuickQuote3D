@@ -71,20 +71,20 @@ function Rug() {
     <group>
       <mesh position={[0, 0.015, 0]}>
         <boxGeometry args={[2.4, 0.03, 1.7]} />
-        <meshStandardMaterial color="#3a2f52" roughness={0.95} transparent opacity={0} />
+        <meshStandardMaterial color="#3D0C02" roughness={0.95} transparent opacity={0} />
       </mesh>
       <mesh position={[0, 0.032, 0]}>
         <boxGeometry args={[2.0, 0.03, 1.35]} />
-        <meshStandardMaterial color="#5a4d84" roughness={0.95} transparent opacity={0} />
+        <meshStandardMaterial color="#3B3C36" roughness={0.95} transparent opacity={0} />
       </mesh>
     </group>
   )
 }
 
 function Sofa() {
-  const fabric = '#6f7f9c'
-  const cushion = '#8698b6'
-  const feet = '#2b2f3a'
+  const fabric = '#FFFFFF'
+  const cushion = '#F5F5DC'
+  const feet = '#3B3C36'
   return (
     <group>
       <mesh position={[0, 0.18, 0]}>
@@ -127,9 +127,9 @@ function Sofa() {
 }
 
 function DiningSet() {
-  const wood = '#8a6a45'
-  const darkWood = '#5c4630'
-  const seat = '#c9b48f'
+  const wood = '#3B3C36'
+  const darkWood = '#3D0C02'
+  const seat = '#F5F5DC'
   const chairPositions: { x: number; z: number; rot: number }[] = [
     { x: -0.42, z: 0.78, rot: 0 },
     { x: 0.42, z: 0.78, rot: 0 },
@@ -176,11 +176,11 @@ function DiningSet() {
 }
 
 function Bed() {
-  const frame = '#6b5844'
-  const dark = '#4a3d2f'
-  const mattress = '#efe9dd'
-  const blanket = '#b7c4cf'
-  const pillow = '#ffffff'
+  const frame = '#3B3C36'
+  const dark = '#3D0C02'
+  const mattress = '#FFFFFF'
+  const blanket = '#F5F5DC'
+  const pillow = '#FFFFFF'
   return (
     <group>
       <mesh position={[0, 0.16, 0]}>
@@ -210,9 +210,9 @@ function Bed() {
 }
 
 function Cabinet() {
-  const wood = '#a9835a'
-  const dark = '#7c5f3f'
-  const handle = '#2b2f3a'
+  const wood = '#F5F5DC'
+  const dark = '#3B3C36'
+  const handle = '#3D0C02'
   return (
     <group>
       <mesh position={[0, 0.6, 0]}>
@@ -355,7 +355,7 @@ export function FurnitureScene({ store }: { store: ScrollStoryStore }) {
               transparent
               opacity={0}
               depthWrite={false}
-              color="#000000"
+              color="#3B3C36"
             />
           </mesh>
 
@@ -369,7 +369,7 @@ export function FurnitureScene({ store }: { store: ScrollStoryStore }) {
           >
             <ringGeometry args={[item.ringR * 0.88, item.ringR, 56]} />
             <meshBasicMaterial
-              color="#B8935F"
+              color="#3D0C02"
               transparent
               opacity={0}
               blending={THREE.AdditiveBlending}

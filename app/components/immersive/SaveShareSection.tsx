@@ -11,9 +11,9 @@ import { makeReveal } from './reveal'
 const PROJECT_URL = 'quickquote3d.app/p/maple-street'
 
 const COLLABORATORS = [
-  { initials: 'AK', tint: 'linear-gradient(135deg,#B8935F,#A67C52)' },
-  { initials: 'RM', tint: 'linear-gradient(135deg,#7C8654,#6B7548)' },
-  { initials: 'JD', tint: 'linear-gradient(135deg,#8C6B4A,#6B4A34)' }
+  { initials: 'AK', tint: '#3D0C02' },
+  { initials: 'RM', tint: '#3B3C36' },
+  { initials: 'JD', tint: '#F5F5DC' }
 ]
 
 function clamp01(x: number) {
@@ -67,9 +67,9 @@ function ProjectCard({ ghost = false }: { ghost?: boolean }) {
   return (
     <div className="share-card">
       <div className="share-card-chrome">
-        <span className="share-dot" style={{ background: '#ff5f57' }} />
-        <span className="share-dot" style={{ background: '#febc2e' }} />
-        <span className="share-dot" style={{ background: '#28c840' }} />
+        <span className="share-dot" style={{ background: '#3B3C36' }} />
+        <span className="share-dot" style={{ background: '#3B3C36' }} />
+        <span className="share-dot" style={{ background: '#3B3C36' }} />
         {!ghost && (
           <div className="share-url">
             <Link2 className="h-3 w-3 shrink-0 text-muted-foreground" />
